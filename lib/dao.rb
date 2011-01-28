@@ -1,0 +1,88 @@
+# built-ins
+#
+  require 'enumerator'
+  #require 'fileutils'
+  #require 'pathname'
+  #require 'yaml'
+  #require 'yaml/store'
+
+# gems
+#
+  begin
+    require 'rubygems'
+  rescue LoadError
+    nil
+  end
+
+  if defined?(gem)
+    gem('map', '~> 2.2.2')
+    gem('tagz', '~> 8.0')
+    gem('yajl-ruby', '~> 0.7.9')
+  end
+
+  require 'map'
+  require 'tagz'
+  require 'yajl'
+
+# dao libs
+#
+  module Dao
+    Version = '2.0.0' unless defined?(Version)
+
+    def version
+      Dao::Version
+    end
+
+    def libdir(*args, &block)
+      @libdir ||= File.expand_path(__FILE__).sub(/\.rb$/,'')
+      args.empty? ? @libdir : File.join(@libdir, *args)
+    ensure
+      if block
+        begin
+          $LOAD_PATH.unshift(@libdir)
+          block.call()
+        ensure
+          $LOAD_PATH.shift()
+        end
+      end
+    end
+
+    def load(*libs)
+      libs = libs.join(' ').scan(/[^\s+]+/)
+      Dao.libdir{ libs.each{|lib| Kernel.load(lib) } }
+    end
+
+    extend(Dao)
+  end
+
+  Dao.load %w[
+    blankslate.rb
+    exceptions.rb
+    support.rb
+    slug.rb
+    stdext.rb
+
+    result.rb
+    params.rb
+    status.rb
+    data.rb
+    form.rb
+    errors.rb
+    validations.rb
+
+    mode.rb
+    path.rb
+    endpoint.rb
+    api.rb
+
+
+    rails.rb
+    active_record.rb
+    mongo_mapper.rb
+  ]
+
+  Dao.autoload(:Db, Dao.libdir('db.rb'))
+
+  unless defined?(D)
+    D = Dao
+  end
