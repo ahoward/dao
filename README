@@ -1,8 +1,8 @@
 NAME
-  alpo.rb
+  dao
 
 SYNOPSIS
-  a library and design pattern for structuring rails applications
+  a library for structuring rails applications using the 'data access object' pattern
 
 DESCRITPION
   stay tuned...
@@ -20,23 +20,16 @@ ISSUES ADRESSED
   . easily optimize queries later
   . magic
 
-SUPPORT
-  . http://www.paperplanes.de/2010/5/7/activerecord_callbacks_ruined_my_life.html
-
-
+READING
+  http://www.paperplanes.de/2010/5/7/activerecord_callbacks_ruined_my_life.html
   http://best-practice-software-engineering.ifs.tuwien.ac.at/patterns/dao.html
   http://www.codefutures.com/data-access-object/
   http://java.sun.com/blueprints/corej2eepatterns/Patterns/DataAccessObject.html
 
 INSTALL
   gem 'dao', :path => File.expand_path('..') ### Gemfile
-
   rails generate dao api
-
   vim -o app/api.rb app/controllers/api_controller.rb
-
   curl --silent http://0.0.0.0:3000/api
-
   curl --silent http://0.0.0.0:3000/api/ping
-
     
