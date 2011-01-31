@@ -29,13 +29,17 @@ module Dao
       def #{ method }(object, *args, &block)
         case object
           when Array
-            object.map{|element| Dao.#{ method }(element)}
+            object.map{|element| Dao.#{ method }(element, *args, &block)}
 
           else
             if object.respond_to?(:#{ method })
               object.send(:#{ method }, *args, &block)
             else
-              object
+              if object.respond_to?(:to_hash)
+                object.to_hash
+              else
+                object
+              end
             end
         end
       end

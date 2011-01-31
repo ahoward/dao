@@ -8,68 +8,56 @@ end
 if defined?(ActiveRecord)
 
   module ActiveRecord
-    module ToDao
-      module ClassMethods
-        def to_dao(*args)
-
-          @to_dao ||= (
-            column_names # + reflect_on_all_associations.map(&:name)
-          ).map{|name| name.to_s}
-
-          unless args.empty?
-            @to_dao.clear
-            args.flatten.compact.each do |arg|
-              @to_dao.push(arg.to_s)
-            end
-            @to_dao.uniq!
-            @to_dao.map!{|name| name.to_s}
-          end
-
-          @to_dao
-        end
-
-        def to_dao=(*args)
-          to_dao(*args)
-        end
+    class Base
+      def Base.to_dao(*args)
+        @to_dao ||= (
+          names = column_names ### + reflect_on_all_associations.map(&:name)
+        )
+        @to_dao = Array(args) unless args.empty?
+        @to_dao
       end
 
-      module InstanceMethods
-        def to_dao(*args)
-          hash = Dao.hash
-          model = self.class
-
-          attrs = args.empty? ? model.to_dao : args
-
-          attrs.each do |attr|
-            value = send(attr)
-
-            if value.respond_to?(:to_dao)
-              hash[attr] = value.to_dao
-              next
-            end
-
-            if value.is_a?(Array)
-              hash[attr] = value.map{|val| val.respond_to?(:to_dao) ? val.to_dao : val}
-              next
-            end
-
-            hash[attr] = value
-          end
-
-          if hash.has_key?(:_id) and not hash.has_key?(:id)
-            hash[:id] = hash[:_id]
-          end
-
-          hash
-        end
-        alias_method 'to_h', 'to_dao'
-        #alias_method 'to_map', 'to_dao' ### HACK
+      def Base.to_dao=(*args)
+        to_dao(*args)
       end
-    end
 
-    if defined?(ActiveRecord::Base)
-      ActiveRecord::Base.send(:extend, ToDao::ClassMethods)
-      ActiveRecord::Base.send(:include, ToDao::InstanceMethods)
+      def to_dao(*args)
+        model = self.class
+        map = Dao.map(:type => model.name.underscore)
+
+        list = args.empty? ? model.to_dao : args
+
+        list.each do |attr|
+          if attr.is_a?(Array)
+            attr, *argv = attr
+            value = send(attr).to_dao(*argv)
+            map[attr] = value
+            next
+          end
+
+          value = send(attr)
+
+          if value.respond_to?(:to_dao)
+            map[attr] = value.to_dao
+            next
+          end
+
+          if value.is_a?(Array)
+            map[attr] = value.map{|val| val.respond_to?(:to_dao) ? val.to_dao : val}
+            next
+          end
+
+          map[attr] = value
+        end
+
+        if map.has_key?(:_id) and not map.has_key?(:id)
+          map[:id] = map[:_id]
+        end
+
+        map
+      end
+      alias_method 'to_h', 'to_dao'
+      ### alias_method 'to_map', 'to_dao' ### HACK
     end
   end
 
