@@ -160,20 +160,31 @@ module Dao
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
+      block ||= lambda{|pair| pair = Array(pair).flatten.compact; [pair.first, pair.last, selected=false]}
+
+      list = Array(from)
+      case list.first
+        when Hash, Array
+          nil
+        else
+          list.flatten!
+          list.compact!
+          list.map!{|element| [element, element]}
+      end
+
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
-        pairs = Array(params[from]).flatten
-        pairs.each do |pair|
-          result = block.call(pair)
-          case result
+        list.each do |pair|
+          returned = block.call(pair)
+          case returned
             when Array
-              value, content, selected, *ignored = result
+              value, content, selected, *ignored = returned
             when Hash
-              value = result[:value]
-              content = result[:content] || value
-              selected = result[:selected]
+              value = returned[:value]
+              content = returned[:content] || value
+              selected = returned[:selected]
             else
-              value = result
-              content = result
+              value = returned
+              content = returned
               selected = false
           end
           opts = {:value => value}
