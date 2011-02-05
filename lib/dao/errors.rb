@@ -1,7 +1,12 @@
 module Dao
   class Errors < ::Map
+    include Tagz.globally
+    class << Errors
+      include Tagz.globally
+    end
+
     Global = '*' unless defined?(Global)
-    Separator = ':' unless defined?(Separator)
+    Separator = '⇒' unless defined?(Separator)
 
     class Message < ::String
       attr_accessor :sticky
@@ -146,6 +151,7 @@ module Dao
     alias_method 'length', 'size'
 
     def full_messages
+      global_messages = []
       full_messages = []
 
       depth_first_each do |keys, value|
@@ -153,21 +159,14 @@ module Dao
         key = keys.join('.')
         value = value.to_s
         next if value.strip.empty?
-        full_messages.push([key, value])
-      end
-
-      full_messages.sort! do |a,b|
-        a, b = a.first, b.first
-        if a == Global
-          b == Global ? 0 : -1
-        elsif b == Global
-          a == Global ? 0 : 1
+        if key == Global
+          global_messages.push([key, value])
         else
-          a <=> b
+          full_messages.push([key, value])
         end
       end
 
-      full_messages
+      global_messages + full_messages
     end
 
     def each_message
@@ -208,27 +207,25 @@ module Dao
       options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
       errors = [error, *args].flatten.compact
 
-      at_least_one = false
+      at_least_one_error = false
       css_class = options[:class] || 'dao errors'
 
-      html = []
-
-      html.push("<table class='#{ css_class }'>")
-      html.push("<caption>Sorry, there were some errors.</caption>")
-        errors.each do |e|
-          e.full_messages.each do |key, value|
-            at_least_one = true
-            key = key.to_s
-            html.push("<tr class='field'>")
-              html.push("<td class='field'>#{ key }</td>")
-              html.push("<td class='separator'>#{ Separator }</td>")
-              html.push("<td class='message'>#{ value }</td>")
-            html.push("</tr>")
+      to_html =
+        table_(:class => css_class){
+          caption_{ "We're so sorry, but can you please fix the following errors?" }
+          errors.each do |e|
+            e.full_messages.each do |key, message|
+              at_least_one_error = true
+              tr_{
+                td_(:class => :key){ key }
+                td_(:class => :separator){ Separator }
+                td_(:class => :message){ message }
+              }
+            end
           end
-        end
-      html.push("</table>")
+        }
 
-      at_least_one ? html.join("\n") : ''
+      at_least_one_error ? to_html : '' 
     end
 
     def to_s(*args, &block)

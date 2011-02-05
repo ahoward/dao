@@ -19,7 +19,14 @@ module Dao
 
           def #{ mode }(*args, &block)
             if args.empty?
-              mode(#{ mode.inspect }, &block)
+              if catching_results?
+                if self.mode == #{ mode.inspect }
+                  mode(#{ mode.inspect }, &block)
+                  return!
+                end
+              else
+                mode(#{ mode.inspect }, &block)
+              end
             else
               mode(#{ mode.inspect }) do
                 call(*args, &block)
@@ -68,11 +75,7 @@ module Dao
       if block.nil?
         condition
       else
-        if condition
-          result = block.call
-          throw(:result, result) if catching_the_result?
-          result
-        end
+        send(mode, &block) if condition
       end
     end
   end

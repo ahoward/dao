@@ -16,10 +16,10 @@ module Dao
       end
 
       def no_docs_left_on_stack!
-        raise "no endpoint for #{ docs.inspect }" unless docs.empty?
+        raise "no interface for #{ docs.inspect }" unless docs.empty?
       end
 
-      %w( endpoint doc docs description desc ).each do |method|
+      %w( interface doc docs description desc ).each do |method|
         module_eval <<-__, __FILE__, __LINE__ - 1
 
           def #{ method }(*args, &block)

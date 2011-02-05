@@ -15,8 +15,8 @@
   end
 
   if defined?(gem)
-    gem('map', '~> 2.2.2')
-    gem('tagz', '~> 8.0')
+    gem('map', '~> 2.3.0')
+    gem('tagz', '~> 8.1.0')
     gem('yajl-ruby', '~> 0.7.9')
   end
 
@@ -72,7 +72,7 @@
 
     mode.rb
     path.rb
-    endpoint.rb
+    interface.rb
     api.rb
 
 

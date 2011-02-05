@@ -78,7 +78,7 @@ module Dao
     attr_accessor :keys
     attr_accessor :pattern
     attr_accessor :params
-    attr_accessor :endpoint
+    attr_accessor :interface
 
     def initialize(*args, &block)
       super(args.join('/'), &block)

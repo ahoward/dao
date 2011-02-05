@@ -2,7 +2,7 @@ Api =
   Dao.api do
 
     description 'ping!'
-    endpoint('/ping'){
+    interface('/ping'){
       data.update :time => Time.now
     }
 
@@ -29,6 +29,8 @@ Api =
 
     alias_method('user', 'effective_user')
     alias_method('user=', 'effective_user=')
+    alias_method('current_user', 'effective_user')
+    alias_method('current_user=', 'effective_user=')
 
     def api
       self
@@ -53,3 +55,7 @@ Api =
 
 
 unloadable(Api)
+
+def api(*args, &block)
+  Api.new(*args, &block)
+end

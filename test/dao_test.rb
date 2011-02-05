@@ -19,13 +19,13 @@ Testing Dao do
     }
   end
 
-  testing 'that apis can have callable endpoints added to them which accept params and return results' do
+  testing 'that apis can have callable interfaces added to them which accept params and return results' do
     captured = []
 
     api_class =
       assert{
         Dao.api do
-          endpoint(:foo) do |params, result|
+          interface(:foo) do |params, result|
             captured.push(params, result)
           end
         end
@@ -35,20 +35,20 @@ Testing Dao do
     assert{ result.is_a?(Hash) }
   end
 
-  testing 'that endpoints are automatically called according to arity' do
+  testing 'that interfaces are automatically called according to arity' do
     api = assert{ Class.new(Dao.api) }
-    assert{ api.class_eval{ endpoint(:zero){|| result.update :args => [] } } }
-    assert{ api.class_eval{ endpoint(:one){|a| result.update :args => [a]} } }
-    assert{ api.class_eval{ endpoint(:two){|a,b| result.update :args => [a,b]} } }
+    assert{ api.class_eval{ interface(:zero){|| result.update :args => [] } } }
+    assert{ api.class_eval{ interface(:one){|a| result.update :args => [a]} } }
+    assert{ api.class_eval{ interface(:two){|a,b| result.update :args => [a,b]} } }
 
     assert{ api.new.call(:zero).args.size == 0 }
     assert{ api.new.call(:one).args.size == 1 }
     assert{ api.new.call(:two).args.size == 2 }
   end
 
-  testing 'that endpoints have an auto-vivifying params/result' do
+  testing 'that interfaces have an auto-vivifying params/result' do
     api = assert{ Class.new(Dao.api) }
-    assert{ api.class_eval{ endpoint(:foo){ params; result; } } }
+    assert{ api.class_eval{ interface(:foo){ params; result; } } }
     result = assert{ api.new.call(:foo) }
     assert{ result.path.to_s =~ /foo/ }
   end
@@ -136,7 +136,7 @@ Testing Dao do
     assert{
       api_class =
         Dao.api do
-          endpoint('/foobar'){
+          interface('/foobar'){
             data.update(params)
           }
         end
@@ -193,7 +193,7 @@ Testing Dao do
     assert{
       api_class =
         Dao.api do
-          endpoint('/foobar'){
+          interface('/foobar'){
             result.validates(:a)
             params.validate(:b)
             validates(:c)
@@ -234,7 +234,7 @@ Testing Dao do
         Dao.api {
           description 'foobar'
           doc 'signature' => {'read' => '...', 'write' => '...'} 
-          endpoint('/barfoo'){}
+          interface('/barfoo'){}
         }
       }
     api_class_index = assert{ api_class.index.is_a?(Hash) }

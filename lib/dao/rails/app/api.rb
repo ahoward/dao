@@ -2,7 +2,7 @@ Api =
   Dao.api do
 
     description 'ping!'
-    endpoint('/ping'){
+    interface('/ping'){
       data.update :time => Time.now
     }
 

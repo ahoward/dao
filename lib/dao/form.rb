@@ -146,7 +146,7 @@ module Dao
           block ? block.call(params.get(keys)) : options.delete(:value)
         end
 
-      textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value }
+      textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value.to_s }
     end
 
     def select(*args, &block)

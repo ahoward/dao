@@ -53,8 +53,8 @@ module Dao
       size
     end
 
-    alias_method 'count', 'size'
-    alias_method 'length', 'size'
+    alias_method('count', 'size')
+    alias_method('length', 'size')
 
     Cleared = '___CLEARED___'.freeze unless defined?(Cleared)
 
@@ -72,9 +72,21 @@ module Dao
         next unless callback and callback.respond_to?(:to_proc)
 
         value = params.get(keys)
-        valid = !!callback.call(value)
-        #valid = !!params.instance_exec(value, &callback)
-        message = callback.options[:message] || (value.nil? ? 'is blank.' : 'is invalid.')
+        returned = callback.call(value)
+
+        case returned
+          when Hash
+            map = Dao.map(returned)
+            valid = map[:valid]
+            message = map[:message]
+
+          else
+            valid = !!returned
+            message = nil
+        end
+
+        message ||= callback.options[:message]
+        message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
 
         unless valid
           new_errors.push([keys, message])
@@ -110,6 +122,158 @@ module Dao
       callback = Validations::Callback.new(options, &block)
       args.push(callback)
       set(*args)
+    end
+  end
+
+  module Validations::Common
+    def validates_length_of(*args)
+      options = Dao.options_for!(args)
+
+      message = options[:message]
+
+      if options[:in].is_a?(Range)
+        options[:minimum] = options[:in].begin
+        options[:maximum] = options[:in].end
+      end
+      minimum = options[:minimum] || 1
+      maximum = options[:maximum]
+
+      too_short = options[:too_short] || message || 'is too short'
+      too_long = options[:too_long] || message || 'is too long'
+
+      allow_nil = options[:allow_nil]
+      allow_blank = options[:allow_blank]
+
+      minimum = Float(minimum)
+      maximum = Float(maximum) if maximum
+
+      block =
+        lambda do |value|
+          map = Dao.map(:valid => true)
+
+          if value.nil? and allow_nil
+            map[:valid] = true
+            break(map)
+          end
+
+          value = value.to_s.strip
+
+          if value.empty? and allow_blank
+            map[:valid] = true
+            break(map)
+          end
+
+          if value.size < minimum
+            map[:message] = too_short
+            map[:valid] = false
+            break(map)
+          end
+
+          if(maximum and(value.size > maximum))
+            map[:message] = too_long
+            map[:valid] = false
+            break(map)
+          end
+
+          map
+        end
+
+      validates(*args, &block)
+    end
+
+    def validates_word_count_of(*args)
+      options = Dao.options_for!(args)
+
+      message = options[:message]
+
+      if options[:in].is_a?(Range)
+        options[:minimum] = options[:in].begin
+        options[:maximum] = options[:in].end
+      end
+      minimum = options[:minimum] || 1
+      maximum = options[:maximum]
+
+      too_short = options[:too_short] || message || 'is too short'
+      too_long = options[:too_long] || message || 'is too long'
+
+      allow_nil = options[:allow_nil]
+      allow_blank = options[:allow_blank]
+
+      minimum = Float(minimum)
+      maximum = Float(maximum) if maximum
+
+      block =
+        lambda do |value|
+          map = Dao.map(:valid => true)
+
+          if value.nil? and allow_nil
+            map[:valid] = true
+            break(map)
+          end
+
+          value = value.to_s.strip
+
+          if value.empty? and allow_blank
+            map[:valid] = true
+            break(map)
+          end
+
+          words = value.split(/\s+/)
+
+          if words.size < minimum
+            map[:message] = too_short
+            map[:valid] = false
+            break(map)
+          end
+
+          if(maximum and(words.size > maximum))
+            map[:message] = too_long
+            map[:valid] = false
+            break(map)
+          end
+
+          map
+        end
+
+      validates(*args, &block)
+    end
+
+    def validates_email(*args)
+      options = Dao.options_for!(args)
+
+      message = options[:message] || "doesn't look like an email"
+
+      allow_nil = options[:allow_nil]
+      allow_blank = options[:allow_blank]
+
+      block =
+        lambda do |value|
+          map = Dao.map(:valid => true)
+
+          if value.nil? and allow_nil
+            map[:valid] = true
+            break(map)
+          end
+
+          value = value.to_s.strip
+
+          if value.empty? and allow_blank
+            map[:valid] = true
+            break(map)
+          end
+
+          parts = value.split(/@/)
+
+          unless parts.size == 2
+            map[:valid] = false
+            break(map)
+          end
+
+          map
+        end
+
+      args.push(:message => message)
+      validates(*args, &block)
     end
   end
 end

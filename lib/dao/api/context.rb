@@ -1,24 +1,24 @@
 module Dao
   class Context
-    Attrs = %w( api endpoint params result method args )
+    Attrs = %w( api interface params result method args )
     Attrs.each{|attr| attr_accessor(attr)}
 
     def initialize(*args, &block)
       options = Dao.options_for!(args)
 
       api = options[:api]
-      endpoint = options[:endpoint]
+      interface = options[:interface]
       params = options[:params]
     
-      params = Params.for(:api => api, :endpoint => endpoint, :params => params)
-      result = Result.new(:api => api, :endpoint => endpoint, :params => params)
+      params = Params.for(:api => api, :interface => interface, :params => params)
+      result = Result.new(:api => api, :interface => interface, :params => params)
       params.result = result
 
-      method = endpoint.method.bind(api)
+      method = interface.method.bind(api)
       args = [params, result].slice(0, method.arity)
 
       self.api = api
-      self.endpoint = endpoint
+      self.interface = interface
       self.params = params
       self.result = result
       self.method = method

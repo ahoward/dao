@@ -1,0 +1,27 @@
+/* dao errors */
+table.dao.errors {
+  font-weight: normal;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+}
+table.dao.errors caption {
+  font-weight: bold;
+  color: #333;
+  font-style: italic;
+  text-align: left;
+  margin-bottom: 0.5em;
+}
+table.dao.errors td.key {
+  padding-left: 1em;
+  color: #666;
+}
+table.dao.errors td.separator {
+  color: #666;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+table.dao.errors td.message {
+  font-style: italic;
+  width: 100%;
+}
+

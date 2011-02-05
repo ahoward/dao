@@ -1,7 +1,8 @@
 module Dao
   class Result < ::Map
     attr_accessor :api
-    attr_accessor :endpoint
+    attr_accessor :interface
+    attr_accessor :mode
     attr_accessor :params
     attr_accessor :validations
     attr_accessor :form
@@ -20,21 +21,23 @@ module Dao
       data = Data.new
 
       api = options[:api]
-      endpoint = options[:endpoint]
+      interface = options[:interface]
       params = options[:params] || Params.new
+      mode = options[:mode] || (api ? api.mode : Mode.default)
 
-      path = endpoint.path if endpoint
+      path = interface.path if interface
 
       form = Form.for(self)
       validations = Validations.for(self) 
 
       self[:path] = path
       self[:status] = status
+      self[:mode] = mode
       self[:errors] = errors
       self[:data] = data
 
       @api = api
-      @endpoint = endpoint
+      @interface = interface
       @params = params
       @form = form
       @validations = validations
@@ -50,6 +53,14 @@ module Dao
     end
     def status=(value)
       status(value)
+    end
+
+    def mode(*args)
+      self[:mode] = Mode.for(*args) unless args.empty?
+      self[:mode]
+    end
+    def mode=(value)
+      mode(value)
     end
 
     def errors

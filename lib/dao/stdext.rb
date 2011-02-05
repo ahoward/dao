@@ -8,3 +8,9 @@ class Array
   end
 end
 
+unless Object.new.respond_to?(:tap)
+  def tap(value, &block)
+    block.call(value)
+    value
+  end
+end

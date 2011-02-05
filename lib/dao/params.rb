@@ -24,7 +24,7 @@ module Dao
     end
 
     attr_accessor :api
-    attr_accessor :endpoint
+    attr_accessor :interface
     attr_accessor :params
     attr_accessor :result
 
@@ -32,12 +32,12 @@ module Dao
       options = Dao.options_for!(args)
 
       api = options[:api]
-      endpoint = options[:endpoint]
+      interface = options[:interface]
       updates = options[:params]
 
       params = new()
       params.api = api
-      params.endpoint = endpoint
+      params.interface = interface
 
       params.update(updates) if updates
 
