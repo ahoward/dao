@@ -185,7 +185,7 @@ Testing Dao do
   testing 'that simple validations work' do
     result = Dao::Result.new
     assert{ result.validates(:password){|password| password=='haxor'} }
-    result.params.set(:password, 'haxor')
+    result.data.set(:password, 'haxor')
     assert{ result.valid? }
   end
 
@@ -209,17 +209,16 @@ Testing Dao do
 #
   testing 'that validations can be cleared and do not clobber manually added errors' do
     result = Dao::Result.new
-    params = result.params
-    params = result.params
+    data = result.data
     errors = result.errors
 
     assert{ result.validates(:email){|email| email.to_s.split(/@/).size == 2} }
     assert{ result.validates(:password){|password| password == 'haxor'} }
 
-    params.set(:email => 'ara@dojo4.com', :password => 'fubar')
+    data.set(:email => 'ara@dojo4.com', :password => 'pa$$w0rd')
     assert{ not result.valid? }
 
-    params.set(:password => 'haxor')
+    data.set(:password => 'haxor')
     assert{ result.valid? }
 
     errors.add(:name, 'ara')

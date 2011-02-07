@@ -24,16 +24,16 @@ module Dao
       super
     end
 
-    def params
-      result.params
-    end
-
-    def ==(other)
-      params.object_id == other.params.object_id
+    def data
+      result.data
     end
 
     def errors
       result.errors
+    end
+
+    def ==(other)
+      result == other.result
     end
 
     def form(*args, &block)
@@ -87,9 +87,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(params, keys)
+          value_for(data, keys)
         else
-          block ? block.call(params.get(keys)) : options.delete(:value)
+          block ? block.call(data.get(keys)) : options.delete(:value)
         end
 
       input_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
@@ -115,9 +115,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(params, keys)
+          value_for(data, keys)
         else
-          block ? block.call(params.get(keys)) : options.delete(:value)
+          block ? block.call(data.get(keys)) : options.delete(:value)
         end
 
       button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
@@ -141,9 +141,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(params, keys)
+          value_for(data, keys)
         else
-          block ? block.call(params.get(keys)) : options.delete(:value)
+          block ? block.call(data.get(keys)) : options.delete(:value)
         end
 
       textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value.to_s }
@@ -215,9 +215,9 @@ module Dao
       end
     end
 
-    def value_for(params, keys)
-      return nil unless params.has?(keys)
-      value = Tagz.escapeHTML(params.get(keys))
+    def value_for(data, keys)
+      return nil unless data.has?(keys)
+      value = Tagz.escapeHTML(data.get(keys))
     end
 
     def name_for(keys)

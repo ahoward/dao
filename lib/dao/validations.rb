@@ -35,8 +35,8 @@ module Dao
       super
     end
 
-    def params
-      result.params
+    def data
+      result.data
     end
 
     def errors
@@ -71,7 +71,7 @@ module Dao
       depth_first_each do |keys, callback|
         next unless callback and callback.respond_to?(:to_proc)
 
-        value = params.get(keys)
+        value = data.get(keys)
         returned = callback.call(value)
 
         case returned
@@ -238,10 +238,10 @@ module Dao
       validates(*args, &block)
     end
 
-    def validates_email(*args)
+    def validates_as_email(*args)
       options = Dao.options_for!(args)
 
-      message = options[:message] || "doesn't look like an email"
+      message = options[:message] || "doesn't look like an email (username@domain.com)"
 
       allow_nil = options[:allow_nil]
       allow_blank = options[:allow_blank]
@@ -265,6 +265,85 @@ module Dao
           parts = value.split(/@/)
 
           unless parts.size == 2
+            map[:valid] = false
+            break(map)
+          end
+
+          map
+        end
+
+      args.push(:message => message)
+      validates(*args, &block)
+    end
+
+    def validates_as_url(*args)
+      options = Dao.options_for!(args)
+
+      message = options[:message] || "doesn't look like a url (http://domain.com)"
+
+      allow_nil = options[:allow_nil]
+      allow_blank = options[:allow_blank]
+
+      block =
+        lambda do |value|
+          map = Dao.map(:valid => true)
+
+          if value.nil? and allow_nil
+            map[:valid] = true
+            break(map)
+          end
+
+          value = value.to_s.strip
+
+          if value.empty? and allow_blank
+            map[:valid] = true
+            break(map)
+          end
+
+          parts = value.split(%r|://|)
+
+          unless parts.size >= 2
+            map[:valid] = false
+            break(map)
+          end
+
+          map
+        end
+
+      args.push(:message => message)
+      validates(*args, &block)
+    end
+
+    def self.validates_as(something, message, &block)
+    end
+
+    def validates_as_phone(*args)
+      options = Dao.options_for!(args)
+
+      message = options[:message] || "doesn't look like a phone number (012.345.6789)"
+
+      allow_nil = options[:allow_nil]
+      allow_blank = options[:allow_blank]
+
+      block =
+        lambda do |value|
+          map = Dao.map(:valid => true)
+
+          if value.nil? and allow_nil
+            map[:valid] = true
+            break(map)
+          end
+
+          value = value.to_s.strip
+
+          if value.empty? and allow_blank
+            map[:valid] = true
+            break(map)
+          end
+
+          parts = value.scan(/\d+/)
+
+          unless parts.size >= 1
             map[:valid] = false
             break(map)
           end
