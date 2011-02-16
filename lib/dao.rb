@@ -6,24 +6,6 @@
   #require 'yaml'
   #require 'yaml/store'
 
-# gems
-#
-  begin
-    require 'rubygems'
-  rescue LoadError
-    nil
-  end
-
-  if defined?(gem)
-    gem('map', '~> 2.7.0')
-    gem('tagz', '~> 8.1.0')
-    gem('yajl-ruby', '~> 0.7.9')
-  end
-
-  require 'map'
-  require 'tagz'
-  require 'yajl'
-
 # dao libs
 #
   module Dao
@@ -31,6 +13,14 @@
 
     def version
       Dao::Version
+    end
+
+    def dependencies
+      {
+        'map' => ['map', '~> 2.6.0'],
+        'tagz' => ['tagz', '~> 8.1.0'],
+        'yajl' => ['yajl-ruby', '~> 0.7.9']
+      }
     end
 
     def libdir(*args, &block)
@@ -53,6 +43,21 @@
     end
 
     extend(Dao)
+  end
+
+# gems
+#
+  begin
+    require 'rubygems'
+  rescue LoadError
+    nil
+  end
+
+  if defined?(gem)
+    Dao.dependencies.each do |lib, dependency|
+      gem(*dependency)
+      require(lib)
+    end
   end
 
   Dao.load %w[

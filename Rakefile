@@ -83,14 +83,16 @@ task :gemspec do
     end
 
   lib         = This.lib
-  object      = This.object
+  namespace   = This.namespace
   version     = This.version
   files       = shiteless[Dir::glob("**/**")]
   executables = shiteless[Dir::glob("bin/*")].map{|exe| File.basename(exe)}
   has_rdoc    = true #File.exist?('doc')
   test_files  = "test/#{ lib }.rb" if File.file?("test/#{ lib }.rb")
-  summary     = object.respond_to?(:summary) ? object.summary : "summary: #{ lib } kicks the ass"
-  description = object.respond_to?(:description) ? object.description : "description: #{ lib } kicks the ass"
+
+  summary     = namespace.respond_to?(:summary) ? namespace.summary : "summary: #{ lib } kicks the ass"
+  description = namespace.respond_to?(:description) ? namespace.description : "description: #{ lib } kicks the ass"
+  dependencies =  namespace.respond_to?(:dependencies) ? namespace.dependencies : []
 
   if This.extensions.nil?
     This.extensions = []
@@ -103,43 +105,47 @@ task :gemspec do
 
   template = 
     if test(?e, 'gemspec.erb')
-      Template{ IO.read('gemspec.erb') }
+      IO.read('gemspec.erb')
     else
-      Template {
-        <<-__
-          ## #{ lib }.gemspec
-          #
+      <<-__
+        ## <%= lib %>.gemspec
+        #
 
-          Gem::Specification::new do |spec|
-            spec.name = #{ lib.inspect }
-            spec.version = #{ version.inspect }
-            spec.platform = Gem::Platform::RUBY
-            spec.summary = #{ lib.inspect }
-            spec.description = #{ description.inspect }
+        Gem::Specification::new do |spec|
+          spec.name = <%= lib.inspect %> 
+          spec.version = <%= version.inspect %>
+          spec.platform = Gem::Platform::RUBY
+          spec.summary = <%= lib.inspect %>
+          spec.description = <%= description.inspect %>
 
-            spec.files = #{ files.inspect }
-            spec.executables = #{ executables.inspect }
-            
-            spec.require_path = "lib"
+          spec.files = <%= files.inspect %>
+          spec.executables = <%= executables.inspect %>
+          
+          spec.require_path = "lib"
 
-            spec.has_rdoc = #{ has_rdoc.inspect }
-            spec.test_files = #{ test_files.inspect }
+          spec.has_rdoc = <%= has_rdoc.inspect %>
 
-          # spec.add_dependency 'lib', '>= version'
-            spec.add_dependency('map', '~> 2.6.0')
-            spec.add_dependency('tagz', '~> 8.1.0')
-            spec.add_dependency('yajl-ruby', '~> 0.7.9')
+          <% if defined?(test_files) %>
+            spec.test_files = <%= test_files.inspect %>
+          <% end %>
 
-            spec.extensions.push(*#{ extensions.inspect })
+          <% dependencies.each do |dependency| 
+               lib, spec = dependency
+          %>
+            spec.add_dependency(*<%= spec.inspect %>)
+          <% end %>
 
-            spec.rubyforge_project = #{ This.rubyforge_project.inspect }
-            spec.author = #{ This.author.inspect }
-            spec.email = #{ This.email.inspect }
-            spec.homepage = #{ This.homepage.inspect }
-          end
-        __
-      }
+          spec.extensions.push(*<%= extensions.inspect %>)
+
+          spec.rubyforge_project = <%= This.rubyforge_project.inspect %>
+          spec.author = <%= This.author.inspect %>
+          spec.email = <%= This.email.inspect %>
+          spec.homepage = <%= This.homepage.inspect %>
+        end
+      __
     end
+
+  template = Template{ template }
 
   Fu.mkdir_p(This.pkgdir)
   This.gemspec = File.join(This.dir, "#{ This.lib }.gemspec") #File.join(This.pkgdir, "gemspec.rb")
@@ -231,6 +237,7 @@ BEGIN {
   require 'erb'
   require 'fileutils'
   require 'rbconfig'
+  require 'yaml'
 
 # fu shortcut
 #
@@ -244,28 +251,70 @@ BEGIN {
   This.dir = File.dirname(This.file)
   This.pkgdir = File.join(This.dir, 'pkg')
 
+# use pkg.yml iff present
+#
+  pkg_config_yml = File.join(This.dir, 'pkg/config.yml')
+  if test(?e, pkg_config_yml)
+    pkg_config = YAML::load(ERB.new(IO.read(pkg_config_yml)).result)
+
+    if pkg_config.is_a?(Hash)
+      ENV['LIB'] ||= pkg_config['lib']
+      ENV['AUTOREQUIRE'] ||= pkg_config['autorequire']
+      ENV['VERSION'] ||= pkg_config['version']
+      ENV['NAME'] ||= pkg_config['name']
+      ENV['NAMESPACE'] ||= pkg_config['namespace']
+    end
+  end
+
 # grok lib
 #
   lib = ENV['LIB']
   unless lib
-    lib = File.basename(Dir.pwd).sub(/[-].*$/, '')
+    lib = File.basename(This.dir).sub(/[-].*$/, '')
   end
   This.lib = lib
+
+# grok autorequire
+#
+  autorequire = ENV['AUTOREQUIRE']
+  unless autorequire
+    autorequire = File.join(This.dir, 'lib', This.lib)
+  end
+  This.autorequire = autorequire
+
+# load the package
+#
+  require This.autorequire
+
+# grok name
+#
+  name = ENV['NAME']
+  unless name
+    name = This.lib.capitalize
+  end
+  This.name = name
+
+# grok namespace
+#
+  namespace = ENV['NAMESPACE']
+  unless namespace
+    namespace = This.name
+  end
+  This.namespace = eval(namespace)
 
 # grok version
 #
   version = ENV['VERSION']
   unless version
-    require "./lib/#{ This.lib }"
-    This.name = lib.capitalize
-    This.object = eval(This.name)
-    version = This.object.send(:version)
+    version = This.namespace.send(:version)
   end
   This.version = version
 
 # we need to know the name of the lib an it's version
 #
   abort('no lib') unless This.lib
+  abort('no name') unless This.name
+  abort('no namespace') unless This.namespace
   abort('no version') unless This.version
 
 # discover full path to this ruby executable
