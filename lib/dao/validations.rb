@@ -11,7 +11,22 @@ module Dao
       def block
         self
       end
+
+      class Chain
+        def initialize
+          @chain = []
+        end
+
+        def add(callback)
+          @chain.push(callback)
+        end
+
+        def each(&block)
+          @chain.each(&block)
+        end
+      end
     end
+
 
     class << Validations
       def for(*args, &block)
@@ -68,30 +83,38 @@ module Dao
 
       errors.clear
 
-      depth_first_each do |keys, callback|
-        next unless callback and callback.respond_to?(:to_proc)
+      depth_first_each do |keys, chain|
+        chain.each do |callback|
+          next unless callback and callback.respond_to?(:to_proc)
 
-        value = data.get(keys)
-        returned = callback.call(value)
+          number_of_errors = errors.size
+          value = data.get(keys)
+          returned = callback.call(value)
 
-        case returned
-          when Hash
-            map = Dao.map(returned)
-            valid = map[:valid]
-            message = map[:message]
+          case returned
+            when Hash
+              map = Dao.map(returned)
+              valid = map[:valid]
+              message = map[:message]
 
+            when TrueClass, FalseClass
+              valid = returned
+              message = nil
+
+            else
+              any_errors_added = errors.size > number_of_errors
+              valid = !any_errors_added
+              message = nil
+          end
+
+          message ||= callback.options[:message]
+          message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
+
+          unless valid
+            new_errors.push([keys, message])
           else
-            valid = !!returned
-            message = nil
-        end
-
-        message ||= callback.options[:message]
-        message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
-
-        unless valid
-          new_errors.push([keys, message])
-        else
-          new_errors.push([keys, Cleared])
+            new_errors.push([keys, Cleared])
+          end
         end
       end
 
@@ -120,8 +143,11 @@ module Dao
       block = args.pop if args.last.respond_to?(:call)
       block ||= NotNil
       callback = Validations::Callback.new(options, &block)
-      args.push(callback)
-      set(*args)
+      set(args => Callback::Chain.new) unless has?(args)
+      get(args).add(callback)
+      callback
+      #args.push(callback)
+      #set(*args)
     end
   end
 
@@ -314,9 +340,6 @@ module Dao
       validates(*args, &block)
     end
 
-    def self.validates_as(something, message, &block)
-    end
-
     def validates_as_phone(*args)
       options = Dao.options_for!(args)
 
@@ -353,6 +376,48 @@ module Dao
 
       args.push(:message => message)
       validates(*args, &block)
+    end
+
+    def validates_presence_of(*args)
+      options = Dao.options_for!(args)
+
+      message = options[:message] || 'is blank or missing'
+
+      allow_nil = options[:allow_nil]
+      allow_blank = options[:allow_blank]
+
+      block =
+        lambda do |value|
+          map = Dao.map(:valid => true)
+
+          if value.nil?
+            unless allow_nil
+              map[:message] = message
+              map[:valid] = false
+              break(map)
+            end
+          end
+
+          value = value.to_s.strip
+
+          if value.empty?
+            unless allow_blank
+              map[:message] = message
+              map[:valid] = false
+              break(map)
+            end
+          end
+
+          map
+        end
+
+      validates(*args, &block)
+    end
+  end
+
+  def Validations.add(method_name, &block)
+    ::Dao::Validations::Common.module_eval do
+      define_method(method_name, &block)
     end
   end
 end

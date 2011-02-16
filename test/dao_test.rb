@@ -213,13 +213,13 @@ Testing Dao do
     errors = result.errors
 
     assert{ result.validates(:email){|email| email.to_s.split(/@/).size == 2} }
-    assert{ result.validates(:password){|password| password == 'haxor'} }
+    assert{ result.validates(:password){|password| password == 'pa$$w0rd'} }
 
     data.set(:email => 'ara@dojo4.com', :password => 'pa$$w0rd')
-    assert{ not result.valid? }
+    assert{ result.valid? }
 
     data.set(:password => 'haxor')
-    assert{ result.valid? }
+    assert{ !result.valid? }
 
     errors.add(:name, 'ara')
     assert{ not result.valid? }

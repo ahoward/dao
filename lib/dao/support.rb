@@ -63,4 +63,8 @@ module Dao
     unindent!(s)
     s
   end
+
+  def name_for(path, *keys)
+    "#{ path }(#{ Array(keys).flatten.compact.join(',') })"
+  end
 end

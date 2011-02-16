@@ -126,7 +126,7 @@ task :gemspec do
             spec.test_files = #{ test_files.inspect }
 
           # spec.add_dependency 'lib', '>= version'
-            spec.add_dependency('map', '~> 2.3.0')
+            spec.add_dependency('map', '~> 2.6.0')
             spec.add_dependency('tagz', '~> 8.1.0')
             spec.add_dependency('yajl-ruby', '~> 0.7.9')
 

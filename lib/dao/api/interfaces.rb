@@ -59,9 +59,9 @@ module Dao
       api = self
       path = Path.new(path)
       interface = interfaces[path]
-      raise(NameError, path) unless interface
+      raise(NameError, "NO SUCH INTERFACE: #{ path }") unless interface
 
-      params = parse_params(params, path)
+      params = Dao.parse(path, params)
 
       context = Context.new(
         :api => api,
@@ -80,15 +80,6 @@ module Dao
       self.class.index
     end
 
-    def parse_params(params, path)
-      return params if params.is_a?(Params)
-      re = %r/^#{ Regexp.escape(path) }/
-      params.each do |key, val|
-        return Params.parse(path, params) if key =~ re
-      end
-      return params
-    end
-
     def interfaces
       self.class.interfaces
     end
@@ -101,16 +92,41 @@ module Dao
       context.result
     end
 
+    def apply(hash = {})
+      data.apply(hash)
+    end
+
+    def update(hash = {})
+      data.update(hash)
+    end
+
+    def default(hash = {})
+      data.apply(hash)
+    end
+
     def status(*args, &block)
       result.status(*args, &block)
     end
 
-    def data
-      result.data
+    def data(*args)
+      if args.empty?
+        result.data
+      else
+        result.data.replace(*args)
+      end
+    end
+
+    def data!(*args)
+      result.data.replace(*args)
+      valid!
     end
 
     def update(*args, &block)
       data.update(*args, &block)
+    end
+
+    def replace(*args, &block)
+      data.replace(*args, &block)
     end
 
     def errors

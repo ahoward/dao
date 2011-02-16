@@ -6,6 +6,7 @@ module Dao
     attr_accessor :params
     attr_accessor :validations
     attr_accessor :form
+    attr_accessor :forcing_validity
 
     def Result.for(*args, &block)
       new(*args, &block)
@@ -41,6 +42,7 @@ module Dao
       @params = params
       @form = form
       @validations = validations
+      @forcing_validity = false
     end
 
     def path
@@ -71,28 +73,46 @@ module Dao
       self[:data]
     end
 
-    def validates(*args, &block)
-      validations.add(*args, &block)
+    def is_valid=(boolean)
+      @is_valid = !!boolean 
+    end
+
+    def is_valid(*bool)
+      @is_valid ||= nil
+      @is_valid = !!bool.first unless bool.empty?
+      @is_valid
+    end
+
+    def valid!
+      @forcing_validity = true
+    end
+
+    def valid?
+      @forcing_validity ? true : validate
     end
 
     def validate(*args, &block)
       if !args.empty?
-        validates(*args, &block)
+        validations.add(*args, &block)
       else
         validations.run
-        #status(420) if(status.ok? and !errors.empty?)
+        status(420) if(status.ok? and !errors.empty?)
         errors.empty? and status.ok?
       end
     end
 
-    def valid?
-      validate
+    def validate!(*args, &block)
+      if !args.empty?
+        validations.add(*args, &block)
+      end
+      @forcing_validity = false
+      validations.run!
+      status(420) if(status.ok? and !errors.empty?)
+      throw(:result, nil) unless(errors.empty? and status.ok?)
     end
 
-    def validate!
-      validations.run!
-      #status(420) if(status.ok? and !errors.empty?)
-      throw(:result, nil) unless(errors.empty? and status.ok?)
+    def validates(*args, &block)
+      validations.add(*args, &block)
     end
   end
 end

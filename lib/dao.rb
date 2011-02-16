@@ -15,7 +15,7 @@
   end
 
   if defined?(gem)
-    gem('map', '~> 2.3.0')
+    gem('map', '~> 2.7.0')
     gem('tagz', '~> 8.1.0')
     gem('yajl-ruby', '~> 0.7.9')
   end
@@ -85,4 +85,11 @@
 
   unless defined?(D)
     D = Dao
+  end
+
+  if defined?(Rails.env)
+    unless Rails.env.production?
+      unloadable(Dao)
+      unloadable(D)
+    end
   end

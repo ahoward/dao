@@ -154,15 +154,25 @@ module Dao
       keys = args.flatten
 
       name = options.delete(:name) || name_for(keys)
-      from = options.delete(:from) || options.delete(:select) || options.delete(:all) || options.delete(:list)
+      from = options.delete(:from) || options.delete(:options)
 
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
-      block ||= lambda{|pair| pair = Array(pair).flatten.compact; [pair.first, pair.last, selected=false]}
+      block ||= lambda{|pair| pair = Array(pair).flatten.compact; [pair.first, pair.last, selected=nil]}
+
+      if from.nil?
+        key = keys.map{|key| "#{ key }"}
+        key.last << "_options"
+        if data.key?(*key)
+          from = data.get(*key)
+        end
+      end
 
       list = Array(from)
+
+
       case list.first
         when Hash, Array
           nil
@@ -171,6 +181,8 @@ module Dao
           list.compact!
           list.map!{|element| [element, element]}
       end
+
+      selected_value = value_for(data, keys)
 
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
         list.each do |pair|
@@ -185,7 +197,10 @@ module Dao
             else
               value = returned
               content = returned
-              selected = false
+              selected = nil
+          end
+          if selected.nil?
+            selected = value.to_s==selected_value.to_s
           end
           opts = {:value => value}
           opts[:selected] = !!selected if selected
