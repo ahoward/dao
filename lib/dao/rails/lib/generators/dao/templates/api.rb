@@ -7,6 +7,8 @@ Api =
     }
 
 
+### INSERT YOUR METHOFDS HERE!
+
 
 
   ## this is simply a suggest way to model your api.  it is not required.
@@ -51,11 +53,21 @@ Api =
     def current_user?
       !!effective_user
     end
+
+    def require_effective_user!
+      unless effective_user
+        status :unauthorized
+        return!
+      end
+    end
+    alias_method('require_user!', 'require_effective_user!')
   end
 
 
-unloadable(Api)
+# don't remove this unless you understand this
+#
+  unloadable(Api)
 
-def api(*args, &block)
-  Api.new(*args, &block)
-end
+  def api(*args, &block)
+    Api.new(*args, &block)
+  end
