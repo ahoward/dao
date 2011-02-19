@@ -134,7 +134,7 @@ module Dao
     end
 
     def invalid?(*keys)
-      !get(keys).nil?
+      has?(keys) and !get(keys).nil?
     end
 
     alias_method 'on?', 'invalid?'

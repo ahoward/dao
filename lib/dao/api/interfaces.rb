@@ -85,11 +85,19 @@ module Dao
     end
 
     def context
-      callstack.last
+      callstack.last || raise('no context!')
     end
 
     def result
       context.result
+    end
+
+    def params
+      result.params
+    end
+
+    def errors
+      result.errors
     end
 
     def apply(hash = {})
@@ -100,7 +108,13 @@ module Dao
       data.update(hash)
     end
 
-    def default(hash = {})
+    def default(*args)
+      hash = Map.options_for!(args)
+      if hash.empty?
+        value = args.pop
+        key = args
+        hash = {key => value}
+      end
       data.apply(hash)
     end
 
@@ -127,14 +141,6 @@ module Dao
 
     def replace(*args, &block)
       data.replace(*args, &block)
-    end
-
-    def errors
-      result.errors
-    end
-
-    def params
-      result.params
     end
 
     def validations

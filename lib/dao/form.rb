@@ -165,9 +165,7 @@ module Dao
       if from.nil?
         key = keys.map{|key| "#{ key }"}
         key.last << "_options"
-        if data.key?(*key)
-          from = data.get(*key)
-        end
+        from = data.get(*key) if data.has?(*key)
       end
 
       list = Array(from)

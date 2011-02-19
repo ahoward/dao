@@ -44,10 +44,18 @@ module Dao
     end
 
     attr_accessor :result
+    attr_accessor :ran
 
     def initialize(*args, &block)
       @result = args.shift if args.first.is_a?(Result)
+      @ran = false
       super
+    end
+
+    alias_method('ran?', 'ran')
+
+    def params
+      result.params
     end
 
     def data
@@ -89,7 +97,14 @@ module Dao
 
           number_of_errors = errors.size
           value = data.get(keys)
-          returned = callback.call(value)
+          returned =
+            catch(:valid) do
+              if result
+                result.instance_exec(value, &callback)
+              else
+                callback.call(value)
+              end
+            end
 
           case returned
             when Hash
@@ -128,6 +143,7 @@ module Dao
         errors.add(keys, message)
       end
 
+      @ran = true
       return self
     end
 
@@ -179,26 +195,26 @@ module Dao
 
           if value.nil? and allow_nil
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           if value.size < minimum
             map[:message] = too_short
             map[:valid] = false
-            break(map)
+            throw(:valid, map)
           end
 
           if(maximum and(value.size > maximum))
             map[:message] = too_long
             map[:valid] = false
-            break(map)
+            throw(:valid, map)
           end
 
           map
@@ -234,14 +250,14 @@ module Dao
 
           if value.nil? and allow_nil
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           words = value.split(/\s+/)
@@ -249,13 +265,13 @@ module Dao
           if words.size < minimum
             map[:message] = too_short
             map[:valid] = false
-            break(map)
+            throw(:valid, map)
           end
 
           if(maximum and(words.size > maximum))
             map[:message] = too_long
             map[:valid] = false
-            break(map)
+            throw(:valid, map)
           end
 
           map
@@ -278,21 +294,21 @@ module Dao
 
           if value.nil? and allow_nil
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           parts = value.split(/@/)
 
           unless parts.size == 2
             map[:valid] = false
-            break(map)
+            throw(:valid, map)
           end
 
           map
@@ -316,21 +332,21 @@ module Dao
 
           if value.nil? and allow_nil
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           parts = value.split(%r|://|)
 
           unless parts.size >= 2
             map[:valid] = false
-            break(map)
+            throw(:valid, map)
           end
 
           map
@@ -354,21 +370,21 @@ module Dao
 
           if value.nil? and allow_nil
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
             map[:valid] = true
-            break(map)
+            throw(:valid, map)
           end
 
           parts = value.scan(/\d+/)
 
           unless parts.size >= 1
             map[:valid] = false
-            break(map)
+            throw(:valid, map)
           end
 
           map
@@ -394,7 +410,7 @@ module Dao
             unless allow_nil
               map[:message] = message
               map[:valid] = false
-              break(map)
+              throw(:valid, map)
             end
           end
 
@@ -404,7 +420,7 @@ module Dao
             unless allow_blank
               map[:message] = message
               map[:valid] = false
-              break(map)
+              throw(:valid, map)
             end
           end
 

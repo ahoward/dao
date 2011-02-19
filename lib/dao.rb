@@ -17,8 +17,8 @@
 
     def dependencies
       {
-        'map' => ['map', '~> 2.6.0'],
-        'tagz' => ['tagz', '~> 8.1.0'],
+        'map' => ['map', '~> 2.6.1'],
+        'tagz' => ['tagz', '~> 8.2.0'],
         'yajl' => ['yajl-ruby', '~> 0.7.9']
       }
     end
@@ -62,6 +62,7 @@
 
   Dao.load %w[
     blankslate.rb
+    instance_exec.rb
     exceptions.rb
     support.rb
     slug.rb

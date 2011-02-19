@@ -1,5 +1,7 @@
 module Dao
   class Result < ::Map
+    include Dao::InstanceExec
+
     attr_accessor :api
     attr_accessor :interface
     attr_accessor :mode
@@ -26,6 +28,7 @@ module Dao
       params = options[:params] || Params.new
       mode = options[:mode] || (api ? api.mode : Mode.default)
 
+      params.result = self
       path = interface.path if interface
 
       form = Form.for(self)
@@ -88,7 +91,12 @@ module Dao
     end
 
     def valid?
-      @forcing_validity ? true : validate
+      if @forcing_validity
+        true
+      else
+        validate unless validations.ran?
+        errors.empty? and status.ok?
+      end
     end
 
     def validate(*args, &block)
