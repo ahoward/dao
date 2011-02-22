@@ -4,8 +4,11 @@ class APIController < ApplicationController
   skip_before_filter true
   skip_before_filter :verify_authenticity_token
 
+  before_filter :setup_path
   before_filter :setup_api
-  before_filter :no_cache
+
+  WhiteList = %w( ping index module )
+
   ### skip_before_filter :set_current_user if Rails.env.production?
 
 ##
@@ -52,7 +55,20 @@ protected
     end
   end
 
+  def setup_path
+    @path = params[:path]
+  end
+
+  def path
+    @path
+  end
+
   def setup_api
+    if white_listed?(path)
+      @api = Api.new
+      return
+    end
+
     email, password = http_basic_auth_info
 
     if !email.blank? and !password.blank?
@@ -80,6 +96,15 @@ protected
     @api
   end
 
+  def self.white_listed?(path)
+    @white_listed ||= ( WhiteList.inject(Hash.new){|hash, path| hash.update(path.to_s => true)} )
+    @white_listed[path.to_s]
+  end
+
+  def white_listed?(path)
+    self.class.white_listed?(path)
+  end
+
   def http_basic_auth
     @http_basic_auth ||= (
       request.env['HTTP_AUTHORIZATION']   ||
@@ -94,16 +119,6 @@ protected
     username, password =
       ActiveSupport::Base64.decode64(http_basic_auth.split.last.to_s).split(/:/, 2)
   end
-
-  def no_cache
-    now = Time.now
-    httpdate = now.httpdate
-    response.headers["Cache-Control"] = 'no-store, no-cache, must-revalidate, max-age=0, pre-check=0, post-check=0'
-    response.headers["Pragma"] = 'no-cache'
-    response.headers["Expires"] = 0
-    response.headers["Last-Modified"] = now
-  end
-
 end
 
 ApiController = APIController ### rails is a bitch - shut her up
