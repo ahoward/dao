@@ -90,11 +90,13 @@ module Dao
       @forcing_validity = true
     end
 
-    def valid?
+    def valid?(*args)
       if @forcing_validity
         true
       else
+        options = Dao.options_for!(args)
         validate unless validations.ran?
+        validate if options[:validate]
         errors.empty? and status.ok?
       end
     end

@@ -219,7 +219,7 @@ Testing Dao do
     assert{ result.valid? }
 
     data.set(:password => 'haxor')
-    assert{ !result.valid? }
+    assert{ !result.valid?(:validate => true) }
 
     errors.add(:name, 'ara')
     assert{ not result.valid? }
