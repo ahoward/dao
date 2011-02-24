@@ -77,14 +77,15 @@ module Dao
     end
 
     def parse_params(path, params)
+      parsed = Dao.parse(path, params)
+      return parsed unless parsed.empty?
+
       path_key_re = Regexp.new(/^#{ Regexp.escape(path) }/)
 
       if params.keys.any?{|key| path_key_re =~ key.to_s}
-        parsed = Dao.parse(path, params)
+        parsed
       else
-        #params.delete(:action)
-        #params.delete(:controller)
-        parsed = Params.new(params)
+        Params.new(params)
       end
     end
 
