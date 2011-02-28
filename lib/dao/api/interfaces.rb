@@ -26,6 +26,8 @@ module Dao
         interfaces[path] = interface
       end
 
+      alias_method('call', 'interface')
+
       def description(string)
         doc(:description => Dao.unindent(string))
       end
