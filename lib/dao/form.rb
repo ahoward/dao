@@ -233,8 +233,24 @@ module Dao
       value = Tagz.escapeHTML(data.get(keys))
     end
 
+    def Form.name_for(path, *keys)
+      path = Path.new(path) unless path.is_a?(Path)
+      "#{ path }(#{ Array(keys).flatten.compact.join(',') })"
+    end
+
+    def Form.name_re_for(path)
+      path = Path.new(path) unless path.is_a?(Path)
+      Regexp.new(/^#{ Regexp.escape(path) }/)
+    end
+
+    def Form.encoded?(path, params)
+      name_re = Form.name_re_for(path)
+      params.keys.any?{|key| name_re =~ key.to_s}
+    end
+
+
     def name_for(keys)
-      "#{ result.path }(#{ Array(keys).flatten.compact.join(',') })"
+      Form.name_for(result.path, keys)
     end
 
     def options_for(*hashes)

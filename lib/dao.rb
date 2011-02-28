@@ -9,7 +9,7 @@
 # dao libs
 #
   module Dao
-    Version = '2.1.0' unless defined?(Version)
+    Version = '2.2.0' unless defined?(Version)
 
     def version
       Dao::Version

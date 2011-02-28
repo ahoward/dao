@@ -65,6 +65,6 @@ module Dao
   end
 
   def name_for(path, *keys)
-    "#{ path }(#{ Array(keys).flatten.compact.join(',') })"
+    Form.name_for(path, *keys)
   end
 end

@@ -23,6 +23,21 @@ module Dao
 
         parsed
       end
+
+      def process(path, params)
+        return params if params.is_a?(Params)
+
+        parsed = Params.parse(path, params)
+        return parsed unless parsed.empty?
+
+        return Params.new(params)
+        #path_key_re = Regexp.new(/^#{ Regexp.escape(path) }/)
+        #if params.keys.any?{|key| path_key_re =~ key.to_s}
+          #parsed
+        #else
+          #Params.new(params)
+        #end
+      end
     end
 
     attr_accessor :api
@@ -83,51 +98,6 @@ module Dao
   end
 
   def Dao.parse(path, params)
-    return params if params.is_a?(Params)
-
-    smells_like_unparsed_rails_params = (
-      params.has_key?(:action) and
-      params.has_key?(:controller) and
-      params.class.name =~ /HashWithIndifferentAccess/
-    )
-    return(Params.parse(path.to_s, params)) if smells_like_unparsed_rails_params
-
-    smells_like_unparsed_params = false
-    unparsed_re = %r/^#{ Regexp.escape(path.to_s) }/
-    params.each do |key, val|
-      if key =~ unparsed_re
-        smells_like_unparsed_params = true
-        break
-      end
-    end
-    return(Params.parse(path.to_s, params)) if smells_like_unparsed_params
-
-    return Params.new(params) 
+    Params.process(path, params)
   end
-
-=begin
-  def Dao.parse(path, params)
-    returned = Params.new(params)
-
-    smells_like_rails = (params.has_key?(:action) and params.has_key?(:controller) and params.class.name =~ /HashWithIndifferentAccess/)
-    if smells_like_rails
-      returned.delete(:action)
-      returned.delete(:controller)
-      returned.update(Params.parse(path, params))
-      return returned
-    end
-
-    re = %r/^#{ Regexp.escape(path) }/
-    smells_like_unparsed = false
-    params.each do |key, val|
-      break(smells_like_unparsed = true) if key =~ re
-    end
-    if smells_like_unparsed
-      returned.update(Params.parse(path, params))
-      return returned
-    end
-
-    return returned
-  end
-=end
 end
