@@ -7,7 +7,8 @@ class APIController < ApplicationController
   before_filter :setup_path
   before_filter :setup_api
 
-  WhiteList = %w( ping index module )
+  WhiteList = Set.new( %w( ping index ) )
+  BlackList = Set.new( %w( ) )
 
   ### skip_before_filter :set_current_user if Rails.env.production?
 
@@ -96,13 +97,12 @@ protected
     @api
   end
 
-  def self.white_listed?(path)
-    @white_listed ||= ( WhiteList.inject(Hash.new){|hash, path| hash.update(path.to_s => true)} )
-    @white_listed[path.to_s]
+  def white_listed?(path)
+    WhiteList.include?(path)
   end
 
-  def white_listed?(path)
-    self.class.white_listed?(path)
+  def black_listed?(path)
+    BlackList.include?(path)
   end
 
   def http_basic_auth
