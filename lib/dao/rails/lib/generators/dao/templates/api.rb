@@ -24,7 +24,7 @@ Api =
     end
 
     def user_for(arg)
-      User.find(arg)
+      User.respond_to?(:for) ? User.for(arg) : User.find(arg)
     end
 
     alias_method('user', 'effective_user')
