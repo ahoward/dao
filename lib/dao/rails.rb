@@ -14,17 +14,33 @@ if defined?(Rails)
         #unloadable(Dao)
       #end
        
+
+    # yes yes, this should probably be somewhere else...
+    #
       config.after_initialize do
 
         ActionController::Base.module_eval do
 
         # you will likely want to override this!
         #
-          def api
-            @api ||= ::Api.new(current_user) rescue nil
+          def current_api
+            @api ||= ( 
+              api = Api.new
+              %w( real_user effective_user current_user ).each do |attr|
+                getter = "#{ attr }"
+                setter = "#{ attr }="
+                if respond_to?(getter) and api.respond_to?(setter)
+                  api.send(setter, send(getter))
+                end
+              end
+              api
+            )
           end
+          helper_method(:current_api)
+          alias_method(:api, :current_api)
+          helper_method(:api)
 
-        # setup sane rescuing from dao errors with bad statuses
+        # setup sane rescuing from dao errors with crap statuses
         #
           rescue_from(Dao::Error::Result) do |error|
             result = error.result
