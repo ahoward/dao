@@ -113,6 +113,10 @@ module Dao
     Groups.each do |code, group|
       module_eval <<-__, __FILE__, __LINE__ -1
 
+        def Status.#{ group }
+          @status_group_#{ group } ||= Status.for(#{ code })
+        end
+
         def #{ group }?()
           #{ code } == @group
         end
@@ -183,8 +187,12 @@ module Dao
               message = Code2Message[code]
               new(code, message)
             when Symbol, String
-              sym = Status.underscore(arg).to_sym
-              code = Symbol2Code[sym]
+              if arg.to_s =~ %r/^\d+$/
+                code = arg.to_i
+              else
+                sym = Status.underscore(arg).to_sym
+                code = Symbol2Code[sym]
+              end
               if code
                 message = Code2Message[code]
               else

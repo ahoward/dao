@@ -124,5 +124,10 @@ module Dao
     def validates(*args, &block)
       validations.add(*args, &block)
     end
+
+
+    def error!
+      raise Dao::Error::Result.for(self)
+    end
   end
 end
