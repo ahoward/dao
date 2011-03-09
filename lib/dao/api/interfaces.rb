@@ -124,6 +124,11 @@ module Dao
       result.status(*args, &block)
     end
 
+    def status!(*args, &block)
+      status(*args, &block)
+      return!
+    end
+
     def data(*args)
       if args.empty?
         result.data
