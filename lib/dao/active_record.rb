@@ -76,8 +76,8 @@ if defined?(ActiveRecord)
         model = record.class
         model.record_to_dao(record, *args)
       end
-      alias_method('to_h', 'to_dao')
-      alias_method('to_map', 'to_dao') ### HACK
+      ### alias_method('to_h', 'to_dao')
+      ### alias_method('to_map', 'to_dao') ### HACK
     end
   end
 
