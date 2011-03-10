@@ -60,6 +60,8 @@
     end
   end
 
+  require 'yajl/json_gem'
+
   Dao.load %w[
     blankslate.rb
     instance_exec.rb
