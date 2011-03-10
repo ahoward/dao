@@ -429,6 +429,143 @@ module Dao
 
       validates(*args, &block)
     end
+
+    def validates_any_of(*args)
+      options = Dao.options_for!(args)
+      list = args
+
+      list.each do |args|
+        candidates = list.dup
+        candidates.delete(args)
+
+        message = options[:message] || "(or #{ candidates.map{|candidate| Array(candidate).join('.')}.join(', ') } ) is blank or missing"
+        allow_nil = options[:allow_nil]
+        allow_blank = options[:allow_blank]
+
+        result = self.result
+
+        block =
+          lambda do |value|
+            map = Dao.map(:valid => true)
+
+            values = list.map{|key| result.get(key)}
+            valid = false
+            values.each do |val|
+              if val
+                valid = true
+                break
+              end
+
+              if val.nil?
+                if allow_nil
+                  valid = true
+                  break
+                end
+              end
+
+              val = val.to_s.strip
+
+              if val.empty?
+                if allow_blank
+                  valid = true
+                  break
+                end
+              end
+            end
+
+            unless valid
+              if value.nil?
+                unless allow_nil
+                  map[:message] = message
+                  map[:valid] = false
+                  throw(:valid, map)
+                end
+              end
+
+              value = value.to_s.strip
+
+              if value.empty?
+                unless allow_blank
+                  map[:message] = message
+                  map[:valid] = false
+                  throw(:valid, map)
+                end
+              end
+            end
+
+            map
+          end
+        validates(*args, &block)
+      end
+    end
+
+    def validates_all_of(*args)
+      options = Dao.options_for!(args)
+      list = args
+
+      list.each do |args|
+        candidates = list.dup
+        candidates.delete(args)
+
+        message = options[:message] || "(and #{ candidates.map{|candidate| Array(candidate).join('.')}.join(', ') } ) is blank or missing"
+        allow_nil = options[:allow_nil]
+        allow_blank = options[:allow_blank]
+
+        result = self.result
+
+        block =
+          lambda do |value|
+            map = Dao.map(:valid => true)
+
+            values = list.map{|key| result.get(key)}
+            valid = true
+            values.each do |val|
+              if val
+                break
+              end
+
+              if val.nil?
+                unless allow_nil
+                  valid = false
+                  break
+                end
+              end
+
+              val = val.to_s.strip
+
+              if val.empty?
+                unless allow_blank
+                  valid = false
+                  break
+                end
+              end
+            end
+
+            unless valid
+              if value.nil?
+                unless allow_nil
+                  map[:message] = message
+                  map[:valid] = false
+                  throw(:valid, map)
+                end
+              end
+
+              value = value.to_s.strip
+
+              if value.empty?
+                unless allow_blank
+                  map[:message] = message
+                  map[:valid] = false
+                  throw(:valid, map)
+                end
+              end
+            end
+
+            map
+          end
+        validates(*args, &block)
+      end
+    end
   end
 
   def Validations.add(method_name, &block)
