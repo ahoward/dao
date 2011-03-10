@@ -125,9 +125,12 @@ module Dao
       validations.add(*args, &block)
     end
 
-
     def error!
       raise Dao::Error::Result.for(self)
+    end
+
+    def inspect
+      ::JSON.pretty_generate(object, :max_nesting => 0)
     end
   end
 end
