@@ -130,7 +130,7 @@ module Dao
     end
 
     def inspect
-      ::JSON.pretty_generate(object, :max_nesting => 0)
+      ::JSON.pretty_generate(self, :max_nesting => 0)
     end
   end
 end
