@@ -26,13 +26,52 @@ if defined?(ActiveRecord)
       end
 
       def Base.record_to_dao(record, *args)
+      # setup for eff'ing madness        
+      #
         model = record.class
         map = Dao.map
         map[:model] = model.name.underscore
         map[:id] = record.id
 
+      # yank out options if they are patently obvious...
+      #
+        if args.size == 2 and args.first.is_a?(Array) and args.last.is_a?(Hash)
+          options = Dao.map(args.last)
+          args = args.first
+        else
+          options = nil
+        end
+
+      # search for options inside args...
+      #
+        if options.nil?
+          last = args.last
+          options = Dao.map
+
+          if last.is_a?(Hash)
+            last = Dao.map(last)
+            keys = %w( include includes )
+            if keys.any?{|key| last.has_key?(key)}
+              options.update(last)
+              args.pop
+            end
+          end
+        end
+
+      # refine the list with includes iff passed as options
+      #
+        if options.has_key?(:include) or options.has_key?(:includes)
+          args.replace(model.to_dao) if args.empty?
+          args.push(options[:include]) if options[:include]
+          args.push(options[:includes]) if options[:includes]
+        end
+
+      # take passed in args or model defaults
+      #
         list = args.empty? ? model.to_dao : args
 
+      # okay - go!
+      #
         list.each do |attr|
           if attr.is_a?(Array)
             related, *argv = attr
