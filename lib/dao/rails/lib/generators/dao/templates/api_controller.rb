@@ -1,53 +1,39 @@
 class APIController < ApplicationController
   layout false
 
-  skip_before_filter true
   skip_before_filter :verify_authenticity_token
 
   before_filter :setup_path
   before_filter :setup_api
 
-  WhiteList = %w( ping index )
-  BlackList = %w( )
+  WhiteList = Set.new( %w( ping index ) )
+  BlackList = Set.new( %w( ) )
 
-  ### skip_before_filter :set_current_user if Rails.env.production?
-
-##
-# /api/foo/2/bar/4 -> api.call('/foo/2/bar/4')
-#
-  def call
-    path = params[:path]
-    mode = params['mode'] || (request.get? ? 'read' : 'write')
-
-    result = api.mode(mode).call(path, params)
-
-    respond_with(result)
-  end
-
-##
-#
   def index
-    json = json_for(api.index)
-
-    respond_to do |wants|
-      wants.json{ render(:json => json) }
-      wants.html{ render(:text => json, :content_type => 'text/plain') }
-    end
+    result = call(path, params)
+    respond_with(result)
   end
 
 protected
 
-  def respond_with(result)
-    json = json_for(result)
+  def call(path, params)
+    mode = params['mode'] || (request.get? ? 'read' : 'write')
+    result = api.mode(mode).call(path, params)
+  end
+
+  def respond_with(object, options = {})
+    json = json_for(object)
+
+    status = object.status if object.respond_to?(:status)
+    status = status.code if status.respond_to?(:code)
+    status = options[:status] || 200 unless status
 
     respond_to do |wants|
-      wants.json{ render :json => json, :status => result.status.code }
-      wants.html{ render :text => json, :status => result.status.code, :content_type => 'text/plain' }
+      wants.json{ render :json => json, :status => status }
+      wants.html{ render :text => json, :status => status, :content_type => 'text/plain' }
     end
   end
 
-# if you don't have yajl-ruby and yajl/json_gem loaded your json will suck
-#
   def json_for(object)
     if Rails.env.production?
       ::JSON.generate(object)
@@ -57,7 +43,7 @@ protected
   end
 
   def setup_path
-    @path = params[:path]
+    @path = params[:path] || params[:action] || 'index'
   end
 
   def path

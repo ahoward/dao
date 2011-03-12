@@ -12,8 +12,7 @@ class DaoGenerator < Rails::Generators::NamedBase
 
     copy_file("dao.css", "public/stylesheets/dao.css")
 
-    route("match 'api/*path' => 'api#call', :as => 'api'")
-    route("match 'api' => 'api#index', :as => 'api_index'")
+    route("match 'api(/*path)' => 'api#index', :as => 'api'")
 
     gem("yajl-ruby")
 

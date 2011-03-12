@@ -61,7 +61,11 @@ module Dao
       api = self
       path = Path.new(path)
       interface = interfaces[path]
-      raise(NameError, "NO SUCH INTERFACE: #{ path }") unless interface
+
+      unless interface
+        return index if path == '/index'
+        raise(NameError, "NO SUCH INTERFACE: #{ path }")
+      end
 
       params = Dao.parse(path, params)
 
@@ -79,7 +83,9 @@ module Dao
     end
 
     def index
-      self.class.index
+      result = Result.new('/index')
+      result.data.update(self.class.index)
+      result
     end
 
     def interfaces
