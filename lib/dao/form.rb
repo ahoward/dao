@@ -97,10 +97,13 @@ module Dao
 
     def submit(*args, &block)
       options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
-      options[:type] = :submit
-      options[:value] = block ? block.call : :Submit
-      args.push(options)
-      input(*args)
+
+      content = block ? block.call : (args.first || 'Submit')
+
+      options[:type] ||= :submit
+      options[:value] ||= content
+
+      input_(options_for(options)){}
     end
 
     def button(*args)
