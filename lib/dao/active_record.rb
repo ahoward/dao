@@ -50,7 +50,7 @@ if defined?(ActiveRecord)
 
           if last.is_a?(Hash)
             last = Dao.map(last)
-            keys = %w( include includes )
+            keys = %w( include includes with )
             if keys.any?{|key| last.has_key?(key)}
               options.update(last)
               args.pop
@@ -60,10 +60,11 @@ if defined?(ActiveRecord)
 
       # refine the list with includes iff passed as options
       #
-        if options.has_key?(:include) or options.has_key?(:includes)
+        if options.has_key?(:include) or options.has_key?(:includes) or options.has_key?(:with)
           args.replace(model.to_dao) if args.empty?
           args.push(options[:include]) if options[:include]
           args.push(options[:includes]) if options[:includes]
+          args.push(options[:with]) if options[:with]
         end
 
       # take passed in args or model defaults

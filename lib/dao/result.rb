@@ -7,6 +7,7 @@ module Dao
     attr_accessor :mode
     attr_accessor :params
     attr_accessor :validations
+    attr_accessor :presenter
     attr_accessor :form
     attr_accessor :forcing_validity
 
@@ -18,10 +19,18 @@ module Dao
       options = Dao.options_for!(args)
       args.push('/dao') if args.empty?
 
-      path = Path.for(*args)
+      path_args = args.select{|arg| arg.is_a?(String) or args.is_a?(Symbol)}
+      data_args = args.select{|arg| arg.is_a?(Hash)}
+      data_args += [options[:data]] if options.has_key?(:data)
+
+      path = Path.for(*path_args)
       status = Status.ok
       errors = Errors.new
       data = Data.new
+
+      data_args.each do |data_arg|
+        data.update(data_arg)
+      end
 
       api = options[:api]
       interface = options[:interface]
@@ -33,6 +42,7 @@ module Dao
 
       form = Form.for(self)
       validations = Validations.for(self) 
+      presenter = Presenter.for(self) 
 
       self[:path] = path
       self[:status] = status
@@ -45,6 +55,7 @@ module Dao
       @params = params
       @form = form
       @validations = validations
+      @presenter = presenter
       @forcing_validity = false
     end
 
@@ -127,6 +138,10 @@ module Dao
 
     def error!
       raise Dao::Error::Result.for(self)
+    end
+
+    def tag(*args, &block)
+      presenter.tag(*args, &block)
     end
 
     def inspect

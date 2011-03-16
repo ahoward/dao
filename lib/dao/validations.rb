@@ -447,7 +447,6 @@ module Dao
         block =
           lambda do |value|
             map = Dao.map(:valid => true)
-
             values = list.map{|key| result.get(key)}
             valid = false
             values.each do |val|

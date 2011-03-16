@@ -60,19 +60,19 @@ module Dao
       options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
       keys = args.flatten
 
-      name = options.delete(:name) || keys.last
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
+      target = options.delete(:for) || id_for(keys)
 
       content =
-        if block.nil? and !options.has_key?(:content) 
-          name.to_s.humanize
+        if block.nil? and !options.has_key?(:content)
+          humanize(keys.last)
         else
           block ? block.call() : options.delete(:content)
         end
 
-      label_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ content }
+      label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error)){ content }
     end
 
     def input(*args, &block)
@@ -271,6 +271,12 @@ module Dao
 
     def attr_for(string)
       slug_for(string).gsub(/_/, '-')
+    end
+
+    def humanize(string)
+      string = string.to_s
+      string = string.humanize if string.respond_to?(:humanize)
+      string
     end
   end
 end
