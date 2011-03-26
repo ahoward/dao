@@ -57,7 +57,7 @@ module Dao
       end
     end
 
-    def call(path = '/index', params = {})
+    def call(path = '/index', params = {}, options = {})
       api = self
       path = Path.new(path)
       interface = interfaces[path]
@@ -67,7 +67,9 @@ module Dao
         raise(NameError, "NO SUCH INTERFACE: #{ path }")
       end
 
-      params = Dao.parse(path, params)
+      options = Map.options(options || {})
+
+      params = Dao.parse(path, params, options)
 
       context = Context.new(
         :api => api,

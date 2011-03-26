@@ -105,6 +105,7 @@ READING
   http://www.codefutures.com/data-access-object/
   http://java.sun.com/blueprints/corej2eepatterns/Patterns/DataAccessObject.html
   http://www.paperplanes.de/2010/5/7/activerecord_callbacks_ruined_my_life.html
+  http://google-styleguide.googlecode.com/svn/trunk/jsoncstyleguide.xml
 
 INSTALL
   gem 'dao', :path => File.expand_path('..') ### Gemfile

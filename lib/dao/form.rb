@@ -100,6 +100,7 @@ module Dao
 
       content = block ? block.call : (args.first || 'Submit')
 
+      options[:name] ||= :submit
       options[:type] ||= :submit
       options[:value] ||= content
 

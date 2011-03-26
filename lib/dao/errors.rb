@@ -1,6 +1,7 @@
 module Dao
   class Errors < ::Map
     include Tagz.globally
+
     class << Errors
       include Tagz.globally
     end

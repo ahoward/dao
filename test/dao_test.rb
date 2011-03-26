@@ -150,6 +150,61 @@ Testing Dao do
     }
   end
 
+  testing 'that parsing folds in top level keys by default' do
+    params = {
+      'key(a)' => 40,
+      'key(b)' => 2,
+      'a' => 'clobbered',
+      'b' => 'clobbered',
+      'c' => 42
+    }
+    parsed = Dao.parse(:key, params)
+    expected = {'a' => 40, 'b' => 2, 'c' => 42}
+    assert{ parsed =~ expected }
+  end
+
+  testing 'that parsing can have folding turned off' do
+    params = {
+      'key(a)' => 40,
+      'key(b)' => 2,
+      'a' => 'clobbered',
+      'b' => 'clobbered',
+      'c' => 42
+    }
+    parsed = Dao.parse(:key, params, :fold => false)
+    expected = {'a' => 40, 'b' => 2}
+    assert{ parsed =~ expected }
+  end
+
+  testing 'that parse folding can be white list-ly selective' do
+    params = {
+      'key(a)' => 40,
+      'key(b)' => 2,
+      'a' => 'clobbered',
+      'b' => 'clobbered',
+      'c' => 42,
+      'd' => 'not included...'
+    }
+    parsed = Dao.parse(:key, params, :include => [:c])
+    expected = {'a' => 40, 'b' => 2, 'c' => 42}
+    assert{ parsed =~ expected }
+  end
+
+  testing 'that parse folding can be black list-ly selective' do
+    params = {
+      'key(a)' => 40,
+      'key(b)' => 2,
+      'a' => 'clobbered',
+      'b' => 'clobbered',
+      'c' => 42,
+      'd' => 'rejected...',
+      'e' => 'rejected...'
+    }
+    parsed = Dao.parse(:key, params, :except => [:d, :e])
+    expected = {'a' => 40, 'b' => 2, 'c' => 42}
+    assert{ parsed =~ expected }
+  end
+
 # errors.rb
 #
   testing 'that clear does not drop sticky errors' do

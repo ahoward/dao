@@ -3,9 +3,11 @@ module Dao
     include Dao::InstanceExec
 
     class << Params
-      def parse(prefix, params = {})
+      def parse(prefix, params = {}, options = {})
         prefix = prefix.to_s
-        params = Map.new(params)
+        params = Map.new(params || {})
+        base = Map.new(params || {})
+        options = Map.options(options || {})
         parsed = Params.new
         parsed.update(params[prefix]) if params.has_key?(prefix)
 
@@ -17,26 +19,44 @@ module Dao
           matched, keys = re.match(key).to_a
           next unless matched
           next unless keys
-          keys = keys.strip.split(%r/\s*,\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+          keys = keys_for(keys)
           parsed.set(keys => value)
+          base.delete(key)
         end
 
-        parsed
+        whitelist = Set.new( [options.getopt([:include, :select, :only])].flatten.compact.map{|k| k.to_s} )
+        blacklist = Set.new( [options.getopt([:exclude, :reject, :except])].flatten.compact.map{|k| k.to_s} )
+
+        unless blacklist.empty?
+          base.keys.dup.each do |key|
+            base.delete(key) if blacklist.include?(key.to_s)
+          end
+        end
+
+        unless whitelist.empty?
+          base.keys.dup.each do |key|
+            base.delete(key) unless whitelist.include?(key.to_s)
+          end
+        end
+
+        if options.getopt(:fold, default=true)
+          parsed_and_folded = base.merge(parsed)
+        else
+          parsed
+        end
       end
 
-      def process(path, params)
+      def keys_for(keys)
+        keys.strip.split(%r/\s*,\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+      end
+
+      def process(path, params, options = {})
         return params if params.is_a?(Params)
 
-        parsed = Params.parse(path, params)
+        parsed = Params.parse(path, params, options)
         return parsed unless parsed.empty?
 
         return Params.new(params)
-        #path_key_re = Regexp.new(/^#{ Regexp.escape(path) }/)
-        #if params.keys.any?{|key| path_key_re =~ key.to_s}
-          #parsed
-        #else
-          #Params.new(params)
-        #end
       end
     end
 
@@ -97,7 +117,7 @@ module Dao
     end
   end
 
-  def Dao.parse(path, params)
-    Params.process(path, params)
+  def Dao.parse(*args, &block)
+    Params.process(*args, &block)
   end
 end

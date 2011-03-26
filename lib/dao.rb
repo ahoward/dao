@@ -1,6 +1,7 @@
 # built-ins
 #
   require 'enumerator'
+  require 'set'
   #require 'fileutils'
   #require 'pathname'
   #require 'yaml'
@@ -9,7 +10,7 @@
 # dao libs
 #
   module Dao
-    Version = '2.2.1' unless defined?(Version)
+    Version = '2.2.2' unless defined?(Version)
 
     def version
       Dao::Version
@@ -19,7 +20,7 @@
       {
         'map' => ['map', '~> 2.7.0'],
         'tagz' => ['tagz', '~> 8.2.0'],
-        'yajl' => ['yajl-ruby', '~> 0.7.9']
+        'yajl' => ['yajl-ruby', '~> 0.8.1']
       }
     end
 
