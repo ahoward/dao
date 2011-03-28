@@ -160,6 +160,13 @@ module Dao
       name = options.delete(:name) || name_for(keys)
       from = options.delete(:from) || options.delete(:options)
 
+      selected =
+        if options.has_key?(:selected)
+          options.delete(:selected)
+        else
+          value_for(data, keys)
+        end
+
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
@@ -174,7 +181,6 @@ module Dao
 
       list = Array(from)
 
-
       case list.first
         when Hash, Array
           nil
@@ -184,11 +190,21 @@ module Dao
           list.map!{|element| [element, element]}
       end
 
-      selected_value = value_for(data, keys)
+      selected_value =
+        case selected
+          when Array
+            selected.first
+          when Hash
+            key = [:id, 'id', :value, 'value'].detect{|k| selected.has_key?(k)}
+            key ? selected[key] : selected
+          else
+            selected
+        end
 
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
         list.each do |pair|
           returned = block.call(pair)
+
           case returned
             when Array
               value, content, selected, *ignored = returned
@@ -201,9 +217,11 @@ module Dao
               content = returned
               selected = nil
           end
+
           if selected.nil?
             selected = value.to_s==selected_value.to_s
           end
+
           opts = {:value => value}
           opts[:selected] = !!selected if selected
           option_(opts){ content }
