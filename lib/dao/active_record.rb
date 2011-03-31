@@ -76,14 +76,16 @@ if defined?(ActiveRecord)
         list.each do |attr|
           if attr.is_a?(Array)
             related, *argv = attr
-            value = record.send(related).to_dao(*argv)
+            v = record.send(related)
+            value = v.respond_to?(:to_dao) ? v.to_dao(*argv) : v
             map[related] = value
             next
           end
 
           if attr.is_a?(Hash)
             attr.each do |related, argv|
-              value = record.send(related).to_dao(*argv)
+              v = record.send(related)
+              value = v.respond_to?(:to_dao) ? v.to_dao(*argv) : v
               map[related] = value
             end
             next
