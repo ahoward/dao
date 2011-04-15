@@ -22,6 +22,10 @@ module Dao
         @sticky ||= nil
         !!@sticky
       end
+
+      def to_s
+        self
+      end
     end
 
     class << Errors
@@ -68,7 +72,11 @@ module Dao
         else
           errors[keys] = Message.new(message, :sticky => sticky)
         end
+      else
+        raise(ArgumentError, 'no message!')
       end
+
+      message = Message.new(message) unless message.is_a?(Message)
 
       result = []
 
@@ -85,7 +93,15 @@ module Dao
       
       result
     end
-    alias_method 'add_to_base', 'add'
+    alias_method('add_to_base', 'add')
+
+    def add!(*args)
+      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options[:sticky] = true
+      args.push(options)
+      add(*args)
+    end
+    alias_method('add_to_base!', 'add!')
 
     def clone
       clone = Errors.new
@@ -97,15 +113,6 @@ module Dao
       clone
     end
 
-    def add!(*args)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
-      options[:sticky] = true
-      args.push(options)
-      add(*args)
-    end
-    alias_method 'add_to_base!', 'add!'
-
-    alias_method 'clear!', 'clear' unless instance_methods.include?('clear!')
 
     def update(other, options = {})
       options = Dao.map_for(options)
@@ -122,6 +129,7 @@ module Dao
       end
     end
 
+    alias_method('clear!', 'clear') unless instance_methods.include?('clear!')
     def clear
       keep = []
       depth_first_each do |keys, message|
@@ -137,19 +145,19 @@ module Dao
     def invalid?(*keys)
       has?(keys) and !get(keys).nil?
     end
+    alias_method('on?', 'invalid?')
 
-    alias_method 'on?', 'invalid?'
-
-    alias_method 'on', 'get'
+    def on(*args, &block)
+      get(*args, &block)
+    end
 
     def size
       size = 0
       depth_first_each{ size += 1 }
       size
     end
-
-    alias_method 'count', 'size'
-    alias_method 'length', 'size'
+    alias_method('count', 'size')
+    alias_method('length', 'size')
 
     def full_messages
       global_messages = []
@@ -174,7 +182,6 @@ module Dao
       depth_first_each do |keys, message|
         index = keys.pop
         message = message.to_s.strip
-        next if message.empty?
         yield(keys, message)
       end
     end
@@ -182,8 +189,7 @@ module Dao
     def each_full_message
       full_messages.each{|msg| yield msg}
     end
-
-    alias_method 'each_full', 'each_full_message'
+    alias_method('each_full', 'each_full_message')
 
     def messages
       messages =

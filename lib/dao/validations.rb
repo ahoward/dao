@@ -28,6 +28,8 @@ module Dao
     end
 
 
+  # class methods
+  #
     class << Validations
       def for(*args, &block)
         new(*args, &block)
@@ -43,6 +45,8 @@ module Dao
       end
     end
 
+  # instance methods
+  #
     attr_accessor :result
     attr_accessor :ran
 
@@ -51,7 +55,6 @@ module Dao
       @ran = false
       super
     end
-
     alias_method('ran?', 'ran')
 
     def params
@@ -75,11 +78,10 @@ module Dao
       depth_first_each{ size += 1 }
       size
     end
-
     alias_method('count', 'size')
     alias_method('length', 'size')
 
-    Cleared = '___CLEARED___'.freeze unless defined?(Cleared)
+    Cleared = 'Cleared'.freeze unless defined?(Cleared)
 
     def run
       previous_errors = []
@@ -88,8 +90,7 @@ module Dao
       errors.each_message do |keys, message|
         previous_errors.push([keys, message])
       end
-
-      errors.clear
+      errors.clear!
 
       depth_first_each do |keys, chain|
         chain.each do |callback|
@@ -158,12 +159,10 @@ module Dao
       options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
       block = args.pop if args.last.respond_to?(:call)
       block ||= NotNil
-      callback = Validations::Callback.new(options, &block)
+      callback = Callback.new(options, &block)
       set(args => Callback::Chain.new) unless has?(args)
       get(args).add(callback)
       callback
-      #args.push(callback)
-      #set(*args)
     end
   end
 
