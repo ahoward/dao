@@ -23,7 +23,6 @@ module Dao
   end
 
   %w( to_dao as_dao ).each do |method|
-
     module_eval <<-__, __FILE__, __LINE__ - 1
 
       def #{ method }(object, *args, &block)
@@ -46,7 +45,6 @@ module Dao
 
     __
   end
-
 
   def unindent!(s)
     margin = nil

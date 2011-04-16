@@ -184,11 +184,62 @@ module Dao
 
     include Validations::Common
 
+    def parameter(*args, &block)
+      options = Map.options_for!(args)
+
+      keys = []
+      lists_of_keys = args, Array(options[:keys]), Array(options[:or])
+      lists_of_keys.each do |list|
+        list = [list] unless list.first.is_a?(Array)
+        next if list.flatten.compact.empty?
+        list.each{|key| keys.push(key)}
+      end
+
+      raise(ArgumentError, 'no keys') if keys.empty?
+
+      missing = Object.new.freeze
+      value = missing
+
+      keys.each do |key|
+        if params.has?(key)
+          value = params.get(key)
+          break
+        end
+      end
+
+      if value == missing
+        message =
+          case options[:error]
+            when nil, false
+              nil
+            when true
+              missed = keys.map{|key| key.join('.')}.join(' or ')
+              "#{ missed } (paramter missing)"
+            else
+              message = options[:error].to_s
+          end
+        errors.add(message) if message
+
+        status(options[:status]) if options[:status]
+        return! if options[:return!]
+      end
+
+      value == missing ? nil : value
+    end
+
+    def parameter!(*args, &block)
+      options = args.last.is_a?(Hash) ? Map.for(args.pop) : Map.new
+      args.push(options)
+      options[:error] = true unless options.has_key?(:error)
+      options[:return!] = true unless options.has_key?(:return!)
+      options[:status] = 412 unless options.has_key?(:status)
+      parameter(*args, &block)
+    end
+
     def return!(*value)
       throw(:result, *value)
     end
 
-=begin
     def set(*args, &block)
       result.data.set(*args, &block)
     end
@@ -196,7 +247,6 @@ module Dao
     def get(*args, &block)
       params.data.get(*args, &block)
     end
-=end
 
     def callstack(context = nil, &block)
       @callstack ||= []
