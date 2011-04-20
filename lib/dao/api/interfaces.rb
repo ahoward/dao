@@ -1,5 +1,7 @@
 module Dao
   class Api
+  # class methods
+  #
     class << Api
       def interfaces
         @interfaces ||= Map.new
@@ -15,7 +17,6 @@ module Dao
             instance_method(path + '/interface')
           }
 
-
         interface = Interface.new(
           'api' => api,
           'path' => path,
@@ -25,7 +26,6 @@ module Dao
 
         interfaces[path] = interface
       end
-
       alias_method('call', 'interface')
 
       def description(string)
@@ -51,12 +51,14 @@ module Dao
       def index
         index = Map.new
         interfaces.each do |path, interface|
-          index[path] = interface.doc || {'description' => path}
+          index[path] = interface.doc || {'description' => ''}
         end
         index
       end
     end
 
+  # instance methods
+  #
     def call(path = '/index', params = {}, options = {})
       api = self
       path = Path.new(path)
@@ -67,27 +69,19 @@ module Dao
         raise(NameError, "NO SUCH INTERFACE: #{ path }")
       end
 
-      options = Map.options(options || {})
-
-      params = Dao.parse(path, params, options)
-
-      context = Context.new(
-        :api => api,
-        :interface => interface,
-        :params => params
-      )
+      context = Context.for(api, interface, params, options)
 
       callstack(context) do
-        catching(:result){ context.call() }
+        catching(:result) do
+          context.call()
+        end
       end
 
       context.result
     end
 
     def index
-      result = Result.new('/index')
-      result.data.update(self.class.index)
-      result
+      self.class.index
     end
 
     def interfaces
@@ -98,36 +92,53 @@ module Dao
       callstack.last || raise('no context!')
     end
 
-    def result
-      context.result
+  # delgate some methods to the context
+  #
+    Context.attrs.each do |method|
+      module_eval <<-__, __FILE__, __LINE__
+        def #{ method }(*args)
+          context.send(#{ method.inspect }, *args)
+        end
+      __
     end
 
-    def params
-      result.params
+    def return!(*value)
+      throw(:result, *value)
     end
 
-    def errors
-      result.errors
+    def status!(*args)
+      status(*args)
+      return!
     end
 
-    def apply(hash = {})
-      data.apply(hash)
+    def data!(*args)
+      data.replace(*args)
+      valid!
     end
 
-    def update(hash = {})
-      data.update(hash)
+    def params!(*args)
+      params.replace(*args)
+      valid!
     end
 
-    def default(*args)
-      hash = Map.options_for!(args)
-      if hash.empty?
-        value = args.pop
-        key = args
-        hash = {key => value}
-      end
-      data.apply(hash)
+    def error!
+      result.error!
     end
 
+  # delegate some methods to the params
+  #
+    Validations::Mixin.list.each do |method|
+      module_eval <<-__, __FILE__, __LINE__
+        def #{ method }(*args)
+          params.send(#{ method.inspect }, *args)
+        end
+      __
+    end
+
+
+
+
+=begin
     def status(*args, &block)
       result.status(*args, &block)
     end
@@ -183,7 +194,9 @@ module Dao
     end
 
     include Validations::Common
+=end
 
+=begin
     def parameter(*args, &block)
       options = Map.options_for!(args)
 
@@ -235,11 +248,9 @@ module Dao
       options[:status] = 412 unless options.has_key?(:status)
       parameter(*args, &block)
     end
+=end
 
-    def return!(*value)
-      throw(:result, *value)
-    end
-
+=begin
     def set(*args, &block)
       result.data.set(*args, &block)
     end
@@ -247,6 +258,39 @@ module Dao
     def get(*args, &block)
       params.data.get(*args, &block)
     end
+=end
+
+=begin
+    def stack(result = nil, &block)
+      @stack ||= []
+
+      if result and block
+        begin
+          @stack.push(result)
+          return block.call()
+        ensure
+          @stack.pop
+        end
+      else
+        @stack
+      end
+    end
+
+    def modestack(mode = nil, &block)
+      @modestack ||= []
+
+      if mode and block
+        begin
+          @modestack.push(mode)
+          return block.call()
+        ensure
+          @modestack.pop
+        end
+      else
+        @modestack
+      end
+    end
+=end
 
     def callstack(context = nil, &block)
       @callstack ||= []

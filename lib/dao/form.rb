@@ -1,41 +1,41 @@
 module Dao
   class Form
+  # for html generation
+  #
     include Tagz.globally
 
+    class << Form 
+      include Tagz.globally
+    end
+
+  # class methods
+  #
     class << Form 
       def for(*args, &block)
         new(*args, &block)
       end
-
-      def cast(*args)
-        if args.size == 1
-          value = args.first
-          value.is_a?(self) ? value : self.for(value)
-        else
-          self.for(*args)
-        end
-      end
     end
 
-    attr_accessor :result
+  # instance methods
+  #
+    attr_accessor :map
 
     def initialize(*args, &block)
-      @result = args.shift if args.first.is_a?(Result)
-      super
-    end
-
-    def data
-      result.data
+      @map = args.first.is_a?(Map) ? args.shift : Map.new
     end
 
     def errors
-      result.errors
+      @map.errors
     end
 
-    def ==(other)
-      result == other.result
+    def path
+      @map.path
     end
 
+
+
+  # html generation methods 
+  #
     def form(*args, &block)
       options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
       keys = args.flatten
@@ -87,9 +87,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(data, keys)
+          value_for(@map, keys)
         else
-          block ? block.call(data.get(keys)) : options.delete(:value)
+          block ? block.call(@map.get(keys)) : options.delete(:value)
         end
 
       input_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
@@ -119,9 +119,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(data, keys)
+          value_for(@map, keys)
         else
-          block ? block.call(data.get(keys)) : options.delete(:value)
+          block ? block.call(@map.get(keys)) : options.delete(:value)
         end
 
       button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
@@ -145,9 +145,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(data, keys)
+          value_for(@map, keys)
         else
-          block ? block.call(data.get(keys)) : options.delete(:value)
+          block ? block.call(@map.get(keys)) : options.delete(:value)
         end
 
       textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value.to_s }
@@ -164,7 +164,7 @@ module Dao
         if options.has_key?(:selected)
           options.delete(:selected)
         else
-          value_for(data, keys)
+          value_for(@map, keys)
         end
 
       id = options.delete(:id) || id_for(keys)
@@ -176,7 +176,7 @@ module Dao
       if from.nil?
         key = keys.map{|key| "#{ key }"}
         key.last << "_options"
-        from = data.get(*key) if data.has?(*key)
+        from = @map.get(*key) if @map.has?(*key)
       end
 
       list = Array(from)
@@ -229,14 +229,16 @@ module Dao
       }
     end
 
+  # html generation support methods
+  #
     def id_for(keys)
-      id = [result.path, keys.join('-')].compact.join('_')
+      id = [path, keys.join('-')].compact.join('_')
       slug_for(id)
     end
 
     def class_for(keys, klass = nil)
       klass = 
-        if result.errors.on?(keys)
+        if errors.on?(keys)
           [klass, 'dao', 'errors'].compact.join(' ')
         else
           [klass, 'dao'].compact.join(' ')
@@ -245,14 +247,12 @@ module Dao
     end
 
     def error_for(keys, klass = nil)
-      if result.errors.on?(keys)
-        result.errors.get(keys)
-      end
+      errors.get(keys) if errors.on?(keys)
     end
 
-    def value_for(data, keys)
-      return nil unless data.has?(keys)
-      value = Tagz.escapeHTML(data.get(keys))
+    def value_for(map, keys)
+      return nil unless map.has?(keys)
+      value = Tagz.escapeHTML(map.get(keys))
     end
 
     def Form.name_for(path, *keys)
@@ -270,9 +270,8 @@ module Dao
       params.keys.any?{|key| name_re =~ key.to_s}
     end
 
-
     def name_for(keys)
-      Form.name_for(result.path, keys)
+      Form.name_for(path, keys)
     end
 
     def options_for(*hashes)

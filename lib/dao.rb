@@ -10,7 +10,7 @@
 # dao libs
 #
   module Dao
-    Version = '2.2.4' unless defined?(Version)
+    Version = '3.0.0' unless defined?(Version)
 
     def version
       Dao::Version
@@ -18,7 +18,7 @@
 
     def dependencies
       {
-        'map'  => ['map'       , '~> 2.7.0'],
+        'map'  => ['map'       , '~> 2.9.1'],
         'tagz' => ['tagz'      , '~> 8.2.0'],
         'yajl' => ['yajl-ruby' , '~> 0.8.1']
       }
@@ -71,14 +71,14 @@
     slug.rb
     stdext.rb
 
-    result.rb
-    params.rb
     status.rb
-    data.rb
-    form.rb
     errors.rb
+    form.rb
     validations.rb
     presenter.rb
+    data.rb
+    result.rb
+    params.rb
 
     mode.rb
     path.rb

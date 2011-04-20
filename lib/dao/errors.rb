@@ -1,14 +1,20 @@
 module Dao
   class Errors < ::Map
+  # for html generation
+  #
     include Tagz.globally
 
     class << Errors
       include Tagz.globally
     end
 
+  # you can tweak these if you want
+  #
     Global = '*' unless defined?(Global)
     Separator = '⇒' unless defined?(Separator)
 
+  # string message support class - knows when it's sticky...
+  #
     class Message < ::String
       attr_accessor :sticky
 
@@ -28,6 +34,8 @@ module Dao
       end
     end
 
+  # class methods
+  #
     class << Errors
       def global_key
         [Global]
@@ -36,17 +44,10 @@ module Dao
       def for(*args, &block)
         new(*args, &block)
       end
-
-      def cast(*args)
-        if args.size == 1
-          value = args.first
-          value.is_a?(self) ? value : self.for(value)
-        else
-          self.for(*args)
-        end
-      end
     end
 
+  # instance methods
+  #
     def add(*args)
       options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
       sticky = options[:sticky]
@@ -112,7 +113,6 @@ module Dao
       end
       clone
     end
-
 
     def update(other, options = {})
       options = Dao.map_for(options)
@@ -197,6 +197,8 @@ module Dao
         select{|message| not message.strip.empty?}
     end
 
+  # html generation methods
+  #
     def to_html(*args)
       Errors.to_html(errors=self, *args)
     end

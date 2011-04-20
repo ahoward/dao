@@ -3,7 +3,13 @@ module Dao
     class Error < ::StandardError; end
     class Error::Params < Error; end
 
+  # class methods
+  #
     class << Path
+      def default
+        Path.for(:dao)
+      end
+
       def for(*args)
         new(absolute_path_for(*args))
       end
@@ -19,15 +25,6 @@ module Dao
 
       def absolute_path_for(arg, *args)
         ('/' + paths_for(arg, *args).join('/')).squeeze('/')
-      end
-
-      def cast(*args)
-        if args.size == 1
-          value = args.first
-          value.is_a?(self) ? value : self.for(value)
-        else
-          self.for(*args)
-        end
       end
 
       def params?(string)

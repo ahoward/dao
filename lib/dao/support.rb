@@ -65,4 +65,8 @@ module Dao
   def name_for(path, *keys)
     Form.name_for(path, *keys)
   end
+
+  def parse(*args, &block)
+    Params.process(*args, &block)
+  end
 end

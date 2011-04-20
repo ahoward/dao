@@ -59,9 +59,9 @@ Testing Dao do
     result = assert{ Dao::Result.new }
     assert{ result.path }
     assert{ result.status }
-    assert{ result.data }
     assert{ result.errors }
-    assert{ result.validations }
+    assert{ result.params }
+    assert{ result.data }
   end
 
   testing 'that results can be created with a path' do
@@ -238,10 +238,10 @@ Testing Dao do
 # validations
 #
   testing 'that simple validations work' do
-    result = Dao::Result.new
-    assert{ result.validates(:password){|password| password=='haxor'} }
-    result.data.set(:password, 'haxor')
-    assert{ result.valid? }
+    params = Dao::Params.new
+    assert{ params.validates(:password){|password| password=='haxor'} }
+    params.set(:password, 'haxor')
+    assert{ params.valid? }
   end
 
   testing 'that validations have some syntax sugar' do
@@ -249,35 +249,39 @@ Testing Dao do
       api_class =
         Dao.api do
           interface('/foobar'){
-            result.validates(:a)
-            params.validate(:b)
-            validates(:c)
+            params.validate(:a)
+            validates(:b)
+            validate!
           }
         end
       api = api_class.new
 
-      result = assert{ api.call('/foobar', 'a' => true, 'b' => true, 'c' => true) }
+      result = assert{ api.call('/foobar', 'a' => true, 'b' => true) }
+      assert{ result.status.ok? }
+
+      result = assert{ api.call('/foobar') }
+      assert{ !result.status.ok? }
+      assert{ result.errors.size==2 }
     }
   end
 
 # validating
 #
   testing 'that validations can be cleared and do not clobber manually added errors' do
-    result = Dao::Result.new
-    data = result.data
-    errors = result.errors
+    params = Dao::Params.new
+    errors = params.errors
 
-    assert{ result.validates(:email){|email| email.to_s.split(/@/).size == 2} }
-    assert{ result.validates(:password){|password| password == 'pa$$w0rd'} }
+    assert{ params.validates(:email){|email| email.to_s.split(/@/).size == 2} }
+    assert{ params.validates(:password){|password| password == 'pa$$w0rd'} }
 
-    data.set(:email => 'ara@dojo4.com', :password => 'pa$$w0rd')
-    assert{ result.valid? }
+    params.set(:email => 'ara@dojo4.com', :password => 'pa$$w0rd')
+    assert{ params.valid? }
 
-    data.set(:password => 'haxor')
-    assert{ !result.valid?(:validate => true) }
+    params.set(:password => 'haxor')
+    assert{ !params.valid?(:validate => true) }
 
     errors.add(:name, 'ara')
-    assert{ not result.valid? }
+    assert{ not params.valid? }
   end
 
 # doc

@@ -70,6 +70,10 @@ module Dao
         downcase
     end
 
+    def Status.default
+      Status.for(200)
+    end
+
     Symbol2Code = (
       Code2Message.inject(Hash.new) do |hash, (code, message)|
         sym = Status.underscore(message.gsub(/\s+/, "")).to_sym
@@ -90,6 +94,10 @@ module Dao
     attr :group
 
     def initialize(*args)
+      update(*args)
+    end
+
+    def update(*args)
       code, message =
         if args.size == 2
           [args.first, args.last]
@@ -101,6 +109,7 @@ module Dao
       @group = (@code / 100) * 100
       replace("#{ @code } #{ @message }".strip)
     end
+    alias_method('set', 'update')
 
     Groups = ({
       100 => 'instruction',
@@ -112,7 +121,6 @@ module Dao
 
     Groups.each do |code, group|
       module_eval <<-__, __FILE__, __LINE__ -1
-
         def Status.#{ group }
           @status_group_#{ group } ||= Status.for(#{ code })
         end
@@ -120,7 +128,6 @@ module Dao
         def #{ group }?()
           #{ code } == @group
         end
-
       __
     end
 
@@ -222,15 +229,6 @@ module Dao
         end
         new(code, message)
       end
-
-      def cast(*args)
-        if args.size == 1
-          value = args.first
-          value.is_a?(self) ? value : self.for(value)
-        else
-          self.for(*args)
-        end
-      end
     end
   end
 
@@ -243,8 +241,12 @@ module Dao
   end
 end
 
-__END__
 
+
+
+
+
+__END__
 
 ### ref: http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 

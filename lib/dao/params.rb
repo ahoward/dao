@@ -1,7 +1,11 @@
 module Dao
   class Params < ::Map
-    include Dao::InstanceExec
+  # mixins
+  #
+    include Validations::Mixin
 
+  # class methods
+  #
     class << Params
       def parse(prefix, params = {}, options = {})
         prefix = prefix.to_s
@@ -60,64 +64,26 @@ module Dao
       end
     end
 
-    attr_accessor :api
-    attr_accessor :interface
-    attr_accessor :params
+  # instance methods
+  #
     attr_accessor :result
+    attr_accessor :path
+    attr_accessor :status
+    attr_accessor :errors
+    attr_accessor :validations
+    attr_accessor :form
 
-    def Params.for(*args, &block)
-      options = Dao.options_for!(args)
-
-      api = options[:api]
-      interface = options[:interface]
-      updates = options[:params]
-
-      params = new()
-      params.api = api
-      params.interface = interface
-
-      params.update(updates) if updates
-
-      params
+    def initialize(*args, &block)
+      @path = Path.default
+      @status = Status.default
+      @errors = Errors.new
+      @validations = Validations.for(self)
+      @form = Form.for(self)
+      super
     end
 
-    def path
-      result.path if result
+    def inspect
+      ::JSON.pretty_generate(self, :max_nesting => 0)
     end
-
-    def status(*args)
-      result.status(*args) if result
-    end
-    def status=(value)
-      result.status=value if result
-    end
-
-    def errors
-      result.errors if result
-    end
-
-    def data
-      result.data if result
-    end
-
-    def validates(*args, &block)
-      result.validates(*args, &block) if result
-    end
-
-    def validate(*args, &block)
-      result.validate(*args, &block) if result
-    end
-
-    def valid?
-      result.valid? if result
-    end
-
-    def validate!
-      result.validate! if result
-    end
-  end
-
-  def Dao.parse(*args, &block)
-    Params.process(*args, &block)
   end
 end

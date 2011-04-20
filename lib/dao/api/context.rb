@@ -1,38 +1,61 @@
 module Dao
   class Context
-    Attrs = %w( api interface params result method args )
-    Attrs.each{|attr| attr_accessor(attr)}
+    Attrs = %w( api path interface method args status errors params result data form validations )
 
-    def initialize(*args, &block)
+    Attrs.each{|a| attr_accessor(a)}
+
+    def Context.attrs
+      Attrs
+    end
+
+    def Context.for(api, interface, params, *args)
+    # setup
+    #
       options = Dao.options_for!(args)
 
-      api = options[:api]
-      interface = options[:interface]
-      params = options[:params]
-    
-      params = Params.for(:api => api, :interface => interface, :params => params)
-      result = Result.new(:api => api, :interface => interface, :params => params)
-      params.result = result
+      path = interface.path
+      parsed_params = Dao.parse(path, params, options)
+
+      result = Result.new
+      params = result.params
+      params.update(parsed_params)
 
       method = interface.method.bind(api)
       args = [params, result].slice(0, method.arity)
 
-      self.api = api
-      self.interface = interface
-      self.params = params
-      self.result = result
-      self.method = method
-      self.args = args
+    # build the context
+    #
+      context = new
+      context.api = api
+      context.interface = interface
+      context.path = path
+      context.method = method
+      context.args = args
+      context.status = Status.ok
+      context.errors = Errors.new
+
+      context.result = result
+      context.data = result.data
+
+      context.params = params
+      context.form = params.form
+      context.validations = params.validations
+
+    # wire up shared state
+    #
+      result.path = context.path
+      result.status = context.status
+      result.errors = context.errors
+
+      params.path = context.path
+      params.status = context.status
+      params.errors = context.errors
+
+      context
     end
 
-    def call()
+    def call
       method.call(*args)
-    end
-
-    def update(options = {})
-      options.each do |key, val|
-        send("#{ key }=", val)
-      end
     end
   end
 end
