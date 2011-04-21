@@ -82,8 +82,23 @@ module Dao
       super
     end
 
+  # look good for inspect
+  #
     def inspect
       ::JSON.pretty_generate(self, :max_nesting => 0)
+    end
+
+  # support updates with dao-ish objects
+  #
+    add_conversion_method!(:to_dao)
+    add_conversion_method!(:as_dao)
+
+    def update(*args, &block)
+      if args.size==1 and args.first.respond_to?(:to_dao)
+        to_dao = args.first.to_dao
+        return super(to_dao)
+      end
+      super
     end
   end
 end

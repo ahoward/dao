@@ -106,8 +106,13 @@ module Dao
       throw(:result, *value)
     end
 
+    def status(*args)
+      context.status.update(*args) unless args.empty?
+      context.status
+    end
+
     def status!(*args)
-      status(*args)
+      status.update(*args)
       return!
     end
 
@@ -135,7 +140,53 @@ module Dao
       __
     end
 
+  # parameter parsing support
+  #
+    def parameter(*args, &block)
+      options = Map.options_for!(args)
 
+      keys = args + Array(options[:keys]) + Array(options[:or])
+
+      raise(ArgumentError, 'no keys') if keys.empty?
+
+      missing = Object.new.freeze
+      value = missing
+
+      keys.each do |key|
+        if params.has?(key)
+          value = params.get(key)
+          break
+        end
+      end
+
+      if value == missing
+        message =
+          case options[:error]
+            when nil, false
+              nil
+            when true
+              missed = keys.map{|key| Array(key).join('.')}.join(' or ')
+              "#{ missed } (paramter missing)"
+            else
+              message = options[:error].to_s
+          end
+        errors.add(message) if message
+
+        status(options[:status]) if options[:status]
+        return! if options[:return!]
+      end
+
+      value == missing ? nil : value
+    end
+
+    def parameter!(*args, &block)
+      options = args.last.is_a?(Hash) ? Map.for(args.pop) : Map.new
+      args.push(options)
+      options[:error] = true unless options.has_key?(:error)
+      options[:return!] = true unless options.has_key?(:return!)
+      options[:status] = 412 unless options.has_key?(:status)
+      parameter(*args, &block)
+    end
 
 
 =begin

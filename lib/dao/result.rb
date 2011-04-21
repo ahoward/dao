@@ -20,8 +20,24 @@ module Dao
       raise Dao::Error::Result.for(self)
     end
 
+  # look good for inspect
+  #
     def inspect
       ::JSON.pretty_generate(self, :max_nesting => 0)
+    end
+
+  # delegate some methods to the params
+  #
+    Validations::Mixin.list.each do |method|
+      module_eval <<-__, __FILE__, __LINE__
+        def #{ method }(*args)
+          params.send(#{ method.inspect }, *args)
+        end
+      __
+    end
+
+    def form
+      params.form
     end
   end
 end
