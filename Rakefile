@@ -1,7 +1,7 @@
 This.rubyforge_project = 'codeforpeople'
 This.author = "Ara T. Howard"
 This.email = "ara.t.howard@gmail.com"
-This.homepage = "http://github.com/ahoward/#{ This.lib }"
+This.homepage = "https://github.com/ahoward/#{ This.lib }"
 
 
 task :default do
@@ -26,7 +26,7 @@ def run_tests!(which = nil)
         
   div = ('=' * 119)
   line = ('-' * 119)
-  helper = nil #"-r ./test/helper.rb" if test(?e, "./test/helper.rb")
+  helper = "-r ./test/helper.rb" if test(?e, "./test/helper.rb")
 
   test_rbs.each_with_index do |test_rb, index|
     testno = index + 1
@@ -59,9 +59,9 @@ end
 
 
 task :gemspec do
-  ignore_extensions = 'git', 'svn', 'tmp', /sw./, 'bak', 'gem'
-  ignore_directories = %w[ pkg ]
-  ignore_files = %w[ test/log ]
+  ignore_extensions = ['git', 'svn', 'tmp', /sw./, 'bak', 'gem']
+  ignore_directories = ['pkg']
+  ignore_files = ['test/log']
 
   shiteless = 
     lambda do |list|
@@ -83,16 +83,14 @@ task :gemspec do
     end
 
   lib         = This.lib
-  namespace   = This.namespace
+  object      = This.object
   version     = This.version
   files       = shiteless[Dir::glob("**/**")]
   executables = shiteless[Dir::glob("bin/*")].map{|exe| File.basename(exe)}
-  has_rdoc    = true #File.exist?('doc')
+  #has_rdoc    = true #File.exist?('doc')
   test_files  = "test/#{ lib }.rb" if File.file?("test/#{ lib }.rb")
-
-  summary     = namespace.respond_to?(:summary) ? namespace.summary : "summary: #{ lib } kicks the ass"
-  description = namespace.respond_to?(:description) ? namespace.description : "description: #{ lib } kicks the ass"
-  dependencies =  namespace.respond_to?(:dependencies) ? namespace.dependencies : []
+  summary     = object.respond_to?(:summary) ? object.summary : "summary: #{ lib } kicks the ass"
+  description = object.respond_to?(:description) ? object.description : "description: #{ lib } kicks the ass"
 
   if This.extensions.nil?
     This.extensions = []
@@ -105,51 +103,45 @@ task :gemspec do
 
   template = 
     if test(?e, 'gemspec.erb')
-      IO.read('gemspec.erb')
+      Template{ IO.read('gemspec.erb') }
     else
-      <<-__
-        ## <%= lib %>.gemspec
-        #
+      Template {
+        <<-__
+          ## #{ lib }.gemspec
+          #
 
-        Gem::Specification::new do |spec|
-          spec.name = <%= lib.inspect %> 
-          spec.version = <%= version.inspect %>
-          spec.platform = Gem::Platform::RUBY
-          spec.summary = <%= lib.inspect %>
-          spec.description = <%= description.inspect %>
+          Gem::Specification::new do |spec|
+            spec.name = #{ lib.inspect }
+            spec.version = #{ version.inspect }
+            spec.platform = Gem::Platform::RUBY
+            spec.summary = #{ lib.inspect }
+            spec.description = #{ description.inspect }
 
-          spec.files = <%= files.inspect %>
-          spec.executables = <%= executables.inspect %>
-          
-          spec.require_path = "lib"
+            spec.files =\n#{ files.sort.pretty_inspect }
+            spec.executables = #{ executables.inspect }
+            
+            spec.require_path = "lib"
 
-          spec.has_rdoc = <%= has_rdoc.inspect %>
+            spec.test_files = #{ test_files.inspect }
 
-          <% if defined?(test_files) %>
-            spec.test_files = <%= test_files.inspect %>
-          <% end %>
+          ### spec.add_dependency 'lib', '>= version'
+          #### spec.add_dependency 'map'
 
-          <% dependencies.each do |dependency| 
-               lib, spec = dependency
-          %>
-            spec.add_dependency(*<%= spec.inspect %>)
-          <% end %>
+            spec.extensions.push(*#{ extensions.inspect })
 
-          spec.extensions.push(*<%= extensions.inspect %>)
-
-          spec.rubyforge_project = <%= This.rubyforge_project.inspect %>
-          spec.author = <%= This.author.inspect %>
-          spec.email = <%= This.email.inspect %>
-          spec.homepage = <%= This.homepage.inspect %>
-        end
-      __
+            spec.rubyforge_project = #{ This.rubyforge_project.inspect }
+            spec.author = #{ This.author.inspect }
+            spec.email = #{ This.email.inspect }
+            spec.homepage = #{ This.homepage.inspect }
+          end
+        __
+      }
     end
 
-  template = Template{ template }
-
   Fu.mkdir_p(This.pkgdir)
-  This.gemspec = File.join(This.dir, "#{ This.lib }.gemspec") #File.join(This.pkgdir, "gemspec.rb")
-  open("#{ This.gemspec }", "w"){|fd| fd.puts(template)}
+  gemspec = "#{ lib }.gemspec"
+  open(gemspec, "w"){|fd| fd.puts(template)}
+  This.gemspec = gemspec
 end
 
 task :gem => [:clean, :gemspec] do
@@ -159,8 +151,8 @@ task :gem => [:clean, :gemspec] do
   `#{ cmd }`
   after = Dir['*.gem']
   gem = ((after - before).first || after.first) or abort('no gem!')
-  Fu.mv gem, This.pkgdir
-  This.gem = File.basename(gem)
+  Fu.mv(gem, This.pkgdir)
+  This.gem = File.join(This.pkgdir, File.basename(gem))
 end
 
 task :readme do
@@ -216,12 +208,18 @@ task :release => [:clean, :gemspec, :gem] do
   gems = Dir[File.join(This.pkgdir, '*.gem')].flatten
   raise "which one? : #{ gems.inspect }" if gems.size > 1
   raise "no gems?" if gems.size < 1
-  cmd = "rubyforge login && rubyforge add_release #{ This.rubyforge_project } #{ This.lib } #{ This.version } #{ This.pkgdir }/#{ This.gem }"
+
+  cmd = "gem push #{ This.gem }"
   puts cmd
-  system cmd
-  cmd = "gem push #{ This.pkgdir }/#{ This.gem }"
+  puts
+  system(cmd)
+  abort("cmd(#{ cmd }) failed with (#{ $?.inspect })") unless $?.exitstatus.zero?
+
+  cmd = "rubyforge login && rubyforge add_release #{ This.rubyforge_project } #{ This.lib } #{ This.version } #{ This.gem }"
   puts cmd
-  system cmd
+  puts
+  system(cmd)
+  abort("cmd(#{ cmd }) failed with (#{ $?.inspect })") unless $?.exitstatus.zero?
 end
 
 
@@ -237,7 +235,7 @@ BEGIN {
   require 'erb'
   require 'fileutils'
   require 'rbconfig'
-  require 'yaml'
+  require 'pp'
 
 # fu shortcut
 #
@@ -251,70 +249,28 @@ BEGIN {
   This.dir = File.dirname(This.file)
   This.pkgdir = File.join(This.dir, 'pkg')
 
-# use pkg.yml iff present
-#
-  pkg_config_yml = File.join(This.dir, 'pkg/config.yml')
-  if test(?e, pkg_config_yml)
-    pkg_config = YAML::load(ERB.new(IO.read(pkg_config_yml)).result)
-
-    if pkg_config.is_a?(Hash)
-      ENV['LIB'] ||= pkg_config['lib']
-      ENV['AUTOREQUIRE'] ||= pkg_config['autorequire']
-      ENV['VERSION'] ||= pkg_config['version']
-      ENV['NAME'] ||= pkg_config['name']
-      ENV['NAMESPACE'] ||= pkg_config['namespace']
-    end
-  end
-
 # grok lib
 #
   lib = ENV['LIB']
   unless lib
-    lib = File.basename(This.dir).sub(/[-].*$/, '')
+    lib = File.basename(Dir.pwd).sub(/[-].*$/, '')
   end
   This.lib = lib
-
-# grok autorequire
-#
-  autorequire = ENV['AUTOREQUIRE']
-  unless autorequire
-    autorequire = File.join(This.dir, 'lib', This.lib)
-  end
-  This.autorequire = autorequire
-
-# load the package
-#
-  require This.autorequire
-
-# grok name
-#
-  name = ENV['NAME']
-  unless name
-    name = This.lib.capitalize
-  end
-  This.name = name
-
-# grok namespace
-#
-  namespace = ENV['NAMESPACE']
-  unless namespace
-    namespace = This.name
-  end
-  This.namespace = eval(namespace)
 
 # grok version
 #
   version = ENV['VERSION']
   unless version
-    version = This.namespace.send(:version)
+    require "./lib/#{ This.lib }"
+    This.name = lib.capitalize
+    This.object = eval(This.name)
+    version = This.object.send(:version)
   end
   This.version = version
 
 # we need to know the name of the lib an it's version
 #
   abort('no lib') unless This.lib
-  abort('no name') unless This.name
-  abort('no namespace') unless This.namespace
   abort('no version') unless This.version
 
 # discover full path to this ruby executable
@@ -338,11 +294,11 @@ BEGIN {
     def unindent(s)
       indent = nil
       s.each_line do |line|
-        next if line =~ %r/^\s*$/
-        indent = line[%r/^\s*/] and break
-      end
-      indent ? s.gsub(%r/^#{ indent }/, "") : s
+      next if line =~ %r/^\s*$/
+      indent = line[%r/^\s*/] and break
     end
+    indent ? s.gsub(%r/^#{ indent }/, "") : s
+  end
     extend self
   end
 
@@ -350,11 +306,11 @@ BEGIN {
 #
   class Template
     def initialize(&block)
-      @block = block.binding
+      @block = block
       @template = block.call.to_s
     end
     def expand(b=nil)
-      ERB.new(Util.unindent(@template)).result(b||@block)
+      ERB.new(Util.unindent(@template)).result((b||@block).binding)
     end
     alias_method 'to_s', 'expand'
   end
