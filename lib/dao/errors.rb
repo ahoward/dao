@@ -11,7 +11,9 @@ module Dao
   # you can tweak these if you want
   #
     Global = '*' unless defined?(Global)
-    Separator = '⇒' unless defined?(Separator)
+    #Separator = '⇒' unless defined?(Separator)
+    Separator = "\342\207\222" unless defined?(Separator)  ### this is an "Open-outlined rightward arrow" - http://en.wikipedia.org/wiki/List_of_Unicode_characters#Supplemental_arrows-A
+
 
   # string message support class - knows when it's sticky...
   #

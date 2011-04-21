@@ -48,7 +48,7 @@ module Dao
 
   def unindent!(s)
     margin = nil
-    s.each do |line|
+    s.each_line do |line|
       next if line =~ %r/^\s*$/
       margin = line[%r/^\s*/] and break
     end

@@ -18,8 +18,8 @@
 
     def dependencies
       {
-        'map'  => ['map'       , '~> 2.9.1'],
-        'tagz' => ['tagz'      , '~> 8.2.0'],
+        'map'  => ['map'       , '~> 3.0.0'],
+        'tagz' => ['tagz'      , '~> 9.0.0'],
         'yajl' => ['yajl-ruby' , '~> 0.8.1']
       }
     end
@@ -75,7 +75,6 @@
     errors.rb
     form.rb
     validations.rb
-    presenter.rb
     data.rb
     result.rb
     params.rb
