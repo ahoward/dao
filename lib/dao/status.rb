@@ -61,56 +61,6 @@ module Dao
       }
     ) unless defined?(Code2Message)
 
-    def Status.underscore(camel_cased_word)
-      camel_cased_word.to_s.gsub(/::/, '/').
-        gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
-        gsub(/([a-z\d])([A-Z])/,'\1_\2').
-        #gsub(/\s+/, '').
-        tr("-", "_").
-        downcase
-    end
-
-    def Status.default
-      Status.for(200)
-    end
-
-    Symbol2Code = (
-      Code2Message.inject(Hash.new) do |hash, (code, message)|
-        sym = Status.underscore(message.gsub(/\s+/, "")).to_sym
-        hash.update(sym => code)
-      end
-    ) unless defined?(Symbol2Code)
-
-    Symbol2Code.each do |sym, code|
-      module_eval <<-__
-        def Status.#{ sym }()
-          @#{ sym } ||= Status.for(:#{ sym })
-        end
-      __
-    end
-
-    attr :code
-    attr :message
-    attr :group
-
-    def initialize(*args)
-      update(*args)
-    end
-
-    def update(*args)
-      code, message =
-        if args.size == 2
-          [args.first, args.last]
-        else
-          status = Status.for(args.first || 200)
-          [status.code, status.message]
-        end
-      @code, @message = Integer(code), String(message)
-      @group = (@code / 100) * 100
-      replace("#{ @code } #{ @message }".strip)
-    end
-    alias_method('set', 'update')
-
     Groups = ({
       100 => 'instruction',
       200 => 'success',
@@ -119,59 +69,26 @@ module Dao
       500 => 'server_error'
     }) unless defined?(Groups)
 
-    Groups.each do |code, group|
-      module_eval <<-__, __FILE__, __LINE__ -1
-        def Status.#{ group }
-          @status_group_#{ group } ||= Status.for(#{ code })
-        end
-
-        def #{ group }?()
-          #{ code } == @group
-        end
-      __
-    end
-
-    def Status.list
-      @list ||= Symbol2Code.sort_by{|sym, code| code}.map{|sym, code| send(sym)}
-    end
-
-    def good?
-      @group < 400
-    end
-    alias_method 'ok?', 'good?'
-
-    def bad?
-      @group >= 400
-    end
-    alias_method 'error?', 'bad?'
-
-    def =~(other)
-      begin
-        other = Status.for(other)
-        self.group == other.group
-      rescue
-        false
-      end
-    end
-
-    def ==(other)
-      begin
-        other = Status.for(other)
-        self.code == other.code and self.message == other.message
-      rescue
-        false
-      end
-    end
-
-    def clone
-      clone = Status.for(code)
-    end
-
-    def to_json(*args, &block)
-      Map[:code, code, :message, message].to_json(*args, &block)
-    end
-
+  # class methods
+  #
     class << Status
+      def list
+        @list ||= Symbol2Code.sort_by{|sym, code| code}.map{|sym, code| send(sym)}
+      end
+
+      def underscore(camel_cased_word)
+        camel_cased_word.to_s.gsub(/::/, '/').
+          gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+          gsub(/([a-z\d])([A-Z])/,'\1_\2').
+          #gsub(/\s+/, '').
+          tr("-", "_").
+          downcase
+      end
+
+      def default
+        Status.for(200)
+      end
+
       def for(*args)
         if args.size >= 2
           code = args.shift
@@ -230,6 +147,93 @@ module Dao
         new(code, message)
       end
     end
+
+    Symbol2Code = (
+      Code2Message.inject(Hash.new) do |hash, (code, message)|
+        sym = Status.underscore(message.gsub(/\s+/, "")).to_sym
+        hash.update(sym => code)
+      end
+    ) unless defined?(Symbol2Code)
+
+    Symbol2Code.each do |sym, code|
+      module_eval <<-__
+        def Status.#{ sym }()
+          @#{ sym } ||= Status.for(:#{ sym }).freeze
+        end
+      __
+    end
+
+  # instance methods
+  #
+    attr :code
+    attr :message
+    attr :group
+
+    def initialize(*args)
+      update(*args)
+    end
+
+    def update(*args)
+      code, message =
+        if args.size == 2
+          [args.first, args.last]
+        else
+          status = Status.for(args.first || 200)
+          [status.code, status.message]
+        end
+      @code, @message = Integer(code), String(message)
+      @group = (@code / 100) * 100
+      replace("#{ @code } #{ @message }".strip)
+    end
+    alias_method('set', 'update')
+
+    Groups.each do |code, group|
+      module_eval <<-__, __FILE__, __LINE__ -1
+        def Status.#{ group }
+          @status_group_#{ group } ||= Status.for(#{ code })
+        end
+
+        def #{ group }?()
+          #{ code } == @group
+        end
+      __
+    end
+
+    def good?
+      @group < 400
+    end
+    alias_method('ok?', 'good?')
+
+    def bad?
+      @group >= 400
+    end
+    alias_method('error?', 'bad?')
+
+    def =~(other)
+      begin
+        other = Status.for(other)
+        self.group == other.group
+      rescue
+        false
+      end
+    end
+
+    def ==(other)
+      begin
+        other = Status.for(other)
+        self.code == other.code and self.message == other.message
+      rescue
+        false
+      end
+    end
+
+    def clone
+      clone = Status.for(code)
+    end
+
+    def to_json(*args, &block)
+      Map[:code, code, :message, message].to_json(*args, &block)
+    end
   end
 
   def Dao.status(*args, &block)
@@ -240,10 +244,6 @@ module Dao
     end
   end
 end
-
-
-
-
 
 
 __END__

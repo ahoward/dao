@@ -264,7 +264,7 @@ module Dao
 
     def validates_any_of(*args)
       options = Dao.options_for!(args)
-      list = args
+      list = args + Array(options.delete(:keys)) + Array(options.delete(:or))
 
       list.each do |args|
         candidates = list.dup

@@ -31,7 +31,7 @@ module Dao
       context.path = path
       context.method = method
       context.args = args
-      context.status = Status.ok
+      context.status = Status.default
       context.errors = Errors.new
 
       context.result = result

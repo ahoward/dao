@@ -57,7 +57,11 @@ module Dao
       end
     end
 
-  # instance methods
+# instance methods
+#
+
+
+  # call support 
   #
     def call(path = '/index', params = {}, options = {})
       api = self
@@ -80,16 +84,56 @@ module Dao
       context.result
     end
 
-    def index
-      self.class.index
-    end
+  # context support
+  #
+    def callstack(context = nil, &block)
+      @callstack ||= []
 
-    def interfaces
-      self.class.interfaces
+      if block and context
+        begin
+          @callstack.push(context)
+          return block.call()
+        ensure
+          @callstack.pop
+        end
+      else
+        @callstack
+      end
     end
 
     def context
       callstack.last || raise('no context!')
+    end
+
+    def catching(label = :result, &block)
+      @catching ||= []
+
+      if block
+        begin
+          @catching.push(label)
+          catch(label, &block)
+        ensure
+          @catching.pop
+        end
+      else
+        @catching.last
+      end
+    end
+
+    def return!(*value)
+      throw(:result, *value)
+    end
+
+    def catching_results(&block)
+      catching(:result, &block)
+    end
+
+    def catching?
+      catching
+    end
+
+    def catching_results?
+      catching == :result
     end
 
   # delgate some methods to the context
@@ -102,22 +146,21 @@ module Dao
       __
     end
 
-    def return!(*value)
-      throw(:result, *value)
-    end
-
     def status(*args)
       context.status.update(*args) unless args.empty?
       context.status
     end
-
     def status!(*args)
       status.update(*args)
       return!
     end
 
+    def data(*args)
+      context.data.replace(*args) unless args.empty?
+      context.data
+    end
     def data!(*args)
-      data.replace(*args)
+      data(*args)
       valid!
     end
 
@@ -140,7 +183,21 @@ module Dao
       __
     end
 
-  # parameter parsing support
+  # misc
+  #
+    def index
+      self.class.index
+    end
+
+    def interfaces
+      self.class.interfaces
+    end
+
+    def respond_to?(*args)
+      super(*args) || super(Path.absolute_path_for(*args))
+    end
+
+  # immediate parameter parsing support
   #
     def parameter(*args, &block)
       options = Map.options_for!(args)
@@ -178,6 +235,7 @@ module Dao
 
       value == missing ? nil : value
     end
+    alias_method('param', 'parameter')
 
     def parameter!(*args, &block)
       options = args.last.is_a?(Hash) ? Map.for(args.pop) : Map.new
@@ -187,206 +245,6 @@ module Dao
       options[:status] = 412 unless options.has_key?(:status)
       parameter(*args, &block)
     end
-
-
-=begin
-    def status(*args, &block)
-      result.status(*args, &block)
-    end
-
-    def status!(*args, &block)
-      status(*args, &block)
-      return!
-    end
-
-    def data(*args)
-      if args.empty?
-        result.data
-      else
-        result.data.replace(*args)
-      end
-    end
-
-    def data!(*args)
-      result.data.replace(*args)
-      valid!
-    end
-
-    def update(*args, &block)
-      data.update(*args, &block)
-    end
-
-    def replace(*args, &block)
-      data.replace(*args, &block)
-    end
-
-    def validations
-      result.validations
-    end
-
-    def validates(*args, &block)
-      result.validates(*args, &block)
-    end
-
-    def validate
-      result.validate
-    end
-
-    def valid?
-      result.valid?
-    end
-
-    def validate!
-      result.validate!
-    end
-
-    def valid!
-      result.valid!
-    end
-
-    include Validations::Common
-=end
-
-=begin
-    def parameter(*args, &block)
-      options = Map.options_for!(args)
-
-      keys = []
-      lists_of_keys = args, Array(options[:keys]), Array(options[:or])
-      lists_of_keys.each do |list|
-        list = [list] unless list.first.is_a?(Array)
-        next if list.flatten.compact.empty?
-        list.each{|key| keys.push(key)}
-      end
-
-      raise(ArgumentError, 'no keys') if keys.empty?
-
-      missing = Object.new.freeze
-      value = missing
-
-      keys.each do |key|
-        if params.has?(key)
-          value = params.get(key)
-          break
-        end
-      end
-
-      if value == missing
-        message =
-          case options[:error]
-            when nil, false
-              nil
-            when true
-              missed = keys.map{|key| key.join('.')}.join(' or ')
-              "#{ missed } (paramter missing)"
-            else
-              message = options[:error].to_s
-          end
-        errors.add(message) if message
-
-        status(options[:status]) if options[:status]
-        return! if options[:return!]
-      end
-
-      value == missing ? nil : value
-    end
-
-    def parameter!(*args, &block)
-      options = args.last.is_a?(Hash) ? Map.for(args.pop) : Map.new
-      args.push(options)
-      options[:error] = true unless options.has_key?(:error)
-      options[:return!] = true unless options.has_key?(:return!)
-      options[:status] = 412 unless options.has_key?(:status)
-      parameter(*args, &block)
-    end
-=end
-
-=begin
-    def set(*args, &block)
-      result.data.set(*args, &block)
-    end
-
-    def get(*args, &block)
-      params.data.get(*args, &block)
-    end
-=end
-
-=begin
-    def stack(result = nil, &block)
-      @stack ||= []
-
-      if result and block
-        begin
-          @stack.push(result)
-          return block.call()
-        ensure
-          @stack.pop
-        end
-      else
-        @stack
-      end
-    end
-
-    def modestack(mode = nil, &block)
-      @modestack ||= []
-
-      if mode and block
-        begin
-          @modestack.push(mode)
-          return block.call()
-        ensure
-          @modestack.pop
-        end
-      else
-        @modestack
-      end
-    end
-=end
-
-    def callstack(context = nil, &block)
-      @callstack ||= []
-
-      if block and context
-        begin
-          @callstack.push(context)
-          return block.call()
-        ensure
-          @callstack.pop
-        end
-      else
-        @callstack
-      end
-    end
-
-    def catching(label = :result, &block)
-      @catching ||= []
-
-      if block
-        begin
-          @catching.push(label)
-          catch(label, &block)
-        ensure
-          @catching.pop
-        end
-      else
-        @catching.last
-      end
-    end
-
-    def catching_results(&block)
-      catching(:result, &block)
-    end
-
-    def catching?
-      catching
-    end
-
-    def catching_results?
-      catching == :result
-    end
-
-    def respond_to?(*args)
-      super(*args) || super(Path.absolute_path_for(*args))
-    end
+    alias_method('param!', 'parameter!')
   end
 end
