@@ -206,24 +206,24 @@ module Dao
 
       raise(ArgumentError, 'no keys') if keys.empty?
 
-      missing = Object.new.freeze
-      value = missing
+      blank = Object.new.freeze
+      value = blank
 
       keys.each do |key|
         if params.has?(key)
           value = params.get(key)
-          break
+          break unless value.to_s.strip.empty?
         end
       end
 
-      if value == missing
+      if value == blank
         message =
           case options[:error]
             when nil, false
               nil
             when true
-              missed = keys.map{|key| Array(key).join('.')}.join(' or ')
-              "#{ missed } (paramter missing)"
+              which = keys.map{|key| Array(key).join('.')}.join(' or ')
+              "#{ which } (paramter is blank)"
             else
               message = options[:error].to_s
           end
@@ -233,7 +233,7 @@ module Dao
         return! if options[:return!]
       end
 
-      value == missing ? nil : value
+      value == blank ? nil : value
     end
     alias_method('param', 'parameter')
 

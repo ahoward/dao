@@ -23,33 +23,33 @@ module Dao
 
       block =
         lambda do |value|
-          map = Dao.map(:valid => true)
+          m = Dao.map(:valid => true)
 
           if value.nil? and allow_nil
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           if value.size < minimum
-            map[:message] = too_short
-            map[:valid] = false
-            throw(:valid, map)
+            m[:message] = too_short
+            m[:valid] = false
+            throw(:valid, m)
           end
 
           if(maximum and(value.size > maximum))
-            map[:message] = too_long
-            map[:valid] = false
-            throw(:valid, map)
+            m[:message] = too_long
+            m[:valid] = false
+            throw(:valid, m)
           end
 
-          map
+          m
         end
 
       validates(*args, &block)
@@ -78,35 +78,35 @@ module Dao
 
       block =
         lambda do |value|
-          map = Dao.map(:valid => true)
+          m = Dao.map(:valid => true)
 
           if value.nil? and allow_nil
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           words = value.split(/\s+/)
 
           if words.size < minimum
-            map[:message] = too_short
-            map[:valid] = false
-            throw(:valid, map)
+            m[:message] = too_short
+            m[:valid] = false
+            throw(:valid, m)
           end
 
           if(maximum and(words.size > maximum))
-            map[:message] = too_long
-            map[:valid] = false
-            throw(:valid, map)
+            m[:message] = too_long
+            m[:valid] = false
+            throw(:valid, m)
           end
 
-          map
+          m
         end
 
       validates(*args, &block)
@@ -122,28 +122,28 @@ module Dao
 
       block =
         lambda do |value|
-          map = Dao.map(:valid => true)
+          m = Dao.map(:valid => true)
 
           if value.nil? and allow_nil
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           parts = value.split(/@/)
 
           unless parts.size == 2
-            map[:valid] = false
-            throw(:valid, map)
+            m[:valid] = false
+            throw(:valid, m)
           end
 
-          map
+          m
         end
 
       args.push(:message => message)
@@ -160,28 +160,28 @@ module Dao
 
       block =
         lambda do |value|
-          map = Dao.map(:valid => true)
+          m = Dao.map(:valid => true)
 
           if value.nil? and allow_nil
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           parts = value.split(%r|://|)
 
           unless parts.size >= 2
-            map[:valid] = false
-            throw(:valid, map)
+            m[:valid] = false
+            throw(:valid, m)
           end
 
-          map
+          m
         end
 
       args.push(:message => message)
@@ -198,28 +198,28 @@ module Dao
 
       block =
         lambda do |value|
-          map = Dao.map(:valid => true)
+          m = Dao.map(:valid => true)
 
           if value.nil? and allow_nil
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           value = value.to_s.strip
 
           if value.empty? and allow_blank
-            map[:valid] = true
-            throw(:valid, map)
+            m[:valid] = true
+            throw(:valid, m)
           end
 
           parts = value.scan(/\d+/)
 
           unless parts.size >= 1
-            map[:valid] = false
-            throw(:valid, map)
+            m[:valid] = false
+            throw(:valid, m)
           end
 
-          map
+          m
         end
 
       args.push(:message => message)
@@ -236,13 +236,13 @@ module Dao
 
       block =
         lambda do |value|
-          map = Dao.map(:valid => true)
+          m = Dao.map(:valid => true)
 
           if value.nil?
             unless allow_nil
-              map[:message] = message
-              map[:valid] = false
-              throw(:valid, map)
+              m[:message] = message
+              m[:valid] = false
+              throw(:valid, m)
             end
           end
 
@@ -250,13 +250,13 @@ module Dao
 
           if value.empty?
             unless allow_blank
-              map[:message] = message
-              map[:valid] = false
-              throw(:valid, map)
+              m[:message] = message
+              m[:valid] = false
+              throw(:valid, m)
             end
           end
 
-          map
+          m
         end
 
       validates(*args, &block)
@@ -278,7 +278,7 @@ module Dao
 
         block =
           lambda do |value|
-            map = Dao.map(:valid => true)
+            m = Dao.map(:valid => true)
             values = list.map{|key| result.get(key)}
             valid = false
             values.each do |val|
@@ -307,9 +307,9 @@ module Dao
             unless valid
               if value.nil?
                 unless allow_nil
-                  map[:message] = message
-                  map[:valid] = false
-                  throw(:valid, map)
+                  m[:message] = message
+                  m[:valid] = false
+                  throw(:valid, m)
                 end
               end
 
@@ -317,14 +317,14 @@ module Dao
 
               if value.empty?
                 unless allow_blank
-                  map[:message] = message
-                  map[:valid] = false
-                  throw(:valid, map)
+                  m[:message] = message
+                  m[:valid] = false
+                  throw(:valid, m)
                 end
               end
             end
 
-            map
+            m
           end
         validates(*args, &block)
       end
@@ -332,7 +332,7 @@ module Dao
 
     def validates_all_of(*args)
       options = Dao.options_for!(args)
-      list = args
+      list = args + Array(options.delete(:keys)) + Array(options.delete(:or))
 
       list.each do |args|
         candidates = list.dup
@@ -346,7 +346,7 @@ module Dao
 
         block =
           lambda do |value|
-            map = Dao.map(:valid => true)
+            m = Dao.map(:valid => true)
 
             values = list.map{|key| result.get(key)}
             valid = true
@@ -375,9 +375,9 @@ module Dao
             unless valid
               if value.nil?
                 unless allow_nil
-                  map[:message] = message
-                  map[:valid] = false
-                  throw(:valid, map)
+                  m[:message] = message
+                  m[:valid] = false
+                  throw(:valid, m)
                 end
               end
 
@@ -385,17 +385,73 @@ module Dao
 
               if value.empty?
                 unless allow_blank
-                  map[:message] = message
-                  map[:valid] = false
-                  throw(:valid, map)
+                  m[:message] = message
+                  m[:valid] = false
+                  throw(:valid, m)
                 end
               end
             end
 
-            map
+            m
           end
         validates(*args, &block)
       end
+    end
+
+    def validates_confirmation_of(*args)
+      options = Dao.options_for!(args)
+
+
+      confirmation_key = args.map{|k| k.to_s}
+      last = confirmation_key.pop
+      last = "#{ last }_confirmation" unless last =~ /_confirmation$/
+      confirmation_key.push(last)
+
+      key = args.map{|k| k.to_s}
+      last = key.pop
+      last.sub!(/_confirmation$/, '')
+      key.push(last)
+
+      message = options[:message] || "does not match #{ key.join('.') }"
+
+      allow_nil = options[:allow_nil]
+      allow_blank = options[:allow_blank]
+
+      block =
+        lambda do |value|
+          m = Dao.map(:valid => true)
+
+          if value.nil?
+            unless allow_nil
+              m[:message] = message
+              m[:valid] = false
+              throw(:valid, m)
+            end
+          end
+
+          value = value.to_s.strip
+
+          if value.empty?
+            unless allow_blank
+              m[:message] = message
+              m[:valid] = false
+              throw(:valid, m)
+            end
+          end
+
+          target = get(key).to_s.strip
+          confirmed = target == value
+
+          unless confirmed
+            m[:message] = message
+            m[:valid] = false
+            throw(:valid, m)
+          end
+
+          m
+        end
+
+      validates(confirmation_key, &block)
     end
   end
 

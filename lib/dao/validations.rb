@@ -51,6 +51,7 @@ module Dao
       @errors = options[:errors] || Errors.new
       @status = options[:status] || Status.default
 
+      @map.extend(InstanceExec) unless @map.respond_to?(:instance_exec)
       @ran = false
       super
     end
@@ -77,11 +78,8 @@ module Dao
           value = @map.get(keys)
           returned =
             catch(:valid) do
-              if @map.respond_to?(:instance_exec)
-                @map.instance_exec(value, &callback)
-              else
-                callback.call(value)
-              end
+              args = [value, map].slice(0, callback.arity)
+              @map.instance_exec(*args, &callback)
             end
 
           case returned

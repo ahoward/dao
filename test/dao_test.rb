@@ -265,6 +265,45 @@ Testing Dao do
     }
   end
 
+  testing 'that validations use instance_exec' do
+    a, b = nil
+
+    api_class =
+      Dao.api do
+        interface('/foobar'){
+          params.validate(:a){ b = get(:b) }
+          params.validate(:b){ a = get(:a) }
+          validate!
+        }
+      end
+    api = api_class.new
+
+    result = assert{ api.call('/foobar', 'a' => 40, 'b' => 2) }
+    assert{ result.status.ok? }
+    assert{ a == 40 }
+    assert{ b == 2 }
+  end
+
+  testing 'simple validates_confirmation_of' do
+    api_class =
+      Dao.api do
+        interface('/foobar'){
+          params.validates_as_email(:email)
+          params.validates_confirmation_of(:email)
+          validate!
+        }
+      end
+    api = api_class.new
+
+    result = assert{ api.call('/foobar', 'email' => 'ara.t.howard@gmail.com', 'email_confirmation' => 'ara.t.howard@gmail.com') }
+    assert{ result.status.ok? }
+    assert{ result.errors.empty? }
+
+    result = assert{ api.call('/foobar', 'email' => 'ara.t.howard@gmail.com', 'email_confirmation' => 'ara@dojo4.com') }
+    assert{ !result.status.ok? }
+    assert{ !result.errors.empty? }
+  end
+
 # validating
 #
   testing 'that validations can be cleared and do not clobber manually added errors' do
