@@ -16,7 +16,7 @@ module Dao
       path = interface.path
       parsed_params = Dao.parse(path, params, options)
 
-      result = Result.new
+      result = Result.new(:mode => api.mode)
       params = result.params
       params.update(parsed_params)
 

@@ -8,7 +8,7 @@ require File.join(testdir, 'helper')
 
 
 Testing Dao do
-# api
+## api
 #
   testing 'that an api class for your application can be built using a simple dsl' do
     assert{
@@ -53,7 +53,93 @@ Testing Dao do
     assert{ result.path.to_s =~ /foo/ }
   end
 
-# results
+  testing 'that an api can be called with different modes' do
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo) do
+            data.modes = []
+
+            Dao::Mode.list.each do |mode|
+              send(mode){ data.modes.push(mode) }
+            end
+          end
+        end
+      }
+    api = assert{ api_class.new }
+
+    Dao::Mode.list.each do |mode|
+      result = api.mode(mode).call(:foo)
+      assert{ result.data.modes.include?(mode) }
+    end
+  end
+
+  testing 'that options/head/get are considered read modes' do
+    read_mode = assert{ Dao::Mode.read }
+
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo) do
+            data.update :modes => []
+            read { data.modes.push(read_mode) }
+          end
+        end
+      }
+    api = assert{ api_class.new }
+
+    Dao::Mode::Read.each do |mode|
+      result = assert{ api.mode(mode).call(:foo) }
+      assert{ result.data.modes == [read_mode] }
+    end
+  end
+
+  testing 'that post/put/delete/trace/connect are considered write modes' do
+    write_mode = assert{ Dao::Mode.write }
+
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo) do
+            data.update :modes => []
+            write { data.modes.push(write_mode) }
+          end
+        end
+      }
+    api = assert{ api_class.new }
+
+    Dao::Mode::Write.each do |mode|
+      result = assert{ api.mode(mode).call(:foo) }
+      assert{ result.data.modes == [write_mode] }
+    end
+  end
+
+  testing 'that the first, most specific, mode block encountered fires first' do
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo) do
+            data.update :modes => []
+            Dao::Mode::Read.each do |mode|
+              send(mode){ data.modes.push(mode) }
+            end
+            read { data.modes.push(Dao::Mode.read) }
+          end
+        end
+      }
+    api = assert{ api_class.new }
+
+    read = Dao::Mode.read
+    result = assert{ api.mode(read).call(:foo) }
+    assert{ result.data.modes == [read] }
+
+    Dao::Mode::Read.each do |mode|
+      result = assert{ api.mode(mode).call(:foo) }
+      assert{ result.data.modes == [mode] }
+    end
+  end
+
+## results
 #
   testing 'that results can be created' do
     result = assert{ Dao::Result.new }
@@ -69,6 +155,7 @@ Testing Dao do
     assert{ result.path == '/api/foo/bar' }
   end
 
+
 ## paths
 #
   testing 'that simple paths can be contstructed/compiled' do
@@ -80,7 +167,7 @@ Testing Dao do
     assert{ path.pattern.is_a?(Regexp) }
   end
 
-# status
+## status
 #
   testing 'Status.for' do
     assert{ Dao::Status.for(:unauthorized).code == 401 }
@@ -100,7 +187,7 @@ Testing Dao do
     assert{ s != Array.new }
   end
 
-# parser
+## parser
 #
   testing 'parsing a simple hash by key' do
     params = {
@@ -205,7 +292,7 @@ Testing Dao do
     assert{ parsed =~ expected }
   end
 
-# errors.rb
+## errors
 #
   testing 'that clear does not drop sticky errors' do
     errors = Dao::Errors.new
@@ -235,7 +322,7 @@ Testing Dao do
     assert{ errors[global].nil? }
   end
 
-# validations
+## validations
 #
   testing 'that simple validations work' do
     params = Dao::Params.new
@@ -304,7 +391,7 @@ Testing Dao do
     assert{ !result.errors.empty? }
   end
 
-# validating
+## validating
 #
   testing 'that validations can be cleared and do not clobber manually added errors' do
     params = Dao::Params.new
@@ -323,7 +410,7 @@ Testing Dao do
     assert{ not params.valid? }
   end
 
-# doc
+## doc
 #
   testing 'that apis can be documented via the api' do
     api_class =
@@ -361,8 +448,13 @@ Testing Dao do
 
 =end
 
-    def hash_equal(a, b)
-      array = lambda{|h| h.to_a.map{|k,v| [k.to_s, v]}.sort}
-      array[a] == array[b]
-    end
+  def hash_equal(a, b)
+    array = lambda{|h| h.to_a.map{|k,v| [k.to_s, v]}.sort}
+    array[a] == array[b]
+  end
+
+  def api(&block)
+    api_class = assert{ Dao.api(&block) }
+    api = assert{ api_class.new }
+  end
 end

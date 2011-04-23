@@ -12,6 +12,7 @@ Gem::Specification::new do |spec|
 ["README",
  "Rakefile",
  "TODO",
+ "a.rb",
  "dao.gemspec",
  "lib",
  "lib/dao",

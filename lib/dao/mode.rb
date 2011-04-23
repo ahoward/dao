@@ -1,41 +1,66 @@
 module Dao
   class Mode < ::String
+  # class methods
+  #
     class << Mode
       def for(mode)
-        mode.is_a?(Mode) ? mode : Mode.new(mode.to_s)
+        return mode if mode.is_a?(Mode)
+        mode = mode.to_s
+        return Mode.send(mode) if Mode.respond_to?(mode)
+        Mode.new(mode)
       end
 
       def list
-        List
+        @list ||= []
+      end
+
+      def add(mode)
+        mode = new(mode.to_s)
+
+        unless list.include?(mode)
+          list.push(mode)
+          singleton_class =
+            class << Mode
+              self
+            end
+          singleton_class.module_eval do
+            attr_accessor mode
+          end
+          Mode.send("#{ mode }=", mode)
+          mode
+        end
       end
 
       def default
-        Mode.for(:read)
+        @default ||= Mode.for(:read)
       end
     end
 
-    Verbs = %w( options get head post put delete trace connect )
-
-    Verbs.each do |verb|
-      const = verb.downcase.capitalize
-      unless const_defined?(const)
-        mode = Mode.for(verb.downcase)
-        const_set(const, mode)
-      end
+  # instance methods
+  #
+    def cases
+      @cases ||= []
     end
 
-    Read = Get unless defined?(Read)
-    Write = Post unless defined?(Write)
-
-    List = Verbs + %w( read write )
-
-    List.each do |method|
-      const = method.downcase.capitalize
-      define_method(method){ const_get(const) }
+    def case_of?(other)
+      self == other or other.cases.include?(self)
     end
 
-    def ==(other)
-      super(Mode.for(other))
+    def ===(other)
+      case_of?(other)
     end
+
+    Read = %w( options get head )
+    Write = %w( post put delete trace connect )
+    Http = Read + Write
+    Http.each do |verb|
+      Mode.add(verb)
+    end
+
+    Mode.add(:read)
+    Read.each{|m| Mode.read.cases.push(Mode.send(m))}
+
+    Mode.add(:write)
+    Write.each{|m| Mode.write.cases.push(Mode.send(m))}
   end
 end

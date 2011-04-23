@@ -1,4 +1,3 @@
-
 module Dao
   class Api
     class << Api
@@ -13,34 +12,37 @@ module Dao
       end
 
       def add_mode(mode)
-        modes.push(mode = Mode.for(mode)).uniq!
+        mode = Mode.for(mode)
 
-        module_eval(<<-__, __FILE__, __LINE__ - 1)
-
-          def #{ mode }(*args, &block)
-            if args.empty?
-              if catching_results?
-                if self.mode == #{ mode.inspect }
+        unless modes.include?(mode)
+          module_eval(<<-__, __FILE__, __LINE__ - 1)
+            def #{ mode }(*args, &block)
+              if args.empty?
+                if catching_results?
+                  if self.mode.case_of?(Mode.for(#{ mode.inspect }))
+                    mode(#{ mode.inspect }, &block)
+                    return!
+                  end
+                else
                   mode(#{ mode.inspect }, &block)
-                  return!
                 end
               else
-                mode(#{ mode.inspect }, &block)
-              end
-            else
-              mode(#{ mode.inspect }) do
-                call(*args, &block)
+                mode(#{ mode.inspect }) do
+                  call(*args, &block)
+                end
               end
             end
-          end
 
-          def #{ mode }?(&block)
-            mode?(#{ mode.inspect }, &block)
-          end
+            def #{ mode }?(&block)
+              mode?(#{ mode.inspect }, &block)
+            end
+          __
 
-        __
-
-        mode
+          modes.push(mode)
+          mode
+        else
+          false
+        end
       end
     end
 
@@ -70,8 +72,7 @@ module Dao
     end
 
     def mode?(mode, &block)
-      condition = self.mode == mode
-
+      condition = mode.case_of?(self.mode)
       if block.nil?
         condition
       else

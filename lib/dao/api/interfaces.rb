@@ -105,6 +105,10 @@ module Dao
       callstack.last || raise('no context!')
     end
 
+    def context?
+      !!callstack.last
+    end
+
     def catching(label = :result, &block)
       @catching ||= []
 
