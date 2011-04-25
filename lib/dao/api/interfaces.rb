@@ -227,7 +227,7 @@ module Dao
               nil
             when true
               which = keys.map{|key| Array(key).join('.')}.join(' or ')
-              "#{ which } (paramter is blank)"
+              "#{ which } (parameter is blank)"
             else
               message = options[:error].to_s
           end
