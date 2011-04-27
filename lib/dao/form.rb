@@ -159,6 +159,7 @@ module Dao
 
       name = options.delete(:name) || name_for(keys)
       from = options.delete(:from) || options.delete(:options)
+      blank = options.delete(:blank)
 
       selected =
         if options.has_key?(:selected)
@@ -188,6 +189,15 @@ module Dao
           list.flatten!
           list.compact!
           list.map!{|element| [element, element]}
+      end
+
+      case blank
+        when nil, false
+          nil
+        when true
+          list.push(nil, nil)
+        else
+          list.unshift(blank)
       end
 
       selected_value =
