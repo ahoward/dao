@@ -144,13 +144,13 @@ module Dao
     def add(*args, &block)
       options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
       block = args.pop if args.last.respond_to?(:call)
-      block ||= NotNil
+      block ||= NotBlank
       callback = Callback.new(options, &block)
       set(args => Callback::Chain.new) unless has?(args)
       get(args).add(callback)
       callback
     end
-    NotNil = lambda{|value| !value.nil?} unless defined?(NotNil)
+    NotBlank = lambda{|value| !value.to_s.strip.empty?} unless defined?(NotBlank)
   end
 
   Dao.load('validations/base.rb')
