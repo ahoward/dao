@@ -195,7 +195,7 @@ module Dao
         when nil, false
           nil
         when true
-          list.push(nil, nil)
+          list.push(nil)
         else
           list.unshift(blank)
       end
