@@ -4,6 +4,7 @@ module Dao
       options = Dao.options_for!(args)
 
       self.path = args.shift || options[:path] || Path.default
+      self.route = options[:route] || Route.default
       self.mode = options[:mode] || Mode.default
       self.status = options[:status] || Status.default
       self.errors = options[:errors] || Errors.new

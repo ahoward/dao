@@ -11,6 +11,8 @@ module Dao
         api = self
         path = Path.new(path)
 
+        route = routes.add(path) if Route.like?(path)
+
         method =
           module_eval{ 
             define_method(path + '/interface', &block)
@@ -20,6 +22,7 @@ module Dao
         interface = Interface.new(
           'api' => api,
           'path' => path,
+          'route' => route,
           'method' => method,
           'doc' => docs.pop
         )
@@ -66,14 +69,30 @@ module Dao
     def call(path = '/index', params = {}, options = {})
       api = self
       path = Path.new(path)
-      interface = interfaces[path]
+      interface = interfaces[path]  ### interfaces.by_path(path)
+      route = nil
+
+      unless interface
+        route = route_for(path)
+        interface = interfaces[route]
+      end
 
       unless interface
         return index if path == '/index'
         raise(NameError, "NO SUCH INTERFACE: #{ path }")
       end
 
-      context = Context.for(api, interface, params, options)
+      if route
+        params.update(route.params_for(path))
+        path = route.path_for(params)
+      else
+        if Route.like?(path)
+          route = Route.new(path)
+          path = route.path_for(params)
+        end
+      end
+
+      context = Context.for(api, route, path, interface, params, options)
 
       callstack(context) do
         catching(:result) do
@@ -82,6 +101,12 @@ module Dao
       end
 
       context.result
+    end
+
+  # lookup a route
+  #
+    def route_for(*args)
+      self.class.routes.match(*args)
     end
 
   # context support

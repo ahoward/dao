@@ -1,6 +1,6 @@
 module Dao
   class Interface
-    Attrs = %w( api path method doc )
+    Attrs = %w( api path route method doc )
     Attrs.each{|attr| attr_accessor(attr)}
 
     def initialize(options = {})

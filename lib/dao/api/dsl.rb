@@ -19,7 +19,7 @@ module Dao
         raise "no interface for #{ docs.inspect }" unless docs.empty?
       end
 
-      %w( interface doc docs description desc ).each do |method|
+      %w( interface call doc docs description desc ).each do |method|
         module_eval <<-__, __FILE__, __LINE__ - 1
 
           def #{ method }(*args, &block)

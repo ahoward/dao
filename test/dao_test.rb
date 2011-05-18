@@ -155,7 +155,6 @@ Testing Dao do
     assert{ result.path == '/api/foo/bar' }
   end
 
-
 ## paths
 #
   testing 'that simple paths can be contstructed/compiled' do
@@ -166,6 +165,53 @@ Testing Dao do
     assert{ path.keys.is_a?(Array) }
     assert{ path.pattern.is_a?(Regexp) }
   end
+
+## routes
+#
+  testing 'that an api has a list of routes' do
+    api_class =
+      assert{
+        Dao.api do
+        end
+      }
+    assert{ api_class.routes.is_a?(Array) }
+  end
+
+  testing 'that routed interfaces call be declared' do
+    api_class =
+      assert{
+        Dao.api do
+          call('/users/:user_id/comments/:comment_id') do
+            data.update(params)
+          end
+        end
+      }
+    api = api_class.new
+  end
+
+  testing 'that routed methods can be called with embedded params' do
+    api_class =
+      assert{
+        Dao.api do
+          call('/users/:user_id/comments/:comment_id') do 
+            data.update(params)
+          end
+        end
+      }
+    api = api_class.new
+
+    {
+      '/users/4/comments/2' => {},
+      #'/users/comments' => {:user_id => 4, :comment_id => 2},
+      '/users/:user_id/comments/:comment_id' => {:user_id => 4, :comment_id => 2},
+    }.each do |path, params|
+      result = assert{ api.call(path, params) }
+      assert{ result.data.user_id.to_s =~ /4/ }
+      assert{ result.data.comment_id.to_s =~ /2/ }
+      assert{ result.path == '/users/4/comments/2' }
+    end
+  end
+
 
 ## status
 #
@@ -223,7 +269,7 @@ Testing Dao do
     assert{
       api_class =
         Dao.api do
-          interface('/foobar'){
+          call('/foobar'){
             data.update(params)
           }
         end

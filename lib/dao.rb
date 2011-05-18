@@ -80,6 +80,7 @@
     params.rb
 
     mode.rb
+    route.rb
     path.rb
     interface.rb
     api.rb

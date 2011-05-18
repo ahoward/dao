@@ -67,6 +67,7 @@ module Dao
   # instance methods
   #
     attr_accessor :result
+    attr_accessor :route
     attr_accessor :path
     attr_accessor :status
     attr_accessor :errors

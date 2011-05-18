@@ -1,6 +1,6 @@
 module Dao
   class Context
-    Attrs = %w( api path interface method args status errors params result data form validations )
+    Attrs = %w( api route path interface method args status errors params result data form validations )
 
     Attrs.each{|a| attr_accessor(a)}
 
@@ -8,12 +8,11 @@ module Dao
       Attrs
     end
 
-    def Context.for(api, interface, params, *args)
+    def Context.for(api, route, path, interface, params, *args)
     # setup
     #
       options = Dao.options_for!(args)
 
-      path = interface.path
       parsed_params = Dao.parse(path, params, options)
 
       result = Result.new(:mode => api.mode)
@@ -28,6 +27,7 @@ module Dao
       context = new
       context.api = api
       context.interface = interface
+      context.route = route
       context.path = path
       context.method = method
       context.args = args
@@ -43,10 +43,12 @@ module Dao
 
     # wire up shared state
     #
+      result.route = context.route
       result.path = context.path
       result.status = context.status
       result.errors = context.errors
 
+      params.route = context.route
       params.path = context.path
       params.status = context.status
       params.errors = context.errors
