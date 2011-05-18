@@ -10,7 +10,7 @@
 # dao libs
 #
   module Dao
-    Version = '3.0.0' unless defined?(Version)
+    Version = '3.1.0' unless defined?(Version)
 
     def version
       Dao::Version
@@ -18,7 +18,7 @@
 
     def dependencies
       {
-        'map'  => ['map'       , '~> 3.0.0'],
+        'map'  => ['map'       , '~> 4.0.0'],
         'tagz' => ['tagz'      , '~> 9.0.0'],
         'yajl' => ['yajl-ruby' , '~> 0.8.1']
       }

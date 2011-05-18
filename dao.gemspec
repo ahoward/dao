@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "3.0.0"
+  spec.version = "3.1.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -12,6 +12,7 @@ Gem::Specification::new do |spec|
 ["README",
  "Rakefile",
  "TODO",
+ "a.rb",
  "dao.gemspec",
  "lib",
  "lib/dao",
@@ -25,6 +26,7 @@ Gem::Specification::new do |spec|
  "lib/dao/api/initializers.rb",
  "lib/dao/api/interfaces.rb",
  "lib/dao/api/modes.rb",
+ "lib/dao/api/routes.rb",
  "lib/dao/blankslate.rb",
  "lib/dao/data.rb",
  "lib/dao/db.rb",
@@ -55,6 +57,7 @@ Gem::Specification::new do |spec|
  "lib/dao/rails/lib/generators/dao/templates/dao.js",
  "lib/dao/rails/lib/generators/dao/templates/dao_helper.rb",
  "lib/dao/result.rb",
+ "lib/dao/route.rb",
  "lib/dao/slug.rb",
  "lib/dao/status.rb",
  "lib/dao/stdext.rb",
