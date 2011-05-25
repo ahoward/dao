@@ -24,9 +24,8 @@ protected
   def respond_with(object, options = {})
     json = json_for(object)
 
-    status = object.status if object.respond_to?(:status)
+    status = object.status rescue (options[:status] || 200)
     status = status.code if status.respond_to?(:code)
-    status = options[:status] || 200 unless status
 
     respond_to do |wants|
       wants.json{ render :json => json, :status => status }
