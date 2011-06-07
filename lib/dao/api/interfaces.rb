@@ -3,8 +3,17 @@ module Dao
   # class methods
   #
     class << Api
-      def interfaces
-        @interfaces ||= Map.new
+      def unload!
+        state.clear
+      end
+
+      def state
+        @@state ||= {} unless defined?(@@state)
+
+        @@state[self] ||= {
+          :interfaces => {},
+          :blocks => {}
+        }
       end
 
       def interface(path, &block)
@@ -13,23 +22,21 @@ module Dao
 
         route = routes.add(path) if Route.like?(path)
 
-        method =
-          module_eval{ 
-            define_method(path + '/interface', &block)
-            instance_method(path + '/interface')
-          }
-
-        interface = Interface.new(
+        interface = Interface.new({
           'api' => api,
           'path' => path,
           'route' => route,
-          'method' => method,
+          'block' => block,
           'doc' => docs.pop
-        )
+        })
 
         interfaces[path] = interface
       end
       alias_method('call', 'interface')
+
+      def interfaces
+        state[:interfaces]
+      end
 
       def description(string)
         doc(:description => Dao.unindent(string))
@@ -48,7 +55,8 @@ module Dao
       end
 
       def docs
-        @docs ||= []
+        state[:docs] ||= []
+        #@docs ||= []
       end
 
       def index

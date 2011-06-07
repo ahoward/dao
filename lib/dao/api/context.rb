@@ -1,6 +1,6 @@
 module Dao
   class Context
-    Attrs = %w( api route path interface method args status errors params result data form validations )
+    Attrs = %w( api route path interface args status errors params result data form validations )
 
     Attrs.each{|a| attr_accessor(a)}
 
@@ -19,8 +19,12 @@ module Dao
       params = result.params
       params.update(parsed_params)
 
-      method = interface.method.bind(api)
-      args = [params, result].slice(0, method.arity)
+      args =
+        if interface.arity < 1
+          [params, result]
+        else
+          [params, result].slice(0, interface.arity)
+        end
 
     # build the context
     #
@@ -29,7 +33,6 @@ module Dao
       context.interface = interface
       context.route = route
       context.path = path
-      context.method = method
       context.args = args
       context.status = Status.default
       context.errors = Errors.new
@@ -56,8 +59,10 @@ module Dao
       context
     end
 
+    include InstanceExec
+
     def call
-      method.call(*args)
+      api.instance_exec(*args, &interface)
     end
   end
 end
