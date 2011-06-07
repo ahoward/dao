@@ -8,11 +8,10 @@ module Dao
       end
 
       def state
-        @@state ||= {} unless defined?(@@state)
-
-        @@state[self] ||= {
+        @state ||= {
           :interfaces => {},
-          :blocks => {}
+          :blocks => {},
+          :docs => []
         }
       end
 
@@ -55,8 +54,7 @@ module Dao
       end
 
       def docs
-        state[:docs] ||= []
-        #@docs ||= []
+        state[:docs]
       end
 
       def index

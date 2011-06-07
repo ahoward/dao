@@ -49,6 +49,10 @@ protected
     @path
   end
 
+##
+# you'll likely want to customize this for you app as it makes a few
+# assumptions about how to find and authenticate users
+#
   def setup_api
     if white_listed?(path)
       @api = Api.new

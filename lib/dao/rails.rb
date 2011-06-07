@@ -1,11 +1,14 @@
 if defined?(Rails)
+
   module Dao
-  ## unloadable callback
+  ## support unloadable
   #
     def Api.before_remove_const
-      Api.unload!
+      unload!
     end
 
+  ##
+  #
     class Engine < Rails::Engine
       GEM_DIR = File.expand_path(__FILE__ + '/../../../')
       ROOT_DIR = File.join(GEM_DIR, 'lib/dao/rails')
@@ -16,10 +19,6 @@ if defined?(Rails)
 
       ### config.autoload_paths << APP_DIR
       ### $LOAD_PATH.push(File.join(Rails.root.to_s, 'app'))
-      config.after_initialize do
-        unloadable(::Dao::Api)
-      end
-       
 
     # yes yes, this should probably be somewhere else...
     #

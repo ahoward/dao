@@ -96,10 +96,3 @@
   unless defined?(D)
     D = Dao
   end
-
-  if defined?(Rails.env)
-    unless Rails.env.production?
-      unloadable(Dao)
-      unloadable(D)
-    end
-  end
