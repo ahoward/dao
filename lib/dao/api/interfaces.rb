@@ -97,6 +97,8 @@ module Dao
         if Route.like?(path)
           route = Route.new(path)
           path = route.path_for(params)
+        else
+          route = path
         end
       end
 
