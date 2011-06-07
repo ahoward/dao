@@ -10,7 +10,7 @@
 # dao libs
 #
   module Dao
-    Version = '3.1.0' unless defined?(Version)
+    Version = '3.1.1' unless defined?(Version)
 
     def version
       Dao::Version
