@@ -69,6 +69,7 @@ Gem::Specification::new do |spec|
  "test",
  "test/dao_test.rb",
  "test/helper.rb",
+ "test/leak.rb",
  "test/testing.rb",
  "test/units"]
 
