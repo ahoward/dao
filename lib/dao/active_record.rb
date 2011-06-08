@@ -42,26 +42,42 @@ if defined?(ActiveRecord)
           options = nil
         end
 
-      # search for options inside args...
+      # get base to_dao from class
       #
-        if options.nil?
-          last = args.last
-          options = Dao.map
+        base = model.to_dao
 
-          if last.is_a?(Hash)
-            last = Dao.map(last)
-            keys = %w( include includes with )
-            if keys.any?{|key| last.has_key?(key)}
-              options.update(last)
-              args.pop
+      # opts
+      # 
+        opts = %w( include includes with exclude excludes without )
+
+        extract_options =
+          proc do |array|
+            last = array.last
+            if last.is_a?(Hash)
+              last = Dao.map(last)
+              if opts.any?{|opt| last.has_key?(opt)}
+                array.pop
+                break(last)
+              end
             end
+            Map.new
           end
+
+      # handle case where options are bundled in args...
+      #
+        options ||= extract_options[args]
+
+      # use base options iff none provided
+      #
+        base_options = extract_options[base]
+        if options.blank? and !base_options.blank?
+          options = base_options
         end
 
-      # refine the list with includes iff passed as options
+      # refine the args with includes iff found in options
       #
         if options.has_key?(:include) or options.has_key?(:includes) or options.has_key?(:with)
-          args.replace(model.to_dao) if args.empty?
+          args.replace(base) if args.empty?
           args.push(options[:include]) if options[:include]
           args.push(options[:includes]) if options[:includes]
           args.push(options[:with]) if options[:with]
@@ -69,7 +85,8 @@ if defined?(ActiveRecord)
 
       # take passed in args or model defaults
       #
-        list = args.empty? ? model.to_dao : args
+        list = args.empty? ? base : args
+        list = column_names if list.empty?
 
       # okay - go!
       #
@@ -108,6 +125,18 @@ if defined?(ActiveRecord)
 
         if map.has_key?(:_id) and not map.has_key?(:id)
           map[:id] = map[:_id]
+        end
+
+      # refine the map with excludes iff passed as options
+      #
+        if options.has_key?(:exclude) or options.has_key?(:excludes) or options.has_key?(:without)
+          [options[:exclude], options[:excludes], options[:without]].each do |paths|
+            paths = Array(paths)
+            next if paths.blank?
+            paths.each do |path|
+              map.rm(path)
+            end
+          end
         end
 
         map
