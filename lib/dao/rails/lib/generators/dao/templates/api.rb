@@ -1,13 +1,28 @@
 Api = 
   Dao.api do
+  ##
+  #
+    README <<-__
+      this a dao api
+      
+        so nice
 
-    description 'ping!'
-    interface('/ping'){
+      so good
+    __
+
+  ##
+  #
+    doc '/ping - hello world without a user'
+    call('/ping'){
       data.update :time => Time.now
     }
 
-
-
+    doc '/pong - hello world with a user'
+    call('/pong'){
+      require_current_user!
+      data.update :time => Time.now
+      data.update :current_user => current_user.id
+    }
 
   ## this is simply a suggested way to model your api.  it is not required.
   #
@@ -23,6 +38,8 @@ Api =
       @real_user ||= @effective_user
     end
 
+  ## no doubt you'll want to customize this!
+  #
     def user_for(arg)
       User.respond_to?(:for) ? User.for(arg) : User.find(arg)
     end
@@ -51,6 +68,25 @@ Api =
     def current_user?
       !!effective_user
     end
+
+    def require_effective_user!
+      unless effective_user?
+        status :unauthorized
+        return!
+      end
+    end
+
+    def require_real_user!
+      unless effective_user?
+        status :unauthorized
+        return!
+      end
+    end
+
+    def require_current_user!
+      require_effective_user! and require_real_user!
+    end
+    alias_method('require_user!', 'require_current_user!')
   end
 
 

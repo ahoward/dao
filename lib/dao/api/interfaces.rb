@@ -11,6 +11,7 @@ module Dao
         @state ||= {
           :interfaces => {},
           :blocks => {},
+          :README => [],
           :docs => []
         }
       end
@@ -37,8 +38,8 @@ module Dao
         state[:interfaces]
       end
 
-      def description(string)
-        doc(:description => Dao.unindent(string))
+      def description(*args)
+        doc(:description => lines_for(*args))
       end
       alias_method('desc', 'description')
 
@@ -47,7 +48,7 @@ module Dao
         doc = docs.last
         options = Dao.options_for!(args)
         if options.empty?
-          options[:description] = args.join(' ')
+          options[:description] = lines_for(*args)
         end
         doc.update(options)
         doc
@@ -57,8 +58,26 @@ module Dao
         state[:docs]
       end
 
+      def readme(*args)
+        if args.empty?
+          state[:README]
+        else
+          state[:README] = lines_for(args)
+        end
+      end
+      alias_method('README', 'readme')
+
+      def lines_for(*args)
+        Dao.unindent(args.flatten.compact.join("\n")).split(/\n/)
+      end
+
+      def readme=(readme)
+        self.readme = readme.to_s
+      end
+
       def index
         index = Map.new
+        index[:README] = readme
         interfaces.each do |path, interface|
           index[path] = interface.doc || {'description' => ''}
         end
