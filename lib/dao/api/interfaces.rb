@@ -139,6 +139,22 @@ module Dao
       context.result
     end
 
+  # will an interface route to a interface?
+  #
+    def route?(path)
+      path = Path.new(path)
+      interface = interfaces[path]
+      route = nil
+
+      unless interface
+        route = route_for(path)
+        interface = interfaces[route]
+      end
+
+      interface
+    end
+
+
   # lookup a route
   #
     def route_for(*args)

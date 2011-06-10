@@ -3,8 +3,9 @@ class APIController < ApplicationController
 
   skip_before_filter :verify_authenticity_token
 
-  before_filter :setup_path
   before_filter :setup_api
+  before_filter :setup_mode
+  before_filter :setup_path
 
   WhiteList = Set.new( %w( ping index ) )
   BlackList = Set.new( %w( ) )
@@ -17,8 +18,7 @@ class APIController < ApplicationController
 protected
 
   def call(path, params)
-    mode = params['mode'] || (request.get? ? 'read' : 'write')
-    result = api.mode(mode).call(path, params)
+    @result = api.mode(@mode).call(path, params)
   end
 
   def respond_with(object, options = {})
@@ -43,10 +43,21 @@ protected
 
   def setup_path
     @path = params[:path] || params[:action] || 'index'
+    unless api.route?(@path)
+      render :nothing => true, :status => 404
+    end
+  end
+
+  def setup_mode
+    @mode = params['mode'] || (request.get? ? 'read' : 'write')
   end
 
   def path
     @path
+  end
+
+  def mode
+    @mode
   end
 
 ##

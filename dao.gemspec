@@ -11,7 +11,6 @@ Gem::Specification::new do |spec|
   spec.files =
 ["README",
  "Rakefile",
- "TODO",
  "a.rb",
  "dao.gemspec",
  "db",
