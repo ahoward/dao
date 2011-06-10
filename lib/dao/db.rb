@@ -44,6 +44,13 @@ module Dao
         find(id)
       end
 
+      def []=(id, data = {})
+        data.delete(:id)
+        data.delete('id')
+        data[:id] = id
+        save(data)
+      end
+
       def delete(id)
         @db.delete(@name, id)
       end
@@ -61,9 +68,10 @@ module Dao
       end
     end
 
-    def [](name)
+    def collection(name)
       Collection.new(name, db)
     end
+    alias_method('[]', 'collection')
 
     def transaction(*args, &block)
       ystore.transaction(*args, &block)
