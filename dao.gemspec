@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "3.3.0"
+  spec.version = "3.4.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -24,7 +24,6 @@ Gem::Specification::new do |spec|
  "lib/dao/api.rb",
  "lib/dao/api/context.rb",
  "lib/dao/api/dsl.rb",
- "lib/dao/api/endpoints.rb",
  "lib/dao/api/initializers.rb",
  "lib/dao/api/interfaces.rb",
  "lib/dao/api/modes.rb",

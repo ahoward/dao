@@ -473,6 +473,21 @@ Testing Dao do
     assert{ api_class_index==api_index }
   end
 
+# aliases
+#
+  testing 'that apis can alias methods' do
+    api_class =
+      assert {
+        Dao.api {
+          call('/barfoo'){ data.update(:key => :value) }
+          call('/foobar', :alias => '/barfoo')
+        }
+      }
+    api = assert{ api_class.new }
+    assert{ api.call('/barfoo').data.key == :value }
+    assert{ api.call('/foobar').data.key == :value }
+  end
+
 =begin
 
 # cloning

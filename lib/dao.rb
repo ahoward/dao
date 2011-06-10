@@ -2,15 +2,11 @@
 #
   require 'enumerator'
   require 'set'
-  #require 'fileutils'
-  #require 'pathname'
-  #require 'yaml'
-  #require 'yaml/store'
 
 # dao libs
 #
   module Dao
-    Version = '3.3.0' unless defined?(Version)
+    Version = '3.4.0' unless defined?(Version)
 
     def version
       Dao::Version

@@ -48,6 +48,8 @@ Api =
     alias_method('user=', 'effective_user=')
     alias_method('current_user', 'effective_user')
     alias_method('current_user=', 'effective_user=')
+    alias_method('effective_user?', 'effective_user')
+    alias_method('real_user?', 'real_user')
 
     def api
       self
@@ -77,7 +79,7 @@ Api =
     end
 
     def require_real_user!
-      unless effective_user?
+      unless real_user?
         status :unauthorized
         return!
       end

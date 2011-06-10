@@ -16,43 +16,52 @@ module Dao
         }
       end
 
-      def interface(path, &block)
+      def call(*args, &block)
+        options = Dao.options_for!(args)
+        path = Path.new(args.shift || raise(ArgumentError, "no path!"))
+
         api = self
-        path = Path.new(path)
 
         route = routes.add(path) if Route.like?(path)
 
-        interface = Interface.new({
-          'api' => api,
-          'path' => path,
-          'route' => route,
-          'block' => block,
-          'doc' => docs.pop
-        })
+        interface =
+          if options.key?(:alias)
+            aliased_path = Path.new(options[:alias])
+            interfaces[aliased_path] || raise(ArgumentError, "no such path #{ aliased_path }!")
+          else
+            Interface.new({
+              'api' => api,
+              'path' => path,
+              'route' => route,
+              'block' => block,
+              'doc' => docs.pop
+            })
+          end
 
         interfaces[path] = interface
       end
-      alias_method('call', 'interface')
+      alias_method('interface', 'call')
 
       def interfaces
         state[:interfaces]
       end
 
-      def description(*args)
-        doc(:description => lines_for(*args))
-      end
-      alias_method('desc', 'description')
-
       def doc(*args)
-        docs.push(Map[:description, nil]) if docs.empty?
+        docs.push(Map(:doc => nil)) if docs.empty?
         doc = docs.last
+
         options = Dao.options_for!(args)
-        if options.empty?
-          options[:description] = lines_for(*args)
-        end
+        options[:doc] = lines_for(*args) if options.empty?
+
         doc.update(options)
         doc
       end
+
+      def description(*args)
+        doc(:doc => lines_for(*args))
+      end
+
+      alias_method('desc', 'description')
 
       def docs
         state[:docs]
