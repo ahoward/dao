@@ -87,7 +87,7 @@ module Dao
       def index
         index = Map.new
         index[:README] = readme
-        interfaces.each do |path, interface|
+        interfaces.sort.each do |path, interface|
           index[path] = interface.doc || {'description' => ''}
         end
         index
