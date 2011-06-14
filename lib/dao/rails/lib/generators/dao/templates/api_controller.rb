@@ -43,7 +43,7 @@ protected
 
   def setup_path
     @path = params[:path] || params[:action] || 'index'
-    unless api.route?(@path)
+    unless api.route?(@path) or @path=='index'
       render :nothing => true, :status => 404
     end
   end
