@@ -9,7 +9,7 @@ module Dao
 
       def state
         @state ||= {
-          :interfaces => {},
+          :interfaces => Map.new,
           :blocks => {},
           :README => [],
           :docs => []
