@@ -1,6 +1,5 @@
 module Dao
-  class Dao::Error < ::StandardError
-  end
+  class Dao::Error < ::StandardError; end
 
   class Dao::Error::Result < Error
     attr_accessor :result

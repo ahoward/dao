@@ -6,7 +6,7 @@
 # dao libs
 #
   module Dao
-    Version = '3.4.0' unless defined?(Version)
+    Version = '4.2.0' unless defined?(Version)
 
     def version
       Dao::Version
@@ -14,9 +14,12 @@
 
     def dependencies
       {
-        'map'  => ['map'       , '~> 4.2.0'],
-        'tagz' => ['tagz'      , '~> 9.0.0'],
-        'yajl' => ['yajl-ruby' , '~> 0.8.1']
+        'rails'       =>  [ 'rails'       , '~> 3.0.0' ],
+        'map'         =>  [ 'map'         , '~> 4.3.0' ],
+        'fattr'       =>  [ 'fattr'       , '~> 2.2.0' ],
+        'tagz'        =>  [ 'tagz'        , '~> 9.0.0' ],
+        'yajl'        =>  [ 'yajl-ruby'   , '~> 0.8.1' ],
+        'unidecode'   =>  [ 'unidecode'   , '~> 1.0.0' ]
       }
     end
 
@@ -57,6 +60,22 @@
     end
   end
 
+  #active_record
+  #action_mailer
+  #rails/test_unit
+  %w[
+    action_controller
+    active_resource
+    active_support
+  ].each do |framework|
+    begin
+      require "#{ framework }/railtie"
+    rescue LoadError
+    end
+  end
+#require 'rails/all'
+
+
   require 'yajl/json_gem'
 
   Dao.load %w[
@@ -81,14 +100,24 @@
     interface.rb
     api.rb
 
+    db.rb
 
     rails.rb
     active_record.rb
     mongo_mapper.rb
+
+    conducer.rb
   ]
 
-  Dao.autoload(:Db, Dao.libdir('db.rb'))
-
-  unless defined?(D)
-    D = Dao
+# protect against rails' too clever reloading
+#
+=begin
+  if defined?(Rails)
+    unless defined?(unloadable)
+      require 'active_support'
+      require 'active_support/dependencies'
+    end
+    unloadable(Dao)
   end
+  BEGIN{ Object.send(:remove_const, :Dao) if defined?(Dao) }
+=end

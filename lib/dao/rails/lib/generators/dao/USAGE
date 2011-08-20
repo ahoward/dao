@@ -1,9 +1,5 @@
 Description:
-  rails generate dao api
-  rails generate dao api controller
-  rails generate dao paths
+  rails generate dao system
 
 Example:
-  rails generate dao api
-  rails generate dao api controller
-  rails generate dao paths
+  rails generate dao system

@@ -12,12 +12,12 @@ Api =
 
   ##
   #
-    doc '/ping - hello world without a user'
+    desc '/ping - hello world without a user'
     call('/ping'){
       data.update :time => Time.now
     }
 
-    doc '/pong - hello world with a user'
+    desc '/pong - hello world with a user'
     call('/pong'){
       require_current_user!
       data.update :time => Time.now
@@ -91,9 +91,23 @@ Api =
     alias_method('require_user!', 'require_current_user!')
   end
 
+## look for any other apis to load
+#
+  %w( api apis ).each do |dir|
+    glob = File.expand_path(File.join(Rails.root, "app/#{ dir }/**/*.rb"))
+    files = Dir.glob(glob).sort
+    files.each{|file| ::Kernel.load(file)}
+  end
 
-unloadable(Api)
+## mo betta in development
+#
+  unloadable(Api)
 
-def api(*args, &block)
-  Api.new(*args, &block)
-end
+## top level method shortcut
+#
+  module Kernel
+  protected
+    def api(*args, &block)
+      Api.new(*args, &block)
+    end
+  end

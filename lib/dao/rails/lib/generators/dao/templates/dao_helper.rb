@@ -8,20 +8,32 @@ module DaoHelper
     end
   end
 
-  def dao(path, params, mode = nil)
-    unless mode
-      case request.method
-      when "GET"
-        mode = :read
-      when "PUT", "POST", "DELETE"
-        mode = :write
-      else
-        # do nothing - the user must specificy the mode explicity
-      end
+  def dao(path, *args, &block)
+    options = args.extract_options!.to_options!
+
+    mode = options[:mode]
+
+    if mode.blank?
+      mode =
+        case request.method
+          when "GET"
+            :read
+          when "PUT", "POST", "DELETE"
+            :write
+          else
+            :read
+        end
     end
-    result = api.send(mode, path, params)
-    result.route = request.fullpath
-    result
+
+    @dao = api.send(mode, path, params)
+    @dao.route = request.fullpath
+    #@dao.mode = mode
+
+    #unless options[:error!] == false
+      @dao.error! unless @dao.status.ok?
+    #end
+
+    block ? block.call(@dao) : @dao
   end
 end
 ApplicationController.send(:include, DaoHelper)

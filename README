@@ -114,3 +114,10 @@ INSTALL
   vim -o app/api.rb app/controllers/api_controller.rb
   curl --silent http://0.0.0.0:3000/api
   curl --silent http://0.0.0.0:3000/api/ping
+
+HISTORY
+  4.0.0
+    - dao depends has tied itself to rails, for better or worse...
+    - drop custom form encoding.  just use a rack-like approach.
+    - dao form parameter encoding has changed slightly to 'dao[/api/path][x,y,z]=42'
+    - dao form paramters are now preparsed in a before filter

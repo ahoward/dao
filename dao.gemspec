@@ -3,18 +3,18 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "3.4.0"
+  spec.version = "4.0.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
 
   spec.files =
-["README",
+[":w",
+ "README",
  "Rakefile",
  "a.rb",
  "dao.gemspec",
  "db",
- "db/dao.yml",
  "lib",
  "lib/dao",
  "lib/dao.rb",
@@ -28,6 +28,9 @@ Gem::Specification::new do |spec|
  "lib/dao/api/modes.rb",
  "lib/dao/api/routes.rb",
  "lib/dao/blankslate.rb",
+ "lib/dao/conducer",
+ "lib/dao/conducer.rb",
+ "lib/dao/conducer/base.rb",
  "lib/dao/data.rb",
  "lib/dao/db.rb",
  "lib/dao/endpoint.rb",
@@ -42,13 +45,17 @@ Gem::Specification::new do |spec|
  "lib/dao/params.rb",
  "lib/dao/path.rb",
  "lib/dao/presenter.rb",
+ "lib/dao/rack",
+ "lib/dao/rack.rb",
+ "lib/dao/rack/middleware",
+ "lib/dao/rack/middleware.rb",
+ "lib/dao/rack/middleware/params_parser.rb",
  "lib/dao/rails",
  "lib/dao/rails.rb",
  "lib/dao/rails/lib",
  "lib/dao/rails/lib/generators",
  "lib/dao/rails/lib/generators/dao",
  "lib/dao/rails/lib/generators/dao/USAGE",
- "lib/dao/rails/lib/generators/dao/api_generator.rb",
  "lib/dao/rails/lib/generators/dao/dao_generator.rb",
  "lib/dao/rails/lib/generators/dao/templates",
  "lib/dao/rails/lib/generators/dao/templates/api.rb",
@@ -67,6 +74,9 @@ Gem::Specification::new do |spec|
  "lib/dao/validations/base.rb",
  "lib/dao/validations/common.rb",
  "test",
+ "test/dao_conducer_base_lint_test.rb",
+ "test/dao_conducer_base_test.rb",
+ "test/dao_conducer_test.rb",
  "test/dao_test.rb",
  "test/helper.rb",
  "test/leak.rb",
@@ -79,8 +89,15 @@ Gem::Specification::new do |spec|
 
   spec.test_files = nil
 
-### spec.add_dependency 'lib', '>= version'
-#### spec.add_dependency 'map'
+  
+    spec.add_dependency(*["rails", "~> 3.0.0"])
+  
+    spec.add_dependency(*["tagz", "~> 9.0.0"])
+  
+    spec.add_dependency(*["map", "~> 4.3.0"])
+  
+    spec.add_dependency(*["yajl-ruby", "~> 0.8.1"])
+  
 
   spec.extensions.push(*[])
 

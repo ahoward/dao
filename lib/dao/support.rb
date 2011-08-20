@@ -69,4 +69,107 @@ module Dao
   def parse(*args, &block)
     Params.process(*args, &block)
   end
+
+  def normalize_parameters(params)
+    Params.normalize_parameters(params)
+  end
+
+  def current
+    @current ||=
+      Map.new(
+        :controller => nil
+      )
+  end
+
+  def current_controller(*args)
+    current.controller = args.first unless args.empty?
+    current.controller
+  end
+  alias_method('controller', 'current_controller')
+
+  def current_controller=(controller)
+    current.controller = controller
+  end
+  alias_method('controller=', 'current_controller=')
+
+  %w( request response session ).each do |attr|
+    module_eval <<-__, __FILE__, __LINE__
+      def current_#{ attr }
+        current.#{ attr }
+      end
+    __
+  end
+
+  def root
+    if defined?(Rails.root) and Rails.root
+      Rails.root
+    else
+      '.'
+    end
+  end
+
+  def key_for(*keys)
+    key = keys.flatten.join('.').strip
+    key.split(%r/\s*[,.:_-]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+  end
+
+  def mock_controller
+    ensure_rails_application do
+      require 'action_dispatch/testing/test_request.rb'
+      require 'action_dispatch/testing/test_response.rb'
+      store = ActiveSupport::Cache::MemoryStore.new
+      controller = defined?(ApplicationController) ? ApplicationController.new : ActionController::Base.new
+      controller.perform_caching = true
+      controller.cache_store = store
+      request = ActionDispatch::TestRequest.new
+      response = ActionDispatch::TestResponse.new
+      controller.request = request
+      controller.response = response
+      controller.send(:initialize_template_class, response)
+      controller.send(:assign_shortcuts, request, response)
+      controller.send(:default_url_options).merge!(DefaultUrlOptions) if defined?(DefaultUrlOptions)
+      controller
+    end
+  end
+
+  def ensure_rails_application(&block)
+    if Rails.application.nil?
+      mock = Class.new(Rails::Application)
+      Rails.application = mock.instance
+      begin
+        block.call()
+      ensure
+        Rails.application = nil
+      end
+    else
+      block.call()
+    end
+  end
+
+  def normalize_parameters(params)
+    dao = (params.delete('dao') || {}).merge(params.delete(:dao) || {})
+
+    unless dao.blank?
+      dao.each do |key, paths_and_values|
+        params[key] = nil
+        next if paths_and_values.blank?
+
+        map = Map.new
+
+        paths_and_values.each do |path, value|
+          keys = keys_for(path)
+          map.set(keys => value)
+        end
+
+        params[key] = map
+      end
+    end
+
+    params[:dao] = :normalized
+    params
+  end
+
+  def keys_for(keys)
+    keys.strip.split(%r/\s*[,._-]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+  end
 end

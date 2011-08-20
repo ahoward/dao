@@ -187,6 +187,10 @@ module Dao
     end
     alias_method('set', 'update')
 
+    def ok!
+      update(200)
+    end
+
     Groups.each do |code, group|
       module_eval <<-__, __FILE__, __LINE__ -1
         def Status.#{ group }

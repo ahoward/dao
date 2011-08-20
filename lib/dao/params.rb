@@ -2,31 +2,72 @@ module Dao
   class Params < ::Map
   # mixins
   #
-    include Validations::Mixin
+    include Validations
 
   # class methods
   #
     class << Params
+      def normalize_parameters(params)
+        dao = (params.delete('dao') || {}).merge(params.delete(:dao) || {})
+
+        unless dao.blank?
+          dao.each do |key, paths_and_values|
+            params[key] = nil
+            next if paths_and_values.blank?
+
+            map = Map.new
+
+            paths_and_values.each do |path, value|
+              keys = keys_for(path)
+              map.set(keys => value)
+            end
+
+            params[key] = map
+          end
+        end
+
+        params[:dao] = true
+        params
+      end
+
       def parse(prefix, params = {}, options = {})
+      # setup
+      #
         prefix = prefix.to_s
         params = Map.new(params || {})
+        parsed = Params.new
         base = Map.new(params || {})
         options = Map.options(options || {})
-        parsed = Params.new
         parsed.update(params[prefix]) if params.has_key?(prefix)
 
-        re = %r/^ #{ Regexp.escape(prefix) } (?: [(] ([^)]+) [)] )? $/x
+        form_encoded = params.get(:dao, prefix)
 
-        params.each do |key, value|
-          next unless(key.is_a?(String) or key.is_a?(Symbol))
-          key = key.to_s
-          matched, keys = re.match(key).to_a
-          next unless matched
-          next unless keys
-          keys = keys_for(keys)
-          parsed.set(keys => value)
-          base.delete(key)
+        if form_encoded
+
+          base.delete(:dao)
+          form_encoded.each do |key, value|
+            next unless(key.is_a?(String) or key.is_a?(Symbol))
+            key = key.to_s
+            keys = keys_for(key)
+            parsed.set(keys => value)
+            base.delete(key)
+          end
+
+        else
+          re = %r/^ #{ Regexp.escape(prefix) } (?: [(] ([^)]+) [)] )? $/x
+          params.each do |key, value|
+            next unless(key.is_a?(String) or key.is_a?(Symbol))
+            key = key.to_s
+            matched, keys = re.match(key).to_a
+            next unless matched
+            next unless keys
+            keys = keys_for(keys)
+            parsed.set(keys => value)
+            base.delete(key)
+          end
+
         end
+
 
         whitelist = Set.new( [options.getopt([:include, :select, :only])].flatten.compact.map{|k| k.to_s} )
         blacklist = Set.new( [options.getopt([:exclude, :reject, :except])].flatten.compact.map{|k| k.to_s} )
@@ -55,12 +96,32 @@ module Dao
       end
 
       def process(path, params, options = {})
+      # fall through iff params have already been normalized (by a
+      # before_filter)
+      #
+        return params if params[:dao] == true
+
+      # fall through on already parsed params
+      #
         return params if params.is_a?(Params)
 
+      # build a smarter object
+      #
+        params = Params.new(params)
+
+      # be prepared to handle form encoded params
+      #
+        #return Params.parse(path, params[:dao][path], options) if
+          #params.has?(:dao, path)
+
+      # now we go a-looking for dao-y parameter encoding
+      #
         parsed = Params.parse(path, params, options)
         return parsed unless parsed.empty?
 
-        return Params.new(params)
+      # otherwise - just return 'em
+      #
+        return params
       end
     end
 
@@ -70,17 +131,28 @@ module Dao
     attr_accessor :route
     attr_accessor :path
     attr_accessor :status
+
     attr_accessor :errors
-    attr_accessor :validations
     attr_accessor :form
+
+    include Validations
 
     def initialize(*args, &block)
       @path = Path.default
       @status = Status.default
-      @errors = Errors.new
-      @validations = Validations.for(self)
+
+      @errors = Errors.for(self)
+      @validator = Validator.for(self)
       @form = Form.for(self)
       super
+    end
+
+    def attributes
+      self
+    end
+
+    def name
+      path
     end
 
   # look good for inspect

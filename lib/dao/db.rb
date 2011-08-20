@@ -7,9 +7,21 @@ module Dao
     attr_accessor :path
 
     def initialize(*args)
-      options = Dao.options_for!(args)
-      @path = (args.shift || options[:path] || './db/dao.yml').to_s
+      options = args.extract_options!.to_options!
+      @path = ( args.shift || options[:path] || Db.default_path ).to_s
       FileUtils.mkdir_p(File.dirname(@path)) rescue nil
+    end
+
+    def rm_f
+      FileUtils.rm_f(@path) rescue nil
+    end
+
+    def rm_rf
+      FileUtils.rm_rf(@path) rescue nil
+    end
+
+    def truncate
+      rm_f
     end
 
     def db
@@ -53,7 +65,9 @@ module Dao
 
       def delete(id)
         @db.delete(@name, id)
+        id
       end
+      alias_method('destroy', 'delete')
 
       def to_hash
         transaction{|y| y[@name]}
@@ -73,17 +87,25 @@ module Dao
     end
     alias_method('[]', 'collection')
 
+    def method_missing(method, *args, &block)
+      if args.empty? and block.nil?
+        return self.collection(method)
+      end
+      super
+    end
+
     def transaction(*args, &block)
       ystore.transaction(*args, &block)
     end
 
-    def save(collection, data = {})
+    def save(collection, data)
       data = data_for(data)
       ystore.transaction do |y|
         collection = (y[collection.to_s] ||= {})
         id = next_id_for(collection, data)
         collection[id] = data
         record = collection[id]
+        id
       end
     end
 
@@ -133,6 +155,7 @@ module Dao
         end
       end
     end
+    alias_method('destroy', 'delete')
 
     def next_id_for(collection, data)
       data = data_for(data)
@@ -167,11 +190,11 @@ module Dao
       attr_writer :instance
 
       def default_root()
-        defined?(Rails.root) ? File.join(Rails.root.to_s, 'db') : './db'
+        defined?(Rails.root) && Rails.root ? File.join(Rails.root.to_s, 'db') : './db'
       end
 
       def default_path()
-        File.join(default_root, 'dao.yml')
+        File.join(default_root, 'db.yml')
       end
 
       def method_missing(method, *args, &block)
@@ -185,6 +208,22 @@ module Dao
 
       def root
         @root ||= default_root
+      end
+
+      def tmp(&block)
+        require 'tempfile' unless defined?(Tempfile)
+        tempfile = Tempfile.new("#{ Process.pid }-#{ Process.ppid }-#{ Time.now.to_f }-#{ rand }")
+        path = tempfile.path
+        db = new(:path => path)
+        if block
+          begin
+            block.call(db)
+          ensure
+            db.rm_rf
+          end
+        else
+          db
+        end
       end
     end
   end

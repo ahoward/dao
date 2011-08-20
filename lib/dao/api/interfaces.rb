@@ -24,6 +24,9 @@ module Dao
 
         route = routes.add(path) if Route.like?(path)
 
+        doc = args.shift || options[:doc]
+        self.doc(doc) if doc
+
         interface =
           if options.key?(:alias)
             aliased_path = Path.new(options[:alias])
@@ -193,6 +196,8 @@ module Dao
         begin
           @catching.push(label)
           catch(label, &block)
+        rescue Dao::Validations::Error
+          nil
         ensure
           @catching.pop
         end
@@ -254,14 +259,16 @@ module Dao
       result.error!
     end
 
-  # delegate some methods to the params
+  # validations 
   #
-    Validations::Mixin.list.each do |method|
-      module_eval <<-__, __FILE__, __LINE__
-        def #{ method }(*args)
-          params.send(#{ method.inspect }, *args)
-        end
-      __
+    include Validations
+
+    def validator
+      params.validator
+    end
+
+    def attributes
+      params
     end
 
   # misc

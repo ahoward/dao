@@ -18,26 +18,22 @@ module Dao
 
   # instance methods
   #
-    attr_accessor :map
+    attr_accessor :object
+    attr_accessor :name
+    attr_accessor :attributes
+    attr_accessor :errors
 
-    def initialize(*args, &block)
-      @map = args.first.is_a?(Map) ? args.shift : Map.new
+    def initialize(object)
+      @object = object
+      @name = @object.name
+      @attributes = @object.attributes
+      @errors = @object.errors
     end
-
-    def errors
-      @map.errors
-    end
-
-    def path
-      @map.path
-    end
-
-
 
   # html generation methods 
   #
     def form(*args, &block)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
       keys = args.flatten
 
       action = options.delete(:action) || './'
@@ -57,7 +53,7 @@ module Dao
     end
 
     def label(*args, &block)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
       keys = args.flatten
 
       id = options.delete(:id) || id_for(keys)
@@ -67,7 +63,7 @@ module Dao
 
       content =
         if block.nil? and !options.has_key?(:content)
-          humanize(keys.last)
+          titleize(keys.last)
         else
           block ? block.call() : options.delete(:content)
         end
@@ -76,7 +72,7 @@ module Dao
     end
 
     def input(*args, &block)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
       keys = args.flatten
 
       type = options.delete(:type) || :text
@@ -87,16 +83,16 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(@map, keys)
+          value_for(@attributes, keys)
         else
-          block ? block.call(@map.get(keys)) : options.delete(:value)
+          block ? block.call(@attributes.get(keys)) : options.delete(:value)
         end
 
       input_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
     end
 
     def submit(*args, &block)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
 
       content = block ? block.call : (args.first || 'Submit')
 
@@ -108,7 +104,7 @@ module Dao
     end
 
     def button(*args)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
       keys = args.flatten
 
       type = options.delete(:type) || :button
@@ -119,23 +115,23 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(@map, keys)
+          value_for(@attributes, keys)
         else
-          block ? block.call(@map.get(keys)) : options.delete(:value)
+          block ? block.call(@attributes.get(keys)) : options.delete(:value)
         end
 
       button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
     end
 
     def reset(*args)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
       options[:type] = :reset
       args.push(options)
       button(*args)
     end
 
     def textarea(*args, &block)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
       keys = args.flatten
 
       name = options.delete(:name) || name_for(keys)
@@ -145,27 +141,27 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(@map, keys)
+          value_for(@attributes, keys)
         else
-          block ? block.call(@map.get(keys)) : options.delete(:value)
+          block ? block.call(@attributes.get(keys)) : options.delete(:value)
         end
 
       textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value.to_s }
     end
 
     def select(*args, &block)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = args.extract_options!.to_options! 
       keys = args.flatten
 
       name = options.delete(:name) || name_for(keys)
-      from = options.delete(:from) || options.delete(:options)
+      from = options.delete(:from) || options.delete(:options) || @attributes.get(*keys)
       blank = options.delete(:blank)
 
       selected =
         if options.has_key?(:selected)
           options.delete(:selected)
         else
-          value_for(@map, keys)
+          value_for(@attributes, keys)
         end
 
       id = options.delete(:id) || id_for(keys)
@@ -177,7 +173,7 @@ module Dao
       if from.nil?
         key = keys.map{|key| "#{ key }"}
         key.last << "_options"
-        from = @map.get(*key) if @map.has?(*key)
+        from = @attributes.get(*key) if @attributes.has?(*key)
       end
 
       list = Array(from)
@@ -242,13 +238,20 @@ module Dao
   # html generation support methods
   #
     def id_for(keys)
-      id = [path, keys.join('-')].compact.join('_')
+      id = [name, keys.join('-')].compact.join('_')
       slug_for(id)
+    end
+
+    def errors_on(keys)
+    end
+
+    def errors_on?(*keys)
+      !errors_on(keys).blank?
     end
 
     def class_for(keys, klass = nil)
       klass = 
-        if errors.on?(keys)
+        if errors_on?(keys)
           [klass, 'dao', 'errors'].compact.join(' ')
         else
           [klass, 'dao'].compact.join(' ')
@@ -257,31 +260,32 @@ module Dao
     end
 
     def error_for(keys, klass = nil)
-      errors.get(keys) if errors.on?(keys)
+      if errors_on?(keys)
+        title = Array(keys).join(' ').titleize
+        messages = Array(errors.get(keys)).join(', ')
+        "#{ title }: #{ messages }"
+      end
     end
 
     def value_for(map, keys)
       return nil unless map.has?(keys)
-      value = Tagz.escapeHTML(map.get(keys))
+      value = map.get(keys)
+      value =
+        case value
+          when Hash, Array
+            value.to_json
+          else
+            value
+        end
+      Tagz.escapeHTML(value)
     end
 
-    def Form.name_for(path, *keys)
-      path = Path.new(path) unless path.is_a?(Path)
-      "#{ path }(#{ Array(keys).flatten.compact.join(',') })"
-    end
-
-    def Form.name_re_for(path)
-      path = Path.new(path) unless path.is_a?(Path)
-      Regexp.new(/^#{ Regexp.escape(path) }/)
-    end
-
-    def Form.encoded?(path, params)
-      name_re = Form.name_re_for(path)
-      params.keys.any?{|key| name_re =~ key.to_s}
+    def Form.name_for(name, *keys)
+      "dao[#{ name }][#{ Array(keys).flatten.compact.join('.') }]"
     end
 
     def name_for(keys)
-      Form.name_for(path, keys)
+      Form.name_for(@name, keys)
     end
 
     def options_for(*hashes)
@@ -304,9 +308,9 @@ module Dao
       slug_for(string).gsub(/_/, '-')
     end
 
-    def humanize(string)
+    def titleize(string)
       string = string.to_s
-      string = string.humanize if string.respond_to?(:humanize)
+      string = string.titleize if string.respond_to?(:titleize)
       string
     end
   end

@@ -1,27 +1,29 @@
 module Dao
-  class Errors < ::Map
+  class Errors
   # for html generation
   #
     include Tagz.globally
 
     class << Errors
       include Tagz.globally
+
+      def for(*args, &block)
+        new(*args, &block)
+      end
     end
 
   # you can tweak these if you want
   #
     Global = '*' unless defined?(Global)
-    #Separator = '⇒' unless defined?(Separator)
-    Separator = "\342\207\222" unless defined?(Separator)  ### this is an "Open-outlined rightward arrow" - http://en.wikipedia.org/wiki/List_of_Unicode_characters#Supplemental_arrows-A
-
-
-  # string message support class - knows when it's sticky...
+    Separator = "\342\207\222" unless defined?(Separator)  ### this is an "Open-outlined rightward arrow"
+                                                           ### http://en.wikipedia.org/wiki/List_of_Unicode_characters#Supplemental_arrows-A
+  # messages know when they're sticky
   #
     class Message < ::String
       attr_accessor :sticky
 
       def initialize(*args)
-        options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+        options = Map.options_for!(args)
         replace(args.join(' '))
         @sticky = options[:sticky]
       end
@@ -42,16 +44,41 @@ module Dao
       def global_key
         [Global]
       end
-
-      def for(*args, &block)
-        new(*args, &block)
-      end
     end
 
   # instance methods
   #
+    attr_accessor :map
+    attr_accessor :errors
+
+    def initialize(map = nil)
+      @map = map || Map.new
+      @errors = Map.new
+    end
+
+    def method_missing(method, *args, &block)
+      super unless @errors.respond_to?(method)
+      @errors.send(method, *args, &block)
+    end
+
+    def [](*keys)
+      if @errors.has?(keys)
+        @errors.get(keys)
+      else
+        @errors.set(keys => [])
+      end
+    end
+
+    def size
+      size = 0
+      @errors.depth_first_each{|key, val| size += Array(val).size}
+      size
+    end
+    alias_method('count', 'size')
+    alias_method('length', 'size')
+
     def add(*args)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = Map.options_for!(args)
       sticky = options[:sticky]
       clear = options[:clear]
 
@@ -84,10 +111,10 @@ module Dao
       result = []
 
       errors.each do |keys, message|
-        list = get(keys)
-        unless get(keys)
-          set(keys => [])
-          list = get(keys)
+        list = @errors.get(keys)
+        unless @errors.has?(keys)
+          @errors.set(keys => [])
+          list = @errors.get(keys)
         end
         list.clear if clear
         list.push(message)
@@ -96,45 +123,25 @@ module Dao
       
       result
     end
+
     alias_method('add_to_base', 'add')
 
     def add!(*args)
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = Map.options_for!(args)
       options[:sticky] = true
       args.push(options)
       add(*args)
     end
+
     alias_method('add_to_base!', 'add!')
 
-    def clone
-      clone = Errors.new
-      depth_first_each do |keys, message|
-        args = [*keys]
-        args.push(message)
-        clone.add(*args)
-      end
-      clone
+    def clear!
+      @errors.clear
     end
 
-    def update(other, options = {})
-      options = Dao.map_for(options)
-      prefix = Array(options[:prefix]).flatten.compact
-
-      other.each do |key, val|
-        key = key.to_s
-        if key == 'base' or key == Global
-          add!(val)
-        else
-          key = prefix + [key] unless prefix.empty?
-          add(key, val)
-        end
-      end
-    end
-
-    alias_method('clear!', 'clear') unless instance_methods.include?('clear!')
     def clear
       keep = []
-      depth_first_each do |keys, message|
+      @errors.depth_first_each do |keys, message|
         index = keys.pop
         args = [keys, message].flatten
         keep.push(args) if message.sticky?
@@ -145,27 +152,20 @@ module Dao
     end
 
     def invalid?(*keys)
-      has?(keys) and !get(keys).nil?
+      @errors.has?(keys) and !@errors.get(keys).nil?
     end
+
     alias_method('on?', 'invalid?')
 
     def on(*args, &block)
-      get(*args, &block)
+      @errors.get(*args, &block)
     end
-
-    def size
-      size = 0
-      depth_first_each{ size += 1 }
-      size
-    end
-    alias_method('count', 'size')
-    alias_method('length', 'size')
 
     def full_messages
       global_messages = []
       full_messages = []
 
-      depth_first_each do |keys, value|
+      @errors.depth_first_each do |keys, value|
         index = keys.pop
         key = keys.join('.')
         value = value.to_s
@@ -181,7 +181,7 @@ module Dao
     end
 
     def each_message
-      depth_first_each do |keys, message|
+      @errors.depth_first_each do |keys, message|
         index = keys.pop
         message = message.to_s.strip
         yield(keys, message)
@@ -191,6 +191,7 @@ module Dao
     def each_full_message
       full_messages.each{|msg| yield msg}
     end
+
     alias_method('each_full', 'each_full_message')
 
     def messages
@@ -215,11 +216,11 @@ module Dao
 
     def Errors.default_errors_to_html(*args)
       error = args.shift
-      options = Dao.map_for(args.last.is_a?(Hash) ? args.pop : {})
+      options = Map.options_for!(args)
       errors = [error, *args].flatten.compact
 
       at_least_one_error = false
-      css_class = options[:class] || 'dao errors'
+      css_class = options[:class] || 'errors conducer'
 
       to_html =
         table_(:class => css_class){
@@ -227,20 +228,24 @@ module Dao
           errors.each do |e|
             e.full_messages.each do |key, message|
               at_least_one_error = true
+              title = Array(key).join(' ').titleize
               tr_{
-                td_(:class => :key){ key }
+                td_(:class => :title){ title }
                 td_(:class => :separator){ Separator }
                 td_(:class => :message){ message }
               }
             end
           end
         }
-
       at_least_one_error ? to_html : '' 
     end
 
     def to_s(*args, &block)
       to_html(*args, &block)
+    end
+
+    def to_json(*args, &block)
+      @errors.to_json(*args, &block)
     end
   end
 end

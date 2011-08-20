@@ -17,8 +17,16 @@ if defined?(Rails)
 
       paths.path = ROOT_DIR
 
+      config.autoload_paths += %w( app/models app )
+
       ### config.autoload_paths << APP_DIR
       ### $LOAD_PATH.push(File.join(Rails.root.to_s, 'app'))
+
+    # drop the dao parameter parser in there...
+    #
+      #initializer "dao.middleware" do |app|
+        #app.middleware.use Dao::Middleware::ParamsParser
+      #end
 
     # yes yes, this should probably be somewhere else...
     #
@@ -26,17 +34,26 @@ if defined?(Rails)
 
         ActionController::Base.module_eval do
 
+          before_filter do |controller|
+          # set the dao controller
+          #
+            Dao.current_controller = controller
+
+          # pre-parse any obvious dao params
+          #
+            controller.instance_eval do
+              Dao.normalize_parameters(params)
+            end
+          end
+
         # you will likely want to override this!
         #
           def current_api
             @api ||= ( 
               api = Api.new
               %w( real_user effective_user current_user ).each do |attr|
-                getter = "#{ attr }"
-                setter = "#{ attr }="
-                if respond_to?(getter) and api.respond_to?(setter)
-                  api.send(setter, send(getter))
-                end
+                getter, setter = "#{ attr }", "#{ attr }="
+                api.send(setter, send(getter)) if(respond_to?(getter) and api.respond_to?(setter))
               end
               api
             )
