@@ -127,7 +127,7 @@ module Dao
     alias_method('add_to_base', 'add')
 
     def add!(*args)
-      options = Map.options_for!(args)
+      options = Map.new(args.last.is_a?(Hash) ? args.last : {}) 
       options[:sticky] = true
       args.push(options)
       add(*args)

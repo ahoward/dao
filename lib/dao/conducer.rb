@@ -151,6 +151,10 @@ module Dao
 
 ## instance_methods
 #
+    def inspect
+      ::JSON.pretty_generate(@attributes, :max_nesting => 0)
+    end
+
     def id
       @attributes[:id] || @attributes[:_id]
     end

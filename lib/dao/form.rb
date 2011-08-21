@@ -23,11 +23,18 @@ module Dao
     attr_accessor :attributes
     attr_accessor :errors
 
-    def initialize(object)
-      @object = object
-      @name = @object.name
-      @attributes = @object.attributes
-      @errors = @object.errors
+    def initialize(*args)
+      @object = args.shift
+
+      if @object
+        @name = @object.name
+        @attributes = @object.attributes
+        @errors = @object.errors
+      else
+        @name = 'form'
+        @attributes = Map.new
+        @errors = Errors.new
+      end
     end
 
   # html generation methods 
@@ -284,8 +291,8 @@ module Dao
       "dao[#{ name }][#{ Array(keys).flatten.compact.join('.') }]"
     end
 
-    def name_for(keys)
-      Form.name_for(@name, keys)
+    def name_for(*keys)
+      Form.name_for(@name, *keys)
     end
 
     def options_for(*hashes)

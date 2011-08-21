@@ -83,7 +83,7 @@ module Dao
 
   def current_controller(*args)
     current.controller = args.first unless args.empty?
-    current.controller
+    current.controller || mock_controller
   end
   alias_method('controller', 'current_controller')
 
@@ -95,7 +95,13 @@ module Dao
   %w( request response session ).each do |attr|
     module_eval <<-__, __FILE__, __LINE__
       def current_#{ attr }
-        current.#{ attr }
+        @current_#{ attr } ||= current_controller.instance_eval{ #{ attr } }
+      end
+      def current_#{ attr }=(value)
+        @current_#{ attr } = value
+      end
+      def #{ attr }
+        current_#{ attr }
       end
     __
   end

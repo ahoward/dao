@@ -13,11 +13,13 @@ module Dao
     #
       options = Dao.options_for!(args)
 
-      parsed_params = Dao.parse(path, params, options)
+      #parsed_params = Dao.parse(path, params, options)
 
       result = Result.new(:mode => api.mode)
+      result.params.update(params)
       params = result.params
-      params.update(parsed_params)
+      #params = result.params
+      #params.update(parsed_params)
 
       args =
         if interface.arity < 1
