@@ -94,6 +94,8 @@
     result.rb
     params.rb
 
+    current.rb
+
     mode.rb
     route.rb
     path.rb

@@ -133,6 +133,8 @@ Testing Dao::Conducer do
 
     testing '#to_param' do
       o = assert{ new_foo_conducer() }
+      assert{ o.to_param.nil? }
+      o.id = 42
       assert{ o.to_param }
     end
 

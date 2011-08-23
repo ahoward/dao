@@ -4,7 +4,7 @@ module Dao
 ##
 #      
     include ActiveModel::Naming
-    include ActiveModel::Conversion
+    #include ActiveModel::Conversion
 
     #extend ActiveModel::Translation
     #include ActiveModel::AttributeMethods
@@ -26,6 +26,7 @@ module Dao
 ##
 #
     include Dao::Validations
+    #include Dao::Current
 
 ## class_methods
 #
@@ -100,8 +101,6 @@ module Dao
       errors
       validations
       form
-      new_record
-      destroyed
     ).each{|a| fattr(a)}
 
     def self.new(*args, &block)
@@ -122,6 +121,9 @@ module Dao
       end
     end
 
+    fattr(:new_record){ id.nil? }
+    fattr(:destroyed){ id.nil }
+
     def reset(*args, &block)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
@@ -130,9 +132,6 @@ module Dao
       @attributes = Attributes.for(self)
       @errors = Errors.for(self)
       @form = Form.for(self)
-
-      @new_record = true
-      @destroyed = false
 
       controller = controllers.shift || Dao.current_controller || Dao.mock_controller
       self.controller = controller
@@ -157,6 +156,10 @@ module Dao
 
     def id
       @attributes[:id] || @attributes[:_id]
+    end
+
+    def id=(id)
+      @attributes[:id] = id
     end
 
     def key_for(*keys)
@@ -209,8 +212,32 @@ module Dao
 
 # active_model support
 #
+    def to_model
+      self
+    end
+
+    def to_key
+      id ? [id] : nil
+    end
+
+    def to_param
+      persisted? ? to_key.join('-') : nil
+    end
+
     def persisted?
-      !(@new_record || @destroyed)
+      !!id
+    end
+
+    def new_record?
+      !!id
+    end
+
+    def destroyed?
+      !!!id
+    end
+
+    def destroyed!
+      self.id = nil
     end
 
     def self.human_attribute_name(attribute, options = {})
