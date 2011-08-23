@@ -12,39 +12,12 @@ class APIController < ApplicationController
 
   def index
     result = call(path, params)
-    respond_with(result)
+    Dao.render_json(result, :controler => self)
   end
 
 protected
-
   def call(path, params)
     @result = api.mode(@mode).call(path, params)
-  end
-
-  def respond_with(object, options = {})
-    json = json_for(object)
-
-    status = object.status rescue (options[:status] || 200)
-    status = status.code if status.respond_to?(:code)
-
-    respond_to do |wants|
-      wants.json{ render :json => json, :status => status }
-      wants.html{ render :text => json, :status => status, :content_type => 'text/plain' }
-      wants.xml{ render :text => 'no soup for you!', :status => 403 }
-    end
-  end
-
-  def json_for(object)
-    begin
-      if Rails.env.production?
-        ::JSON.generate(object)
-      else
-        ::JSON.pretty_generate(object, :max_nesting => 0)
-      end
-    rescue Object => e
-      Rails.logger.error(e)
-      YAML.load( object.to_yaml ).to_json
-    end
   end
 
   def setup_path

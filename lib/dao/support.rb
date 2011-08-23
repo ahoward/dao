@@ -191,4 +191,37 @@ module Dao
   def keys_for(keys)
     keys.strip.split(%r/\s*[,._-]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
   end
+
+  def render_json(object, options = {})
+    options = options.to_options!
+    controller = options[:controller] || Dao.current_controller
+
+    controller.instance_eval do
+      json = Dao.json_for(object)
+
+      status = object.status rescue (options[:status] || 200)
+      status = status.code if status.respond_to?(:code)
+
+      respond_to do |wants|
+        wants.json{ render :json => json, :status => status }
+        wants.html{ render :text => json, :status => status, :content_type => 'text/plain' }
+        wants.xml{ render :text => 'no soup for you!', :status => 403 }
+      end
+    end
+  end
+
+  def json_for(object)
+    object = object.as_json if object.respond_to?(:as_json)
+
+    begin
+      if Rails.env.production?
+        ::JSON.generate(object)
+      else
+        ::JSON.pretty_generate(object, :max_nesting => 0)
+      end
+    rescue Object => e
+      Rails.logger.error(e)
+      YAML.load( object.to_yaml ).to_json
+    end
+  end
 end

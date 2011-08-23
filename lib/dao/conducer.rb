@@ -212,6 +212,10 @@ module Dao
 
 # active_model support
 #
+
+
+## include ActiveModel::Conversion
+#
     def to_model
       self
     end
@@ -240,6 +244,8 @@ module Dao
       self.id = nil
     end
 
+## extend ActiveModel::Translation
+#
     def self.human_attribute_name(attribute, options = {})
       attribute
     end
@@ -296,6 +302,10 @@ module Dao
 
     def raise!(*args, &block)
       self.class.raise!(*args, &block)
+    end
+
+    def as_json
+      @attributes
     end
   end
 
