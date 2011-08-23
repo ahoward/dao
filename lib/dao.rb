@@ -15,7 +15,7 @@
     def dependencies
       {
         'rails'       =>  [ 'rails'       , '~> 3.0.0' ],
-        'map'         =>  [ 'map'         , '~> 4.3.0' ],
+        'map'         =>  [ 'map'         , '~> 4.4.0' ],
         'fattr'       =>  [ 'fattr'       , '~> 2.2.0' ],
         'tagz'        =>  [ 'tagz'        , '~> 9.0.0' ],
         'yajl'        =>  [ 'yajl-ruby'   , '~> 0.8.1' ],
@@ -107,6 +107,7 @@
     mongo_mapper.rb
 
     conducer.rb
+    image_cache.rb
   ]
 
 # protect against rails' too clever reloading

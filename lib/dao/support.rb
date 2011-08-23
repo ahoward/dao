@@ -106,6 +106,14 @@ module Dao
     __
   end
 
+  %w( current_user effective_user real_user ).each do |attr|
+    module_eval <<-__, __FILE__, __LINE__
+      def #{ attr }
+        @#{ attr } ||= current_controller.instance_eval{ #{ attr } }
+      end
+    __
+  end
+
   def root
     if defined?(Rails.root) and Rails.root
       Rails.root

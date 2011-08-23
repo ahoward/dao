@@ -1,5 +1,5 @@
 module Dao
-  class Errors
+  class Errors < ::Map
   # for html generation
   #
     include Tagz.globally
@@ -53,25 +53,16 @@ module Dao
 
     def initialize(map = nil)
       @map = map || Map.new
-      @errors = Map.new
     end
 
-    def method_missing(method, *args, &block)
-      super unless @errors.respond_to?(method)
-      @errors.send(method, *args, &block)
-    end
-
-    def [](*keys)
-      if @errors.has?(keys)
-        @errors.get(keys)
-      else
-        @errors.set(keys => [])
-      end
+    def [](key)
+      self[key] = Array.new unless has_key?(key)
+      super
     end
 
     def size
       size = 0
-      @errors.depth_first_each{|key, val| size += Array(val).size}
+      depth_first_each{|key, val| size += Array(val).size}
       size
     end
     alias_method('count', 'size')
@@ -111,10 +102,10 @@ module Dao
       result = []
 
       errors.each do |keys, message|
-        list = @errors.get(keys)
-        unless @errors.has?(keys)
-          @errors.set(keys => [])
-          list = @errors.get(keys)
+        list = get(keys)
+        unless has?(keys)
+          set(keys => [])
+          list = get(keys)
         end
         list.clear if clear
         list.push(message)
@@ -135,13 +126,11 @@ module Dao
 
     alias_method('add_to_base!', 'add!')
 
-    def clear!
-      @errors.clear
-    end
+    alias_method('clear!', 'clear')
 
     def clear
       keep = []
-      @errors.depth_first_each do |keys, message|
+      depth_first_each do |keys, message|
         index = keys.pop
         args = [keys, message].flatten
         keep.push(args) if message.sticky?
@@ -152,20 +141,20 @@ module Dao
     end
 
     def invalid?(*keys)
-      @errors.has?(keys) and !@errors.get(keys).nil?
+      has?(keys) and !get(keys).nil?
     end
 
     alias_method('on?', 'invalid?')
 
     def on(*args, &block)
-      @errors.get(*args, &block)
+      get(*args, &block)
     end
 
     def full_messages
       global_messages = []
       full_messages = []
 
-      @errors.depth_first_each do |keys, value|
+      depth_first_each do |keys, value|
         index = keys.pop
         key = keys.join('.')
         value = value.to_s
@@ -181,7 +170,7 @@ module Dao
     end
 
     def each_message
-      @errors.depth_first_each do |keys, message|
+      depth_first_each do |keys, message|
         index = keys.pop
         message = message.to_s.strip
         yield(keys, message)
@@ -242,10 +231,6 @@ module Dao
 
     def to_s(*args, &block)
       to_html(*args, &block)
-    end
-
-    def to_json(*args, &block)
-      @errors.to_json(*args, &block)
     end
   end
 end

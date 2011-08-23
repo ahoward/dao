@@ -131,7 +131,7 @@ module Dao
       @errors = Errors.for(self)
       @form = Form.for(self)
 
-      @new_record = false
+      @new_record = true
       @destroyed = false
 
       controller = controllers.shift || Dao.current_controller || Dao.mock_controller

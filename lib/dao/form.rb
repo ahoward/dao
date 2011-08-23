@@ -250,6 +250,7 @@ module Dao
     end
 
     def errors_on(keys)
+      errors.get(keys)
     end
 
     def errors_on?(*keys)
