@@ -11,7 +11,6 @@ Gem::Specification::new do |spec|
   spec.files =
 ["README",
  "Rakefile",
- "a.rb",
  "dao.gemspec",
  "db",
  "db/dao.yml",
@@ -33,6 +32,7 @@ Gem::Specification::new do |spec|
  "lib/dao/conducer.rb",
  "lib/dao/conducer/attributes.rb",
  "lib/dao/conducer/crud.rb",
+ "lib/dao/current.rb",
  "lib/dao/data.rb",
  "lib/dao/db.rb",
  "lib/dao/endpoint.rb",
@@ -86,7 +86,6 @@ Gem::Specification::new do |spec|
  "test/leak.rb",
  "test/support_test.rb",
  "test/testing.rb",
- "test/units",
  "test/validations_test.rb"]
 
   spec.executables = []
