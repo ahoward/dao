@@ -132,7 +132,12 @@ module Dao
       require 'action_dispatch/testing/test_request.rb'
       require 'action_dispatch/testing/test_response.rb'
       store = ActiveSupport::Cache::MemoryStore.new
-      controller = defined?(ApplicationController) ? ApplicationController.new : ActionController::Base.new
+      controller = 
+        begin
+          ApplicationController.new
+        rescue NameError
+          ActionController::Base.new
+        end
       controller.perform_caching = true
       controller.cache_store = store
       request = ActionDispatch::TestRequest.new

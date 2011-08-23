@@ -23,6 +23,9 @@ module Dao::Current
         def #{ attr }
           @#{ attr } ||= current_controller.instance_eval{ #{ attr } }
         end
+        def #{ attr }=(value)
+          @#{ attr } = value
+        end
       __
     end
   end
