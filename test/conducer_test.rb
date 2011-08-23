@@ -99,6 +99,23 @@ Testing Dao::Conducer do
     end
   end
 
+  context 'current' do
+    testing 'class and instance interfaces' do
+      c = assert{ new_foo_conducer_class }
+      o = c.new
+        #current_request
+        #current_response
+        #current_session
+        #current_user
+      %w(
+        current_controller
+      ).each do |method|
+        assert{ o.respond_to?(method) }
+        assert{ c.respond_to?(method) }
+      end
+    end
+  end
+
   context 'instance interface' do
     testing '#save' do
       params = {:k => :v}

@@ -13,8 +13,6 @@ Gem::Specification::new do |spec|
  "Rakefile",
  "dao.gemspec",
  "db",
- "db/dao.yml",
- "db/db.yml",
  "lib",
  "lib/dao",
  "lib/dao.rb",
