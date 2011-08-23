@@ -26,7 +26,7 @@ module Dao
 ##
 #
     include Dao::Validations
-    #include Dao::Current
+    include Dao::Current
 
 ## class_methods
 #
