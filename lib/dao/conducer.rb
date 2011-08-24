@@ -97,6 +97,7 @@ module Dao
 #
     %w(
       name
+      object
       attributes
       errors
       validations
