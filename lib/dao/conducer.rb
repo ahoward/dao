@@ -258,7 +258,7 @@ module Dao
       self[key]
     end
 
-# view support
+## view support
 #
     url_helpers = Rails.application.try(:routes).try(:url_helpers)
     include(url_helpers) if url_helpers
@@ -290,7 +290,58 @@ module Dao
       __
     end
 
-# misc
+## generic crud support assuming valid .all, .find, #save and #destroy
+#
+    def self.create(*args, &block)
+      allocate.tap do |conducer|
+        conducer.running_callbacks :reset, :initialize, :create do
+          conducer.send(:reset, *args, &block)
+          conducer.send(:initialize, *args, &block)
+          return false unless conducer.save
+        end
+      end
+    end
+
+    def self.create!(*args, &block)
+      allocate.tap do |conducer|
+        conducer.running_callbacks :reset, :initialize, :create do
+          conducer.send(:reset, *args, &block)
+          conducer.send(:initialize, *args, &block)
+          raise!(:validation_error) unless conducer.save
+        end
+      end
+    end
+
+    def reload
+      attributes =
+        if id
+          conducer = self.class.find(id)
+          conducer ? conducer.attributes : {}
+        else
+          {}
+        end
+      reset(attributes)
+      self
+    end
+
+    def save!
+      saved = !!save
+      raise!(:validation_error) unless saved
+      true
+    end
+
+    def update_attributes(attributes = {})
+      @attributes.set(attributes)
+      @attributes
+    end
+
+    def update_attributes!(*args, &block)
+      update_attributes(*args, &block)
+    ensure
+      save!
+    end
+
+## misc
 #
     def model_name
       self.class.model_name

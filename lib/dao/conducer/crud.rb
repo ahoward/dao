@@ -22,59 +22,17 @@ module Dao
             hash = collection.find(id)
             new(hash) if hash
           end
-
-          def create(*args, &block)
-            allocate.tap do |conducer|
-              conducer.running_callbacks :reset, :initialize, :create do
-                conducer.send(:reset, *args, &block)
-                conducer.send(:initialize, *args, &block)
-                return false unless conducer.save
-              end
-            end
-          end
-
-          def create!(*args, &block)
-            allocate.tap do |conducer|
-              conducer.running_callbacks :reset, :initialize, :create do
-                conducer.send(:reset, *args, &block)
-                conducer.send(:initialize, *args, &block)
-                raise!(:validation_error) unless conducer.save
-              end
-            end
-          end
         end
 
-        def update_attributes(attributes = {})
-          @attributes.set(attributes)
-          @attributes
-        end
-
-        def update_attributes!(*args, &block)
-          update_attributes(*args, &block)
-        ensure
-          save
-        end
-
-        def save(options = {})
-          options.to_options!
+        def save
           run_callbacks :save do
-            unless valid?
-              if options[:raise]
-                raise!(:validation_error)
-              else
-                return(false)
-              end
-            end
+            return(false) unless valid?
             id = self.class.collection.save(@attributes)
             @attributes.set(:id => id)
             true
           end
         ensure
           @new_record = false
-        end
-
-        def save!
-          save(:raise => true)
         end
 
         def destroy
@@ -86,16 +44,6 @@ module Dao
           id
         ensure
           @destroyed = true
-        end
-
-        def reload
-          id = self.id
-          if id
-            @attributes.clear
-            conducer = self.class.find(id)
-            @attributes.update(conducer.attributes) if conducer
-          end
-          self
         end
       end
 
@@ -115,6 +63,7 @@ module Dao
         include(Conducer::CRUD)
       end
       alias_method('crud!', 'crud')
+      alias_method('autocrud!', 'crud')
     end
   end
   #Conducer::send(:include, Conducer::CRUD)

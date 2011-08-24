@@ -19,7 +19,8 @@
         'fattr'       =>  [ 'fattr'       , '~> 2.2.0' ],
         'tagz'        =>  [ 'tagz'        , '~> 9.0.0' ],
         'yajl'        =>  [ 'yajl-ruby'   , '~> 0.8.1' ],
-        'unidecode'   =>  [ 'unidecode'   , '~> 1.0.0' ]
+        'unidecode'   =>  [ 'unidecode'   , '~> 1.0.0' ],
+        'uuidtools'   =>  [ 'uuidtools'   , '~> 2.1.2' ]
       }
     end
 

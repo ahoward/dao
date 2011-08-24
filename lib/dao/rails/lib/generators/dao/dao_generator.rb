@@ -2,7 +2,12 @@ class DaoGenerator < Rails::Generators::NamedBase
   source_root(File.expand_path('../templates', __FILE__))
 
   def copy_files
+    ARGV.shift if ARGV.first == name
+
     case name
+      when /conducer/
+        generate_conducer!
+      
       when /system/
         generate_system!
 
@@ -14,10 +19,18 @@ class DaoGenerator < Rails::Generators::NamedBase
 
       when /assets/
         generate_system!
+
+      else
+        raise "dunno how to generate #{ name.inspect }"
     end
   end
 
 protected
+  def generate_conducer!
+    @conducer_name = ARGV.shift.sub(/_?conducer$/i, '') + '_conducer'
+    template "conducer.rb", "app/conducers/#{ @conducer_name.underscore }.rb"
+  end
+
   def generate_system!
     dao_dir = File.join(Rails.root, 'app/dao')
 

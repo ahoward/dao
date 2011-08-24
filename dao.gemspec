@@ -95,6 +95,8 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["rails", "~> 3.0.0"])
   
+    spec.add_dependency(*["uuidtools", "~> 2.1.2"])
+  
     spec.add_dependency(*["tagz", "~> 9.0.0"])
   
     spec.add_dependency(*["fattr", "~> 2.2.0"])
