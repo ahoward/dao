@@ -184,7 +184,7 @@ module Dao
       end
     end
 
-    params[:dao] = :normalized
+    #params[:dao] = {:normalized => true}
     params
   end
 
