@@ -233,11 +233,11 @@ module Dao
     end
 
     def new_record?
-      !!id
+      !!id.blank?
     end
 
     def destroyed?
-      !!!id
+      !new_record?
     end
 
     def destroyed!
