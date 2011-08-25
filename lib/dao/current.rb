@@ -41,23 +41,15 @@ module Dao::Current
         if defined?(@controller)
           @controller
         else
-          Dao.current_controller || Dao.mock_controller
+          self.class.current_controller
         end
       )
     end
 
-    %w( request response session ).each do |attr|
-      module_eval <<-__, __FILE__, __LINE__
-        def current_#{ attr }
-          @current_#{ attr } ||= current_controller.instance_eval{ #{ attr } }
-        end
-      __
-    end
-
-    %w( current_user effective_user real_user ).each do |attr|
+    %w( current_request current_response current_session current_user effective_user real_user ).each do |attr|
       module_eval <<-__, __FILE__, __LINE__
         def #{ attr }
-          @#{ attr } ||= current_controller.instance_eval{ #{ attr } }
+          @#{ attr } ||= self.class.send('#{ attr }')
         end
         def #{ attr }=(value)
           @#{ attr } = value
