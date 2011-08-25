@@ -104,33 +104,14 @@ module Dao
     ).each{|a| fattr(a)}
 
 
-    def self.allocate(*args, &block)
-      super().tap do |conducer|
-        conducer.running_callbacks :reset do
+    def self.new(*args, &block)
+      allocate.tap do |conducer|
+        conducer.running_callbacks(:reset, :initialize) do
           conducer.send(:reset, *args, &block)
-        end
-        conducer
-      end
-    end
-
-    def self.new(*args, &block)
-      allocate(*args, &block).tap do |conducer|
-        conducer.running_callbacks :initialize do
           conducer.send(:initialize, *args, &block)
         end
       end
     end
-
-=begin
-    def self.new(*args, &block)
-      allocate(*args, &block).tap do |conducer|
-        conducer.running_callbacks :initialize do
-          conducer.send(:initialize, *args, &block)
-        end
-        conducer
-      end
-    end
-=end
 
     def running_callbacks(*args, &block)
       which = args.shift
