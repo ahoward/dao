@@ -157,7 +157,8 @@ module Dao
 
       depth_first_each do |keys, value|
         index = keys.pop
-        key = keys.join('.')
+        key = keys
+        #key = keys.join('.')
         value = value.to_s
         next if value.strip.empty?
         if key == Global
