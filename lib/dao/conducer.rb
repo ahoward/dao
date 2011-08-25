@@ -121,9 +121,6 @@ module Dao
       end
     end
 
-    fattr(:new_record){ id.nil? }
-    fattr(:destroyed){ id.nil }
-
     def reset(*args, &block)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
@@ -133,8 +130,7 @@ module Dao
       @errors = Errors.for(self)
       @form = Form.for(self)
 
-      controller = controllers.shift || Dao.current_controller || Dao.mock_controller
-      self.controller = controller
+      set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
 
       hashes.each do |hash|
         hash.each do |key, val|
@@ -229,21 +225,45 @@ module Dao
       persisted? ? to_key.join('-') : nil
     end
 
+    def persisted
+      !!(defined?(@persisted) ? @persisted : id)
+    end
     def persisted?
-      !!id
+      persisted
+    end
+    def persisted=(value)
+      @persisted = !!value
+    end
+    def persisted!
+      self.persisted = true
     end
 
+    def new_record
+      !!(defined?(@new_record) ? @new_record : id.blank?)
+    end
     def new_record?
-      !!id.blank?
+      new_record
+    end
+    def new_record=(value)
+      @new_record = !!value
+    end
+    def new_record!
+      self.new_record = true
     end
 
+    def destroyed
+      !!(defined?(@destroyed) ? @destroyed : id.blank?)
+    end
     def destroyed?
-      !new_record?
+      destroyed
+    end
+    def destroyed=(value)
+      @destroyed = !!value
+    end
+    def destroyed!
+      self.destroyed = true
     end
 
-    def destroyed!
-      self.id = nil
-    end
 
 ## extend ActiveModel::Translation
 #
@@ -276,6 +296,10 @@ module Dao
       default_url_options[:protocol] = @controller.request.protocol
       default_url_options[:host] = @controller.request.host
       default_url_options[:port] = @controller.request.port
+    end
+
+    def set_controller(controller)
+      self.controller = controller
     end
 
     controller_delegates = %w(
