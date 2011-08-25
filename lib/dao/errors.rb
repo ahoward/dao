@@ -216,10 +216,12 @@ module Dao
       to_html =
         div_(:class => css_class){
           __
-          div_(:class => :caption){ "We're so sorry, but can you please fix the following errors?" }
 
+          div_(:class => :caption){ "We're so sorry, but can you please fix the following errors?" }
           __
+
           ul_{
+            __
             errors.each do |e|
               e.full_messages.each do |key, message|
                 at_least_one_error = true
@@ -230,16 +232,19 @@ module Dao
                 separator_class = "separator"
                 message_class = "message"
 
-                __
                 li_(:class => error_class){
                   span_(:class => title_class){ title }
                   span_(:class => separator_class){ " #{ Separator } " }
                   span_(:class => message_class){ message }
                 }
+                __
               end
             end
+            __
           }
+          __
         }
+
       at_least_one_error ? to_html : '' 
     end
 
