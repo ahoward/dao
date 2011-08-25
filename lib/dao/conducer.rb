@@ -103,14 +103,34 @@ module Dao
       form
     ).each{|a| fattr(a)}
 
-    def self.new(*args, &block)
-      allocate.tap do |conducer|
-        conducer.running_callbacks :reset, :initialize do
+
+    def self.allocate(*args, &block)
+      super().tap do |conducer|
+        conducer.running_callbacks :reset do
           conducer.send(:reset, *args, &block)
+        end
+        conducer
+      end
+    end
+
+    def self.new(*args, &block)
+      allocate(*args, &block).tap do |conducer|
+        conducer.running_callbacks :initialize do
           conducer.send(:initialize, *args, &block)
         end
       end
     end
+
+=begin
+    def self.new(*args, &block)
+      allocate(*args, &block).tap do |conducer|
+        conducer.running_callbacks :initialize do
+          conducer.send(:initialize, *args, &block)
+        end
+        conducer
+      end
+    end
+=end
 
     def running_callbacks(*args, &block)
       which = args.shift
@@ -317,6 +337,7 @@ module Dao
 
 ## generic crud support assuming valid .all, .find, #save and #destroy
 #
+=begin
     def self.create(*args, &block)
       allocate.tap do |conducer|
         conducer.running_callbacks :reset, :initialize, :create do
@@ -336,6 +357,35 @@ module Dao
         end
       end
     end
+
+    def self.blank(params = {})
+      new
+    end
+
+    def self.build(params = {})
+      new
+    end
+
+    def self.show(id)
+      find(id)
+    end
+
+    def self.index(params = {})
+      all(params)
+    end
+
+    def self.edit(id)
+      find(id)
+    end
+
+    def self.update(id)
+      find(id)
+    end
+
+    def self.destroy(id)
+      find(id)
+    end
+=end
 
     def reload
       attributes =
@@ -382,6 +432,10 @@ module Dao
 
     def as_json
       @attributes
+    end
+
+    def conducer
+      self
     end
   end
 
