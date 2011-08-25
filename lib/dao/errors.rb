@@ -211,31 +211,34 @@ module Dao
       errors = [error, *args].flatten.compact
 
       at_least_one_error = false
-      css_class = options[:class] || 'errors conducer'
+      css_class = options[:class] || 'errors dao'
 
       to_html =
         div_(:class => css_class){
           __
           div_(:class => :caption){ "We're so sorry, but can you please fix the following errors?" }
 
-          errors.each do |e|
-            e.full_messages.each do |key, message|
-              at_least_one_error = true
-              title = Array(key).join(' ').titleize
+          __
+          ul_{
+            errors.each do |e|
+              e.full_messages.each do |key, message|
+                at_least_one_error = true
+                title = Array(key).join(' ').titleize
 
-              error_class = Array(key)==Array(Global) ? "global" : "form"
-              title_class = "title"
-              separator_class = "separator"
-              message_class = "message"
+                error_class = Array(key)==Array(Global) ? "global-error" : "field-error"
+                title_class = "title"
+                separator_class = "separator"
+                message_class = "message"
 
-              __
-              div_(:class => error_class){
-                span_(:class => title_class){ title }
-                span_(:class => separator_class){ Separator }
-                span_(:class => message_class){ message }
-              }
+                __
+                li_(:class => error_class){
+                  span_(:class => title_class){ title }
+                  span_(:class => separator_class){ " #{ Separator } " }
+                  span_(:class => message_class){ message }
+                }
+              end
             end
-          end
+          }
         }
       at_least_one_error ? to_html : '' 
     end
