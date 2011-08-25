@@ -1,7 +1,7 @@
 module Dao
   class Conducer
     class Attributes < ::Map
-      Attributes.dot_keys! if Attributes.respond_to?(:dot_keys!)
+      ### Attributes.dot_keys! if Attributes.respond_to?(:dot_keys!)
 
       class << Attributes
         def for(*args, &block)
