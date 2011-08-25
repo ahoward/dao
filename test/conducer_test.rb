@@ -108,6 +108,7 @@ Testing Dao::Conducer do
         current_request
         current_response
         current_session
+        current_user
       ).each do |method|
         assert{ o.respond_to?(method) }
         assert{ c.respond_to?(method) }

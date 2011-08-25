@@ -15,8 +15,9 @@ module Dao
   # you can tweak these if you want
   #
     Global = '*' unless defined?(Global)
-    Separator = "\342\207\222" unless defined?(Separator)  ### this is an "Open-outlined rightward arrow"
-                                                           ### http://en.wikipedia.org/wiki/List_of_Unicode_characters#Supplemental_arrows-A
+    #Separator = "\342\207\222" unless defined?(Separator)  ### this is an "Open-outlined rightward arrow"
+    Separator = ":" unless defined?(Separator)
+
   # messages know when they're sticky
   #
     class Message < ::String
@@ -212,16 +213,25 @@ module Dao
       css_class = options[:class] || 'errors conducer'
 
       to_html =
-        table_(:class => css_class){
-          caption_{ "We're so sorry, but can you please fix the following errors?" }
+        div_(:class => css_class){
+          __
+          div_(:class => :caption){ "We're so sorry, but can you please fix the following errors?" }
+
           errors.each do |e|
             e.full_messages.each do |key, message|
               at_least_one_error = true
               title = Array(key).join(' ').titleize
-              tr_{
-                td_(:class => :title){ title }
-                td_(:class => :separator){ Separator }
-                td_(:class => :message){ message }
+
+              error_class = Array(key)==Array(Global) ? "global" : "form"
+              title_class = "title"
+              separator_class = "separator"
+              message_class = "message"
+
+              __
+              div_(:class => error_class){
+                span_(:class => title_class){ title }
+                span_(:class => separator_class){ Separator }
+                span_(:class => message_class){ message }
               }
             end
           end
