@@ -1,6 +1,6 @@
 module Dao
   module InstanceExec
-    Code = lambda do
+    Code = proc do
       unless Object.new.respond_to?(:instance_exec)
         module InstanceExecHelper; end
         include InstanceExecHelper
