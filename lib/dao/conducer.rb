@@ -102,7 +102,6 @@ module Dao
       form
     ).each{|a| fattr(a)}
 
-
     def self.new(*args, &block)
       allocate.tap do |conducer|
         conducer.running_callbacks(:reset, :initialize) do

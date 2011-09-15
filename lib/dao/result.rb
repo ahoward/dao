@@ -12,8 +12,6 @@ module Dao
       self.data = options[:data] || Data.new
     end
 
-  # look good for inspect
-  #
     def inspect
       ::JSON.pretty_generate(self, :max_nesting => 0)
     end

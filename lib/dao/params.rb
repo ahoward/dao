@@ -31,9 +31,7 @@ module Dao
       self
     end
 
-    def name
-      path
-    end
+    fattr(:name){ path }
 
   # look good for inspect
   #

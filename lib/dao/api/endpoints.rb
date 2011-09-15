@@ -238,7 +238,6 @@ module Dao
         end
       __
     end
-=begin
 
     def status(*args)
       context.status.update(*args) unless args.empty?
@@ -255,20 +254,8 @@ module Dao
     end
     def data!(*args)
       data(*args)
-      valid!
+      return!
     end
-
-    def params!(*args)
-      params.replace(*args)
-      valid!
-    end
-
-    def error!
-      result.error!
-    end
-=end
-
-
 
   # misc
   #
