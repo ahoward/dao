@@ -15,79 +15,46 @@ module Dao
         @validator = validator
       end
 
-      def validations
-        validator.validations
-      end
-
-      def validates(*args, &block)
-        validator.add(*args, &block)
+      %w(
+        validations
+        validates
+      ).each do |method|
+        module_eval <<-__, __FILE__, __LINE__
+          def self.#{ method }(*args, &block)
+            validator.#{ method }(*args, &block)
+          end
+        __
       end
     end
 
     InstanceMethods = proc do
       def validator
-        defined?(@validator) ? @validator : self.class.validator
+        @validator ||= Validator.new(self)
       end
 
       def validator=(validator)
         @validator = validator
       end
 
-      def validations
-        validator.validations
-      end
-
-      def validates(*args, &block)
-        validator.add(*args, &block)
-      end
-
-      def validated?
-        @validated = false unless defined?(@validated)
-        @validated
-      end
-
-      def validated!
-        @validated = true
-      end
-
-      def validate
+      %w(
+        validations
+        validates
+        validated?
+        validated!
+        validate
+        validate!
         run_validations!
-      end
-
-      def validate!
-        run_validations!
-        raise Error.new("#{ self.class.name } is invalid!") unless valid?
-        self
-      end
-
-      def run_validations!
-        validator.run_validations!(self)
-      end
-
-      def valid!
-        @forcing_validity = true
-      end
-
-      def forcing_validity?
-        defined?(@forcing_validity) and @forcing_validity
-      end
-
-      def valid?(*args)
-        if forcing_validity?
-          true
-        else
-          options = Map.options_for!(args)
-          validate #if(options[:validate] or !validated?)
-          errors.empty? and status.ok?
-        end
-      end
-
-      def errors
-        @errors ||= Errors.new(self)
-      end
-
-      def status
-        @status ||= Status.default
+        valid!
+        forcing_validity?
+        valid?
+        errors
+        status
+      ).each do |method|
+        module_eval <<-__, __FILE__, __LINE__
+          def #{ method }(*args, &block)
+            validator.#{ method }(*args, &block)
+          end
+        __
       end
     end
 

@@ -8,6 +8,9 @@ module Dao
       include Tagz.globally
 
       def for(*args, &block)
+        if args.size == 1 and args.first.is_a?(Errors)
+          return args.first
+        end
         new(*args, &block)
       end
     end
@@ -49,11 +52,14 @@ module Dao
 
   # instance methods
   #
-    attr_accessor :map
-    attr_accessor :errors
+    attr_accessor :object
 
-    def initialize(map = nil)
-      @map = map || Map.new
+    def initialize(*args)
+      @object = args.shift
+    end
+
+    def errors
+      self
     end
 
     def [](key)

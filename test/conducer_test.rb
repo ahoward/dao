@@ -19,20 +19,12 @@ Testing Dao::Conducer do
     o = assert{ c.new }
     assert{ !o.valid? }
 
-#require 'pry'
-#binding.pry
-
-#puts
-#puts
-#p o.errors
-#p o.errors.get(:bar)
-#p o.errors.get(:foo, :bar)
-#puts
     assert{ !Array(o.errors.get(:bar)).empty? }
     assert{ !Array(o.errors.get(:foo, :bar)).empty? }
 
     o.attributes.set :foo, :bar, 42
     assert{ !o.valid? }
+
     assert{ Array(o.errors.get(:foo, :bar)).empty? }
   end
 
@@ -54,7 +46,7 @@ Testing Dao::Conducer do
 
 ##
 #
-  context 'class interface' do
+  context 'class endpoint' do
     testing '.new' do
       c = assert{ new_foo_conducer_class }
       controller = assert{ Dao.mock_controller }
@@ -100,7 +92,7 @@ Testing Dao::Conducer do
   end
 
   context 'current' do
-    testing 'class and instance interfaces' do
+    testing 'class and instance endpoints' do
       c = assert{ new_foo_conducer_class }
       o = c.new
       %w(
@@ -116,7 +108,7 @@ Testing Dao::Conducer do
     end
   end
 
-  context 'instance interface' do
+  context 'instance endpoint' do
     testing '#save' do
       params = {:k => :v}
       o = assert{ new_foo_conducer(params) }

@@ -9,7 +9,7 @@ module Dao
 
       def state
         @state ||= {
-          :interfaces => Map.new,
+          :endpoints => Map.new,
           :blocks => {},
           :README => [],
           :docs => []
@@ -27,12 +27,12 @@ module Dao
         doc = args.shift || options[:doc]
         self.doc(doc) if doc
 
-        interface =
+        endpoint =
           if options.key?(:alias)
             aliased_path = Path.new(options[:alias])
-            interfaces[aliased_path] || raise(ArgumentError, "no such path #{ aliased_path }!")
+            endpoints[aliased_path] || raise(ArgumentError, "no such path #{ aliased_path }!")
           else
-            Interface.new({
+            Endpoint.new({
               'api' => api,
               'path' => path,
               'route' => route,
@@ -41,12 +41,12 @@ module Dao
             })
           end
 
-        interfaces[path] = interface
+        endpoints[path] = endpoint
       end
-      alias_method('interface', 'call')
+      alias_method('endpoint', 'call')
 
-      def interfaces
-        state[:interfaces]
+      def endpoints
+        state[:endpoints]
       end
 
       def doc(*args)
@@ -90,8 +90,8 @@ module Dao
       def index
         index = Map.new
         index[:README] = readme
-        interfaces.each do |path, interface|
-          index[path] = interface.doc || {'description' => ''}
+        endpoints.each do |path, endpoint|
+          index[path] = endpoint.doc || {'description' => ''}
         end
         index
       end
@@ -106,15 +106,15 @@ module Dao
     def call(path = '/index', params = {}, options = {})
       api = self
       path = Path.new(path)
-      interface = interfaces[path]  ### interfaces.by_path(path)
+      endpoint = endpoints[path]  ### endpoints.by_path(path)
       route = nil
 
-      unless interface
+      unless endpoint
         route = route_for(path)
-        interface = interfaces[route]
+        endpoint = endpoints[route]
       end
 
-      unless interface
+      unless endpoint
         return index if path == '/index'
         raise(NameError, "NO SUCH INTERFACE: #{ path }")
       end
@@ -131,7 +131,10 @@ module Dao
         end
       end
 
-      context = Context.for(api, route, path, interface, params, options)
+     
+    ##
+    #
+      context = Context.for(api, path, route, endpoint, params, options)
 
       callstack(context) do
         catching(:result) do
@@ -142,19 +145,19 @@ module Dao
       context.result
     end
 
-  # will an interface route to a interface?
+  # will an endpoint route to a endpoint?
   #
     def route?(path)
       path = Path.new(path)
-      interface = interfaces[path]
+      endpoint = endpoints[path]
       route = nil
 
-      unless interface
+      unless endpoint
         route = route_for(path)
-        interface = interfaces[route]
+        endpoint = endpoints[route]
       end
 
-      interface
+      endpoint
     end
 
 
@@ -164,7 +167,7 @@ module Dao
       self.class.routes.match(*args)
     end
 
-  # context support
+  # context stack support
   #
     def callstack(context = nil, &block)
       @callstack ||= []
@@ -222,6 +225,10 @@ module Dao
       catching == :result
     end
 
+  # validations 
+  #
+    include Validations
+
   # delgate some methods to the context
   #
     Context.attrs.each do |method|
@@ -231,6 +238,7 @@ module Dao
         end
       __
     end
+=begin
 
     def status(*args)
       context.status.update(*args) unless args.empty?
@@ -258,18 +266,9 @@ module Dao
     def error!
       result.error!
     end
+=end
 
-  # validations 
-  #
-    include Validations
 
-    def validator
-      params.validator
-    end
-
-    def attributes
-      params
-    end
 
   # misc
   #
@@ -277,8 +276,8 @@ module Dao
       self.class.index
     end
 
-    def interfaces
-      self.class.interfaces
+    def endpoints
+      self.class.endpoints
     end
 
     def respond_to?(*args)

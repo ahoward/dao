@@ -1,6 +1,12 @@
 module Dao
   class Context
-    Attrs = %w( api route path interface args status errors params result data form validations )
+    Attrs = %w(
+      api path route endpoint
+      params validator errors status form
+      result
+      data
+      args
+    )
 
     Attrs.each{|a| attr_accessor(a)}
 
@@ -8,63 +14,45 @@ module Dao
       Attrs
     end
 
-    def Context.for(api, route, path, interface, params, *args)
-    # setup
-    #
-      options = Dao.options_for!(args)
-
-      #parsed_params = Dao.parse(path, params, options)
-
-      result = Result.new(:mode => api.mode)
-      result.params.update(params)
-      params = result.params
-      #params = result.params
-      #params.update(parsed_params)
-
-      args =
-        if interface.arity < 1
-          [params, result]
-        else
-          [params, result].slice(0, interface.arity)
-        end
-
-    # build the context
-    #
-      context = new
-      context.api = api
-      context.interface = interface
-      context.route = route
-      context.path = path
-      context.args = args
-      context.status = Status.default
-      context.errors = Errors.new
-
-      context.result = result
-      context.data = result.data
-
-      context.params = params
-      context.form = params.form
-      context.validations = params.validations
-
-    # wire up shared state
-    #
-      result.route = context.route
-      result.path = context.path
-      result.status = context.status
-      result.errors = context.errors
-
-      params.route = context.route
-      params.path = context.path
-      params.status = context.status
-      params.errors = context.errors
-
-      context
+    def Context.for(*args, &block)
+      new(*args, &block)
     end
 
-    include InstanceExec
+    def initialize(api, path, route, endpoint, params, *args)
+      @api = api
+      @path = path
+      @route = route
+      @endpoint = endpoint
+
+      @params = Params.new
+      @params.update(params)
+      @params.path = @path
+      @params.route = @route
+      @form = @params.form
+
+      @validator = Validator.new(@params)
+      @validator.validations_search_path.unshift(@api.class)
+
+      @validations = @validator.validations
+
+      @params.validator = @validator
+      @errors = @validator.errors
+      @status = @validator.status
+
+      @result = Result.new
+      @result.path = @path
+      @result.route = @route
+      @result.mode = @api.mode
+      @result.params = @params
+      @result.errors = @params.errors
+
+      @data = @result.data
+
+      @args = @endpoint.arity < 1 ? [@params, @result] : [@params, @result].slice(0, @endpoint.arity)
+    end
 
     def call
-      api.instance_exec(*args, &interface)
+      @api.instance_exec(*@args, &@endpoint)
     end
   end
 end

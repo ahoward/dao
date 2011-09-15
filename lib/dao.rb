@@ -82,11 +82,13 @@
   Dao.load %w[
     blankslate.rb
     instance_exec.rb
+    extractor.rb
     exceptions.rb
     support.rb
     slug.rb
     stdext.rb
 
+    name.rb
     status.rb
     errors.rb
     form.rb
@@ -100,7 +102,7 @@
     mode.rb
     route.rb
     path.rb
-    interface.rb
+    endpoint.rb
     api.rb
 
     db.rb

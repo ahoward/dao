@@ -65,7 +65,7 @@ Testing Dao::Validations do
     assert{
       api_class =
         Dao.api do
-          interface('/foobar'){
+          endpoint('/foobar'){
             validates(:a)
             validate!
           }
@@ -88,7 +88,7 @@ Testing Dao::Validations do
 
     api_class =
       Dao.api do
-        interface('/foobar'){
+        endpoint('/foobar'){
           params.validate(:a){ b = get(:b) }
           params.validate(:b){ a = get(:a) }
           validate!
@@ -107,7 +107,7 @@ Testing Dao::Validations do
 
     api_class =
       Dao.api do
-        interface('/foobar'){
+        endpoint('/foobar'){
           params.validates_as_email(:email)
           params.validates_confirmation_of(:email)
           validate!

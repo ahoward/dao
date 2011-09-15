@@ -99,7 +99,6 @@ module Dao
       name
       attributes
       errors
-      validations
       form
     ).each{|a| fattr(a)}
 
@@ -128,8 +127,9 @@ module Dao
 
       @name = self.class.model_name.singular
       @attributes = Attributes.for(self)
-      @errors = Errors.for(self)
       @form = Form.for(self)
+
+      validator.reset
 
       set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
 
@@ -140,6 +140,14 @@ module Dao
       end
 
       self
+    end
+
+    def errors
+      validator.errors
+    end
+
+    def status
+      validator.status
     end
 
     def initialize(*args, &block)

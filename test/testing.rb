@@ -10,24 +10,59 @@ $:.unshift(testdir) unless $:.include?(testdir)
 $:.unshift(libdir) unless $:.include?(libdir)
 $:.unshift(rootdir) unless $:.include?(rootdir)
 
+class Testing
+  class Slug < ::String
+    def Slug.for(*args)
+      string = args.flatten.compact.join('-')
+      words = string.to_s.scan(%r/\w+/)
+      words.map!{|word| word.gsub %r/[^0-9a-zA-Z_-]/, ''}
+      words.delete_if{|word| word.nil? or word.strip.empty?}
+      new(words.join('-').downcase)
+    end
+  end
+  
+  class Context
+    attr_accessor :name
+
+    def initialize(name, *args)
+      @name = name
+    end
+
+    def to_s
+      Slug.for(name)
+    end
+  end
+end
+
 def Testing(*args, &block)
-  Class.new(Test::Unit::TestCase) do
+  Class.new(::Test::Unit::TestCase) do
 
   ## class methods
   #
     class << self
+      def contexts
+        @contexts ||= []
+      end
+
       def context(*args, &block)
-        @context = args unless args.empty?
-        block.call(*@context) if block
-        @context
+        return contexts.last if(args.empty? and block.nil?)
+
+        context = Testing::Context.new(*args)
+        contexts.push(context)
+
+        begin
+          block.call(context)
+        ensure
+          contexts.pop
+        end
       end
 
       def slug_for(*args)
-        string = [@context, args].flatten.compact.join('-')
+        string = [context, args].flatten.compact.join('-')
         words = string.to_s.scan(%r/\w+/)
         words.map!{|word| word.gsub %r/[^0-9a-zA-Z_-]/, ''}
         words.delete_if{|word| word.nil? or word.strip.empty?}
-        words.join('-').downcase
+        words.join('-').downcase.sub(/_$/, '')
       end
 
       def name() const_get(:Name) end
@@ -40,7 +75,11 @@ def Testing(*args, &block)
 
       def testing(*args, &block)
         method = ["test", testno, slug_for(*args)].delete_if{|part| part.empty?}.join('_')
-        define_method("test_#{ testno }_#{ slug_for(*args) }", &block)
+        define_method(method, &block)
+      end
+
+      def test(*args, &block)
+        testing(*args, &block)
       end
 
       def setup(&block)
@@ -66,11 +105,9 @@ def Testing(*args, &block)
 
   ## configure the subclass!
   #
-    @@testing_subclass_count = '0' unless defined?(@@testing_subclass_count) 
-    @@testing_subclass_count
-    @@testing_subclass_count.succ!
+    const_set(:Testno, '0')
     slug = slug_for(*args).gsub(%r/-/,'_')
-    name = ['TESTING', '%03d' % @@testing_subclass_count, slug].delete_if{|part| part.empty?}.join('_')
+    name = ['TESTING', '%03d' % const_get(:Testno), slug].delete_if{|part| part.empty?}.join('_')
     name = name.upcase!
     const_set(:Name, name)
     const_set(:Missing, Object.new.freeze)
@@ -138,12 +175,21 @@ def Testing(*args, &block)
     self.prepare.each{|b| b.call()}
 
     at_exit{ 
-      at_exit{ 
-        self.teardown()
-        self.cleanup.each{|b| b.call()}
-      }
+      self.teardown()
+      self.cleanup.each{|b| b.call()}
     }
 
     self
   end
+end
+
+
+if $0 == __FILE__
+
+  Testing 'Testing' do
+    testing('foo'){ assert true }
+    test{ assert true }
+    p instance_methods.grep(/test/)
+  end
+
 end

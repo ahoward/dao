@@ -7,28 +7,15 @@ module Dao
       self.route = options[:route] || Route.default
       self.mode = options[:mode] || Mode.default
       self.status = options[:status] || Status.default
-      self.errors = options[:errors] || Errors.new
       self.params = options[:params] || Params.new
+      self.errors = options[:errors] || Errors.new
       self.data = options[:data] || Data.new
-
-      params.result = self
-      params.path = self.path
-      params.status = self.status
-      params.errors = self.errors
-    end
-
-    def error!
-      raise Dao::Error::Result.for(self)
     end
 
   # look good for inspect
   #
     def inspect
       ::JSON.pretty_generate(self, :max_nesting => 0)
-    end
-
-    def form
-      params.form
     end
   end
 end

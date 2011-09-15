@@ -19,21 +19,102 @@ module Dao
   # instance methods
   #
     attr_accessor :object
-    attr_accessor :name
-    attr_accessor :attributes
-    attr_accessor :errors
 
     def initialize(*args)
       @object = args.shift
+    end
 
-      if @object
-        @name = @object.name
-        @attributes = @object.attributes
-        @errors = @object.errors
-      else
-        @name = 'form'
-        @attributes = Map.new
-        @errors = Errors.new
+    fattr(:attributes) do
+      attributes =
+        catch(:attributes) do
+          if @object.respond_to?(:attributes)
+            throw :attributes, @object.attributes
+          end
+          if @object.instance_variable_defined?('@attributes')
+            throw :attributes, @object.instance_variable_get('@attributes')
+          end
+          if @object.is_a?(Map)
+            throw :attributes, @object
+          end
+          if @object.respond_to?(:to_map)
+            throw :attributes, Map.new(@object.to_map)
+          end
+          if @object.is_a?(Hash)
+            throw :attributes, Map.new(@object)
+          end
+          if @object.respond_to?(:to_hash)
+            throw :attributes, Map.new(@object.to_hash)
+          end
+          Map.new
+        end
+
+      case attributes
+        when Map
+          attributes
+        when Hash
+          Map.new(attributes)
+        else
+          raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
+      end
+    end
+
+    fattr(:name) do
+      name =
+        catch(:name) do
+          if @object.respond_to?(:name)
+            throw :name, @object.name
+          end
+          if @object.instance_variable_defined?('@name')
+            throw :name, @object.instance_variable_get('@name')
+          end
+          'form'
+        end
+
+      case name
+        when Symbol, String
+          name.to_s
+        else
+          raise(ArgumentError.new("#{ name.inspect } (#{ name.class })"))
+      end
+    end
+
+    fattr(:errors) do
+      errors =
+        catch(:errors) do
+          if @object.respond_to?(:errors)
+            throw :errors, @object.errors
+          end
+          if @object.instance_variable_defined?('@errors')
+            throw :errors, @object.instance_variable_get('@errors')
+          end
+          Errors.new
+        end
+
+      case errors
+        when Errors
+          errors
+        else
+          raise(ArgumentError.new("#{ errors.inspect } (#{ errors.class })"))
+      end
+    end
+
+    fattr(:status) do
+      status =
+        catch(:status) do
+          if @object.respond_to?(:status)
+            throw :status, @object.status
+          end
+          if @object.instance_variable_defined?('@status')
+            throw :status, @object.instance_variable_get('@status')
+          end
+          Status.new
+        end
+
+      case status
+        when Status
+          status
+        else
+          raise(ArgumentError.new("#{ status.inspect } (#{ status.class })"))
       end
     end
 
@@ -90,9 +171,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(@attributes, keys)
+          value_for(attributes, keys)
         else
-          block ? block.call(@attributes.get(keys)) : options.delete(:value)
+          block ? block.call(attributes.get(keys)) : options.delete(:value)
         end
 
       input_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
@@ -122,9 +203,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(@attributes, keys)
+          value_for(attributes, keys)
         else
-          block ? block.call(@attributes.get(keys)) : options.delete(:value)
+          block ? block.call(attributes.get(keys)) : options.delete(:value)
         end
 
       button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
@@ -148,9 +229,9 @@ module Dao
 
       value =
         if block.nil? and !options.has_key?(:value) 
-          value_for(@attributes, keys)
+          value_for(attributes, keys)
         else
-          block ? block.call(@attributes.get(keys)) : options.delete(:value)
+          block ? block.call(attributes.get(keys)) : options.delete(:value)
         end
 
       textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value.to_s }
@@ -161,14 +242,14 @@ module Dao
       keys = args.flatten
 
       name = options.delete(:name) || name_for(keys)
-      from = options.delete(:from) || options.delete(:options) || @attributes.get(*keys)
+      from = options.delete(:from) || options.delete(:options) || attributes.get(*keys)
       blank = options.delete(:blank)
 
       selected =
         if options.has_key?(:selected)
           options.delete(:selected)
         else
-          value_for(@attributes, keys)
+          value_for(attributes, keys)
         end
 
       id = options.delete(:id) || id_for(keys)
@@ -180,7 +261,7 @@ module Dao
       if from.nil?
         key = keys.map{|key| "#{ key }"}
         key.last << "_options"
-        from = @attributes.get(*key) if @attributes.has?(*key)
+        from = attributes.get(*key) if attributes.has?(*key)
       end
 
       list = Array(from)
@@ -293,7 +374,7 @@ module Dao
     end
 
     def name_for(*keys)
-      Form.name_for(@name, *keys)
+      Form.name_for(name, *keys)
     end
 
     def options_for(*hashes)

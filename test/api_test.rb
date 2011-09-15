@@ -12,13 +12,13 @@ Testing Dao do
     }
   end
 
-  testing 'that apis can have callable interfaces added to them which accept params and return results' do
+  testing 'that apis can have callable endpoints added to them which accept params and return results' do
     captured = []
 
     api_class =
       assert{
         Dao.api do
-          interface(:foo) do |params, result|
+          endpoint(:foo) do |params, result|
             captured.push(params, result)
           end
         end
@@ -28,20 +28,20 @@ Testing Dao do
     assert{ result.is_a?(Hash) }
   end
 
-  testing 'that interfaces are automatically called according to arity' do
+  testing 'that endpoints are automatically called according to arity' do
     api = assert{ Class.new(Dao.api) }
-    assert{ api.class_eval{ interface(:zero){|| result.update :args => [] } } }
-    assert{ api.class_eval{ interface(:one){|a| result.update :args => [a]} } }
-    assert{ api.class_eval{ interface(:two){|a,b| result.update :args => [a,b]} } }
+    assert{ api.class_eval{ endpoint(:zero){|| result.update :args => [] } } }
+    assert{ api.class_eval{ endpoint(:one){|a| result.update :args => [a]} } }
+    assert{ api.class_eval{ endpoint(:two){|a,b| result.update :args => [a,b]} } }
 
     assert{ api.new.call(:zero).args.size == 0 }
     assert{ api.new.call(:one).args.size == 1 }
     assert{ api.new.call(:two).args.size == 2 }
   end
 
-  testing 'that interfaces have an auto-vivifying params/result' do
+  testing 'that endpoints have an auto-vivifying params/result' do
     api = assert{ Class.new(Dao.api) }
-    assert{ api.class_eval{ interface(:foo){ params; result; } } }
+    assert{ api.class_eval{ endpoint(:foo){ params; result; } } }
     result = assert{ api.new.call(:foo) }
     assert{ result.path.to_s =~ /foo/ }
   end
@@ -170,7 +170,7 @@ Testing Dao do
     assert{ api_class.routes.is_a?(Array) }
   end
 
-  testing 'that routed interfaces call be declared' do
+  testing 'that routed endpoints call be declared' do
     api_class =
       assert{
         Dao.api do
@@ -195,13 +195,13 @@ Testing Dao do
 
     {
       '/users/4/comments/2' => {},
-      #'/users/comments' => {:user_id => 4, :comment_id => 2},
       '/users/:user_id/comments/:comment_id' => {:user_id => 4, :comment_id => 2},
     }.each do |path, params|
       result = assert{ api.call(path, params) }
       assert{ result.data.user_id.to_s =~ /4/ }
       assert{ result.data.comment_id.to_s =~ /2/ }
       assert{ result.path == '/users/4/comments/2' }
+      assert{ result.route == '/users/:user_id/comments/:comment_id' }
     end
   end
 
@@ -213,7 +213,7 @@ Testing Dao do
         Dao.api {
           description 'foobar'
           doc 'signature' => {'read' => '...', 'write' => '...'} 
-          interface('/barfoo'){}
+          endpoint('/barfoo'){}
         }
       }
     api_class_index = assert{ api_class.index.is_a?(Hash) }
@@ -228,36 +228,16 @@ Testing Dao do
     api_class =
       assert {
         Dao.api {
-          call('/barfoo'){ data.update(:key => :value) }
+          call('/barfoo'){ data.update(:k => :v) }
           call('/foobar', :alias => '/barfoo')
         }
       }
     api = assert{ api_class.new }
-    assert{ api.call('/barfoo').data.key == :value }
-    assert{ api.call('/foobar').data.key == :value }
+    assert{ api.call('/barfoo').data.k == :v }
+    assert{ api.call('/foobar').data.k == :v }
   end
 
-=begin
-
-# cloning
-#
-  testing 'simple cloning' do
-    data = Dao.data(:foo)
-    clone = assert{ data.clone }
-    assert{ data.path == clone.path }
-    assert{ data.errors == clone.errors }
-    assert{ data.errors.object_id != clone.errors.object_id }
-    assert{ data.validations == clone.validations }
-    assert{ data.validations.object_id != clone.validations.object_id }
-    assert{ data.form != clone.form }
-    assert{ data.form.object_id != clone.form.object_id }
-    assert{ data.status == clone.status }
-    assert{ data.status.object_id != clone.status.object_id }
-    assert{ data == clone }
-  end
-
-=end
-
+protected
   def hash_equal(a, b)
     array = lambda{|h| h.to_a.map{|k,v| [k.to_s, v]}.sort}
     array[a] == array[b]

@@ -11,23 +11,19 @@ module Dao
 
   # instance methods
   #
-    attr_accessor :result
-    attr_accessor :route
     attr_accessor :path
-    attr_accessor :status
-
-    attr_accessor :errors
+    attr_accessor :route
     attr_accessor :form
 
-    include Validations
-
     def initialize(*args, &block)
-      @path = Path.default
-      @status = Status.default
+      options = Dao.options_for!(args)
 
-      @errors = Errors.for(self)
-      @validator = Validator.for(self)
-      @form = Form.for(self)
+      @path = args.shift || options[:path] || Path.default
+      @route = options[:route] || Route.default
+      @form = options[:form] || Form.for(self)
+
+      update(options[:params]) if options[:params]
+
       super
     end
 
