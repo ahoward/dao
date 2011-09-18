@@ -94,7 +94,7 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", "~> 3.0.0"])
+    spec.add_dependency(*["rails", ">= 3.0.0"])
   
     spec.add_dependency(*["uuidtools", "~> 2.1.2"])
   
