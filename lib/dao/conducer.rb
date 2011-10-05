@@ -375,6 +375,11 @@ module Dao
     end
 =end
 
+  ##
+  #
+
+  ##
+  #
     def reload
       attributes =
         if id
@@ -404,8 +409,8 @@ module Dao
       save!
     end
 
-## misc
-#
+  ## misc
+  #
     def model_name
       self.class.model_name
     end

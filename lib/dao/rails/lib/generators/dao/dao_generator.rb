@@ -5,6 +5,9 @@ class DaoGenerator < Rails::Generators::NamedBase
     ARGV.shift if ARGV.first == name
 
     case name
+      when /conducer_controller/
+        generate_conducer_controller!
+
       when /conducer/
         generate_conducer!
       
@@ -26,6 +29,14 @@ class DaoGenerator < Rails::Generators::NamedBase
   end
 
 protected
+  def generate_conducer_controller!
+    @conducer_name = ARGV.shift.sub(/_?conducer$/i, '') + '_conducer'
+    @controller_name = @conducer_name.sub(/_conducer/, '_controller')
+
+    template "conducer_controller.rb", "app/controllers/#{ @conducer_name.underscore }.rb"
+    #template "conducer.rb", "app/conducers/#{ @conducer_name.underscore }.rb"
+  end
+
   def generate_conducer!
     @conducer_name = ARGV.shift.sub(/_?conducer$/i, '') + '_conducer'
     template "conducer.rb", "app/conducers/#{ @conducer_name.underscore }.rb"

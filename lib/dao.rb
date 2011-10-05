@@ -6,7 +6,7 @@
 # dao libs
 #
   module Dao
-    Version = '4.2.0' unless defined?(Version)
+    Version = '4.2.1' unless defined?(Version)
 
     def version
       Dao::Version
@@ -14,13 +14,13 @@
 
     def dependencies
       {
-        'rails'       =>  [ 'rails'       , '~> 3.0.0' ],
-        'map'         =>  [ 'map'         , '~> 4.4.0' ],
-        'fattr'       =>  [ 'fattr'       , '~> 2.2.0' ],
-        'tagz'        =>  [ 'tagz'        , '~> 9.0.0' ],
-        'yajl'        =>  [ 'yajl-ruby'   , '~> 0.8.1' ],
-        'unidecode'   =>  [ 'unidecode'   , '~> 1.0.0' ],
-        'uuidtools'   =>  [ 'uuidtools'   , '~> 2.1.2' ]
+        'rails'       =>  [ 'rails'       , '~> 3.0' ],
+        'map'         =>  [ 'map'         , '~> 4.4' ],
+        'fattr'       =>  [ 'fattr'       , '~> 2.2' ],
+        'tagz'        =>  [ 'tagz'        , '~> 9.0' ],
+        'yajl'        =>  [ 'yajl-ruby'   , '~> 0.8' ],
+        'unidecode'   =>  [ 'unidecode'   , '~> 1.0' ],
+        'uuidtools'   =>  [ 'uuidtools'   , '~> 2.1' ]
       }
     end
 

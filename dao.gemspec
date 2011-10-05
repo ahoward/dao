@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.2.0"
+  spec.version = "4.2.1"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -11,6 +11,7 @@ Gem::Specification::new do |spec|
   spec.files =
 ["README",
  "Rakefile",
+ "b.rb",
  "dao.gemspec",
  "db",
  "lib",
@@ -21,8 +22,8 @@ Gem::Specification::new do |spec|
  "lib/dao/api.rb",
  "lib/dao/api/context.rb",
  "lib/dao/api/dsl.rb",
+ "lib/dao/api/endpoints.rb",
  "lib/dao/api/initializers.rb",
- "lib/dao/api/interfaces.rb",
  "lib/dao/api/modes.rb",
  "lib/dao/api/routes.rb",
  "lib/dao/blankslate.rb",
@@ -37,15 +38,15 @@ Gem::Specification::new do |spec|
  "lib/dao/engine.rb",
  "lib/dao/errors.rb",
  "lib/dao/exceptions.rb",
+ "lib/dao/extractor.rb",
  "lib/dao/form.rb",
  "lib/dao/image_cache.rb",
  "lib/dao/instance_exec.rb",
- "lib/dao/interface.rb",
  "lib/dao/mode.rb",
  "lib/dao/mongo_mapper.rb",
+ "lib/dao/name.rb",
  "lib/dao/params.rb",
  "lib/dao/path.rb",
- "lib/dao/presenter.rb",
  "lib/dao/rack",
  "lib/dao/rack.rb",
  "lib/dao/rack/middleware",
@@ -62,6 +63,7 @@ Gem::Specification::new do |spec|
  "lib/dao/rails/lib/generators/dao/templates/api.rb",
  "lib/dao/rails/lib/generators/dao/templates/api_controller.rb",
  "lib/dao/rails/lib/generators/dao/templates/conducer.rb",
+ "lib/dao/rails/lib/generators/dao/templates/conducer_controller.rb",
  "lib/dao/rails/lib/generators/dao/templates/dao.css",
  "lib/dao/rails/lib/generators/dao/templates/dao.js",
  "lib/dao/rails/lib/generators/dao/templates/dao_helper.rb",
@@ -80,6 +82,7 @@ Gem::Specification::new do |spec|
  "test/active_model_conducer_lint_test.rb",
  "test/api_test.rb",
  "test/conducer_test.rb",
+ "test/db.yml",
  "test/form_test.rb",
  "test/helper.rb",
  "test/leak.rb",
@@ -94,19 +97,19 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", "~> 3.0.0"])
+    spec.add_dependency(*["rails", "~> 3.0"])
   
-    spec.add_dependency(*["uuidtools", "~> 2.1.2"])
+    spec.add_dependency(*["uuidtools", "~> 2.1"])
   
-    spec.add_dependency(*["tagz", "~> 9.0.0"])
+    spec.add_dependency(*["tagz", "~> 9.0"])
   
-    spec.add_dependency(*["fattr", "~> 2.2.0"])
+    spec.add_dependency(*["fattr", "~> 2.2"])
   
-    spec.add_dependency(*["map", "~> 4.4.0"])
+    spec.add_dependency(*["map", "~> 4.4"])
   
-    spec.add_dependency(*["unidecode", "~> 1.0.0"])
+    spec.add_dependency(*["unidecode", "~> 1.0"])
   
-    spec.add_dependency(*["yajl-ruby", "~> 0.8.1"])
+    spec.add_dependency(*["yajl-ruby", "~> 0.8"])
   
 
   spec.extensions.push(*[])
