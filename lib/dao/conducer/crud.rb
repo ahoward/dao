@@ -18,7 +18,9 @@ module Dao
             hashes.map{|hash| new(hash)}
           end
 
-          def find(id)
+          def find(*args)
+            options = args.extract_options!.to_options!
+            id = args.shift || options[:id]
             hash = collection.find(id)
             new(hash) if hash
           end

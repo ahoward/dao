@@ -64,6 +64,8 @@ if defined?(Rails)
 
         # setup sane rescuing from dao errors with crap statuses
         #
+        #   raise(Dao::Error::Result.new(result))
+        #
           rescue_from(Dao::Error::Result) do |error|
             result = error.result
             basename = "#{ result.status.code }.html"

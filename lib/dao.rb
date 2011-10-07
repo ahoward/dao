@@ -6,7 +6,7 @@
 # dao libs
 #
   module Dao
-    Version = '4.2.1' unless defined?(Version)
+    Version = '4.2.2' unless defined?(Version)
 
     def version
       Dao::Version
@@ -18,7 +18,6 @@
         'map'         =>  [ 'map'         , '~> 4.4' ],
         'fattr'       =>  [ 'fattr'       , '~> 2.2' ],
         'tagz'        =>  [ 'tagz'        , '~> 9.0' ],
-        'yajl'        =>  [ 'yajl-ruby'   , '~> 0.8' ],
         'unidecode'   =>  [ 'unidecode'   , '~> 1.0' ],
         'uuidtools'   =>  [ 'uuidtools'   , '~> 2.1' ]
       }
@@ -61,9 +60,6 @@
     end
   end
 
-  #active_record
-  #action_mailer
-  #rails/test_unit
   %w[
     action_controller
     active_resource
@@ -74,10 +70,7 @@
     rescue LoadError
     end
   end
-#require 'rails/all'
 
-
-  require 'yajl/json_gem'
 
   Dao.load %w[
     blankslate.rb

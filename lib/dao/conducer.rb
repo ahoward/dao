@@ -1,5 +1,13 @@
 module Dao
+##
+#
+  Dao.load('conducer/view_support.rb')
+  Dao.load('conducer/attributes.rb')
+  Dao.load('conducer/crud.rb')
+  Dao.load('conducer/collection.rb')
 
+##
+#
   class Conducer
 ##
 #      
@@ -54,7 +62,8 @@ module Dao
       end
 
       def default_model_name
-        model_name_for(name.to_s.sub(/Conducer$/, ''))
+        return model_name_for('Conducer') if self == Dao::Conducer
+        model_name_for(name.to_s.sub(/Conducer$/, '').sub(/(:|_)+$/, ''))
       end
 
       def table_name
@@ -102,6 +111,8 @@ module Dao
       form
     ).each{|a| fattr(a)}
 
+    alias_method(:data, :attributes)
+
     def self.new(*args, &block)
       allocate.tap do |conducer|
         conducer.running_callbacks(:reset, :initialize) do
@@ -124,7 +135,7 @@ module Dao
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
 
-      @name = self.class.model_name.singular
+      @name = self.class.model_name.singular.sub(/_+$/, '')
       @attributes = Attributes.for(self)
       @form = Form.for(self)
 
@@ -289,39 +300,7 @@ module Dao
 
 ## view support
 #
-    url_helpers = Rails.application.try(:routes).try(:url_helpers)
-    include(url_helpers) if url_helpers
-    include(ActionView::Helpers) if defined?(ActionView::Helpers)
-
-    def controller
-      @controller ||= (Dao.current_controller || Dao.mock_controller)
-      @controller
-    end
-
-    def controller=(controller)
-      @controller = controller
-    ensure
-      default_url_options[:protocol] = @controller.request.protocol
-      default_url_options[:host] = @controller.request.host
-      default_url_options[:port] = @controller.request.port
-    end
-
-    def set_controller(controller)
-      self.controller = controller
-    end
-
-    controller_delegates = %w(
-      render
-      render_to_string
-    )
-
-    controller_delegates.each do |method|
-      module_eval <<-__, __FILE__, __LINE__
-        def #{ method }(*args, &block)
-          controller.#{ method }(*args, &block)
-        end
-      __
-    end
+    module_eval(&ViewSupport)
 
 ## generic crud support assuming valid .all, .find, #save and #destroy
 #
@@ -431,7 +410,4 @@ module Dao
       self
     end
   end
-
-  Dao.load('conducer/attributes.rb')
-  Dao.load('conducer/crud.rb')
 end

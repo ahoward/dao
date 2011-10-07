@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.2.1"
+  spec.version = "4.2.2"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -108,8 +108,6 @@ Gem::Specification::new do |spec|
     spec.add_dependency(*["map", "~> 4.4"])
   
     spec.add_dependency(*["unidecode", "~> 1.0"])
-  
-    spec.add_dependency(*["yajl-ruby", "~> 0.8"])
   
 
   spec.extensions.push(*[])
