@@ -170,10 +170,8 @@ module Dao
 
     unless dao.blank?
       dao.each do |key, paths_and_values|
-        params[key] = nil
         next if paths_and_values.blank?
-
-        map = Map.new
+        map = Map.for(params[key])
 
         paths_and_values.each do |path, value|
           keys = keys_for(path)

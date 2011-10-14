@@ -6,22 +6,22 @@ module Dao
       Code = proc do
         class << self
           def db
-            Db.instance
+            @db ||= Db.instance
           end
 
-          def collection
-            db[collection_name]
+          def db_collection
+            db.collection(collection_name)
           end
 
           def all(*args)
-            hashes = collection.all()
+            hashes = db_collection.all()
             hashes.map{|hash| new(hash)}
           end
 
           def find(*args)
             options = args.extract_options!.to_options!
             id = args.shift || options[:id]
-            hash = collection.find(id)
+            hash = db_collection.find(id)
             new(hash) if hash
           end
         end
@@ -29,7 +29,7 @@ module Dao
         def save
           run_callbacks :save do
             return(false) unless valid?
-            id = self.class.collection.save(@attributes)
+            id = self.class.db_collection.save(@attributes)
             @attributes.set(:id => id)
             true
           end
@@ -40,7 +40,7 @@ module Dao
         def destroy
           id = self.id
           if id
-            self.class.collection.destroy(id)
+            self.class.db_collection.destroy(id)
             @attributes.rm(:id)
           end
           id

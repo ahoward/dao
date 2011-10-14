@@ -39,6 +39,31 @@ module Dao
 ## class_methods
 #
     class << Conducer
+      def inherited(other)
+        super
+      ensure
+        other.build_collection_class!
+      end
+
+      def build_collection_class!
+        remove_const(:Collection) if const_defined?(:Collection)
+        collection_class = Class.new(Collection)
+        collection_class.conducer_class = self
+        const_set(:Collection, collection_class)
+      end
+
+      def collection_class
+        const_get(:Collection)
+      end
+
+      def collection(*args, &block)
+        if args.empty? and block.nil?
+          const_get(:Collection)
+        else
+          const_get(:Collection).new(*args, &block)
+        end
+      end
+
       def name(*args)
         return send('name=', args.first) unless args.empty?
         @name ||= super

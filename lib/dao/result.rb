@@ -12,6 +12,54 @@ module Dao
       self.data = options[:data] || Data.new
     end
 
+=begin
+    %w(
+      path
+      route
+      mode
+      status
+      params
+      errors
+      data
+    ).each do |attr|
+
+      module_eval <<-__, __FILE__, __LINE__
+        def #{ attr }(*value)
+          unless value.empty?
+            self["#{ attr }"] = value.first
+          end
+          self["#{ attr }"]
+        end
+
+        def #{ attr }=(value)
+          self["#{ attr }"] = value
+        end
+      __
+
+    end
+
+    def name
+      path
+    end
+
+    def attributes
+      params
+    end
+=end
+
+
+    def form
+      @form ||= (
+        Form.new.tap do |f|
+          f.object = self
+          f.attributes = params
+          f.errors = errors
+          f.status = status
+          f.name = path
+        end
+      )
+    end
+
     def inspect
       ::JSON.pretty_generate(self, :max_nesting => 0)
     end

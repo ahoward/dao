@@ -153,6 +153,16 @@ Testing Dao::Conducer do
     end
   end
 
+
+  context 'collections' do
+    testing 'that subclasses have their own collection subclass' do
+      c = assert{ new_foo_conducer_class }
+      assert{ c::Collection }
+      assert{ c.collection.new.is_a?(Array) }
+      assert{ c.collection_class.ancestors.include?(Dao::Conducer::Collection) }
+      assert{ c.collection.new.is_a?(Array) }
+    end
+  end
   
 
 protected

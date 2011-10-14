@@ -20,9 +20,9 @@ Gem::Specification::new do |spec|
  "lib/dao/active_record.rb",
  "lib/dao/api",
  "lib/dao/api.rb",
+ "lib/dao/api/call.rb",
  "lib/dao/api/context.rb",
  "lib/dao/api/dsl.rb",
- "lib/dao/api/endpoints.rb",
  "lib/dao/api/initializers.rb",
  "lib/dao/api/modes.rb",
  "lib/dao/api/routes.rb",
@@ -30,7 +30,9 @@ Gem::Specification::new do |spec|
  "lib/dao/conducer",
  "lib/dao/conducer.rb",
  "lib/dao/conducer/attributes.rb",
+ "lib/dao/conducer/collection.rb",
  "lib/dao/conducer/crud.rb",
+ "lib/dao/conducer/view_support.rb",
  "lib/dao/current.rb",
  "lib/dao/data.rb",
  "lib/dao/db.rb",
@@ -105,7 +107,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["fattr", "~> 2.2"])
   
-    spec.add_dependency(*["map", "~> 4.4"])
+    spec.add_dependency(*["map", "~> 4.6"])
   
     spec.add_dependency(*["unidecode", "~> 1.0"])
   

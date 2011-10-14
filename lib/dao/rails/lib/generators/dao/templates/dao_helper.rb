@@ -42,8 +42,9 @@ module DaoHelper
     model = args.flatten.select{|arg| arg.respond_to?(:new_record?)}.last
 
     if model
-      first = args.first
-      url = options.delete(:url)
+      first = args.shift
+      url = args.shift || options.delete(:url)
+
       method = options.delete(:method)
       html = dao_form_attrs(options)
 
@@ -60,6 +61,7 @@ module DaoHelper
       options[:url] = url
       options[:html] = html.dup.merge(:method => method)
 
+      args.push(model)
       args.push(options)
       
       form_for(*args) do

@@ -15,7 +15,7 @@
     def dependencies
       {
         'rails'       =>  [ 'rails'       , '~> 3.0' ],
-        'map'         =>  [ 'map'         , '~> 4.4' ],
+        'map'         =>  [ 'map'         , '~> 4.6' ],
         'fattr'       =>  [ 'fattr'       , '~> 2.2' ],
         'tagz'        =>  [ 'tagz'        , '~> 9.0' ],
         'unidecode'   =>  [ 'unidecode'   , '~> 1.0' ],
