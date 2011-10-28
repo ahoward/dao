@@ -28,7 +28,7 @@ Testing Dao::Validations do
     errors.add 'not-sticky', 'error'
     errors.clear
     assert{ errors['sticky'].first == 'error' }
-    assert{ errors['not-sticky'].to_s.empty? }
+    assert{ errors['not-sticky'].empty? }
   end
 
   testing 'that clear! ***does*** drop sticky errors' do
@@ -36,8 +36,8 @@ Testing Dao::Validations do
     errors.add! 'sticky', 'error'
     errors.add 'not-sticky', 'error'
     errors.clear!
-    assert{ errors['sticky'].to_s.empty? }
-    assert{ errors['not-sticky'].to_s.empty? }
+    assert{ errors['sticky'].empty? }
+    assert{ errors['not-sticky'].empty? }
   end
 
   testing 'that global errors are sticky' do
@@ -47,7 +47,7 @@ Testing Dao::Validations do
     errors.clear
     assert{ errors[global].first == 'global-error' }
     errors.clear!
-    assert{ errors[global].to_s.empty? }
+    assert{ errors[global].empty? }
   end
 
 ## validations

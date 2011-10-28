@@ -42,6 +42,7 @@ module Dao
       @result = Result.new
       @result.path = @path
       @result.route = @route
+      @result.status = @status
       @result.mode = @api.mode
       @result.params = @params
       @result.errors = @params.errors

@@ -46,7 +46,10 @@ module Dao
       end
 
       def build_collection_class!
-        remove_const(:Collection) if const_defined?(:Collection)
+        begin
+          remove_const(:Collection) if const_defined?(:Collection)
+        rescue NameError
+        end
         collection_class = Class.new(Collection)
         collection_class.conducer_class = self
         const_set(:Collection, collection_class)

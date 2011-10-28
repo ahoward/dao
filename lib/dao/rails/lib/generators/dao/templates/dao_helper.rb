@@ -1,6 +1,6 @@
 module DaoHelper
   def render_dao(result, *args, &block)
-    if result.status =~ 200 or result.status == 420
+    if result.status =~ 200
       @result = result unless defined?(@result)
       render(*args, &block)
     else

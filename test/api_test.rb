@@ -132,6 +132,20 @@ Testing Dao do
     end
   end
 
+## context
+#
+  testing 'that calls have a shortcut to status' do
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo){ status! 420 }
+        end
+      }
+    api = assert{ api_class.new }
+    result = assert{ api.call(:foo) }
+    assert{ result.status =~ 420 }
+  end
+
 ## results
 #
   testing 'that results can be created' do
