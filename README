@@ -101,6 +101,7 @@ DESCRITPION
       - http://en.wikipedia.org/wiki/Data_access_object
 
 READING
+  http://blog.firsthand.ca/2011/10/rails-is-not-your-application.html
   http://best-practice-software-engineering.ifs.tuwien.ac.at/patterns/dao.html
   http://www.codefutures.com/data-access-object/
   http://java.sun.com/blueprints/corej2eepatterns/Patterns/DataAccessObject.html
