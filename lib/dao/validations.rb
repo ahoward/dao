@@ -66,4 +66,6 @@ module Dao
       super
     end
   end
+
+  Dao.load('validations/instance.rb')
 end

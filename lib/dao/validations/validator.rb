@@ -1,7 +1,7 @@
 module Dao
   module Validations
     class Validator
-      NotBlank = lambda{|value| !value.to_s.strip.empty?} unless defined?(NotBlank)
+      NotBlank = proc{|value| !value.to_s.strip.empty?} unless defined?(NotBlank)
       Cleared = 'Cleared'.freeze unless defined?(Cleared)
 
       class << Validator
@@ -20,6 +20,28 @@ module Dao
         @validations = Map.new
         @errors = Errors.new
         @status = Status.new
+      end
+
+      def initialize(*args, &block)
+        @object = args.shift
+        options = Map.options_for(args)
+
+        if args.size == 1 and @object and @object.is_a?(Hash)
+          object_keys = @object.keys.map{|key| key.to_s}
+          option_keys = %w( object validations errors status )
+
+          object_is_options = !object_keys.empty? && (object_keys - option_keys).empty?
+
+          if object_is_options
+            options = Map.for(@object)
+            @object = nil
+          end
+        end
+  
+        @object ||= (options[:object] || Map.new)
+        @validations ||= (options[:validations] || Map.new)
+        @errors ||= (options[:errors] || Errors.new)
+        @status ||= (options[:status] || Status.new)
       end
 
       fattr(:attributes) do
@@ -55,6 +77,7 @@ module Dao
             raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
         end
       end
+      alias_method(:data, :attributes)
 
       def add(*args, &block)
         options = Map.options_for!(args)
@@ -76,7 +99,7 @@ module Dao
       def validations_search_path
         @validations_search_path ||= (
           list = [
-            object,
+            object.respond_to?(:validator) ? object : nil,
             object.class.ancestors.map{|ancestor| ancestor.respond_to?(:validator) ? ancestor : nil}
           ]
           list.flatten!

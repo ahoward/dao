@@ -142,6 +142,24 @@ Testing Dao::Validations do
     errors.add(:name, 'ara')
     assert{ not params.valid? }
   end
+
+## stand alone validations
+#
+  testing 'that validations can be used standalone' do
+    attributes = {
+      :email => 'ara@dojo4.com',
+      :password => 'pa$$w0rd'
+    }
+
+    v = assert{ Dao::Validations.for(attributes) }
+
+    assert{ v.validates(:email){|email| email.to_s.split(/@/).size == 2} }
+    assert{ v.validates(:password){|password| password == 'pa$$w0rd'} }
+    assert{ v.valid? }
+
+    v.set(:password => 'haxor')
+    assert{ !v.valid? }
+  end
 end
 
 
