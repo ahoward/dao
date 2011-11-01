@@ -3,7 +3,7 @@ module Dao
   # look good for inspect
   #
     def inspect
-      ::JSON.pretty_generate(self, :max_nesting => 0)
+      Dao.json_for(self)
     end
 
   # support updates with dao-ish objects

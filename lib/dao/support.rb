@@ -208,18 +208,25 @@ module Dao
     end
   end
 
-  def json_for(object)
-    object = object.as_json if object.respond_to?(:as_json)
-
-    begin
-      if Rails.env.production?
-        ::JSON.generate(object)
-      else
-        ::JSON.pretty_generate(object, :max_nesting => 0)
+  if Rails.env.production?
+    def json_for(object)
+      object = object.as_json if object.respond_to?(:as_json)
+      begin
+        MultiJson.encode(object, :pretty => false)
+      rescue Object => e
+        Rails.logger.error(e)
+        YAML.load( object.to_yaml ).to_json
       end
-    rescue Object => e
-      Rails.logger.error(e)
-      YAML.load( object.to_yaml ).to_json
+    end
+  else
+    def json_for(object)
+      object = object.as_json if object.respond_to?(:as_json)
+      begin
+        MultiJson.encode(object, :pretty => true)
+      rescue Object => e
+        Rails.logger.error(e)
+        YAML.load( object.to_yaml ).to_json
+      end
     end
   end
 end

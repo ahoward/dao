@@ -65,6 +65,7 @@ module Dao
       other.send(:extend, Common)
       super
     end
+
   end
 
   Dao.load('validations/instance.rb')

@@ -61,7 +61,7 @@ module Dao
     end
 
     def inspect
-      ::JSON.pretty_generate(self, :max_nesting => 0)
+      Dao.json_for(self)
     end
   end
 end
