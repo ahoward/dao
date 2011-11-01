@@ -11,7 +11,6 @@ Gem::Specification::new do |spec|
   spec.files =
 ["README",
  "Rakefile",
- "b.rb",
  "dao.gemspec",
  "db",
  "lib",
@@ -20,7 +19,6 @@ Gem::Specification::new do |spec|
  "lib/dao/active_record.rb",
  "lib/dao/api",
  "lib/dao/api.rb",
- "lib/dao/api/call.rb",
  "lib/dao/api/context.rb",
  "lib/dao/api/dsl.rb",
  "lib/dao/api/initializers.rb",
@@ -84,7 +82,6 @@ Gem::Specification::new do |spec|
  "test/active_model_conducer_lint_test.rb",
  "test/api_test.rb",
  "test/conducer_test.rb",
- "test/db.yml",
  "test/form_test.rb",
  "test/helper.rb",
  "test/leak.rb",
@@ -93,24 +90,24 @@ Gem::Specification::new do |spec|
  "test/validations_test.rb"]
 
   spec.executables = []
-  
+
   spec.require_path = "lib"
 
   spec.test_files = nil
 
-  
+
     spec.add_dependency(*["rails", "~> 3.0"])
-  
+
     spec.add_dependency(*["uuidtools", "~> 2.1"])
-  
+
     spec.add_dependency(*["tagz", "~> 9.0"])
-  
+
     spec.add_dependency(*["fattr", "~> 2.2"])
-  
+
     spec.add_dependency(*["map", "~> 4.6"])
-  
+
     spec.add_dependency(*["unidecode", "~> 1.0"])
-  
+
 
   spec.extensions.push(*[])
 
