@@ -11,7 +11,6 @@ Gem::Specification::new do |spec|
   spec.files =
 ["README",
  "Rakefile",
- "b.rb",
  "dao.gemspec",
  "db",
  "lib",
@@ -79,12 +78,12 @@ Gem::Specification::new do |spec|
  "lib/dao/validations.rb",
  "lib/dao/validations/callback.rb",
  "lib/dao/validations/common.rb",
+ "lib/dao/validations/instance.rb",
  "lib/dao/validations/validator.rb",
  "test",
  "test/active_model_conducer_lint_test.rb",
  "test/api_test.rb",
  "test/conducer_test.rb",
- "test/db.yml",
  "test/form_test.rb",
  "test/helper.rb",
  "test/leak.rb",
@@ -99,17 +98,17 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", "~> 3.0"])
+    spec.add_dependency(*["rails", " >= 3.0"])
   
-    spec.add_dependency(*["uuidtools", "~> 2.1"])
+    spec.add_dependency(*["map", " >= 4.6"])
   
-    spec.add_dependency(*["tagz", "~> 9.0"])
+    spec.add_dependency(*["fattr", " >= 2.2"])
   
-    spec.add_dependency(*["fattr", "~> 2.2"])
+    spec.add_dependency(*["tagz", " >= 9.0"])
   
-    spec.add_dependency(*["map", "~> 4.6"])
+    spec.add_dependency(*["uuidtools", " >= 2.1"])
   
-    spec.add_dependency(*["unidecode", "~> 1.0"])
+    spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
 
   spec.extensions.push(*[])
