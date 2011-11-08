@@ -11,20 +11,18 @@ module Dao
       end
 
       attr_accessor :object
+      attr_accessor :options
       attr_accessor :validations
       attr_accessor :errors
       attr_accessor :status
+      attr_accessor :prefix
 
-      def initialize(object)
-        @object = object
-        @validations = Map.new
-        @errors = Errors.new
-        @status = Status.new
-      end
+      fattr(:attributes){ extract_attributes! }
+      alias_method(:data, :attributes)
 
       def initialize(*args, &block)
         @object = args.shift
-        options = Map.options_for(args)
+        @options = Map.options_for(args)
 
         if args.size == 1 and @object and @object.is_a?(Hash)
           object_keys = @object.keys.map{|key| key.to_s}
@@ -33,62 +31,68 @@ module Dao
           object_is_options = !object_keys.empty? && (object_keys - option_keys).empty?
 
           if object_is_options
-            options = Map.for(@object)
+            @options = Map.for(@object)
             @object = nil
           end
         end
   
-        @object ||= (options[:object] || Map.new)
-        @validations ||= (options[:validations] || Map.new)
-        @errors ||= (options[:errors] || Errors.new)
-        @status ||= (options[:status] || Status.new)
+        @object ||= (@options[:object] || Map.new)
+        @validations ||= (@options[:validations] || Map.new)
+        @errors ||= (@options[:errors] || Errors.new)
+        @status ||= (@options[:status] || Status.new)
+        @prefix ||= Array(@options[:prefix]).flatten.compact
       end
 
-      fattr(:attributes) do
+      def extract_attributes!(object = @object)
         attributes =
           catch(:attributes) do
-            if @object.respond_to?(:attributes)
-              throw :attributes, @object.attributes
+            if object.respond_to?(:attributes)
+              throw :attributes, object.attributes
             end
-            if @object.instance_variable_defined?('@attributes')
-              throw :attributes, @object.instance_variable_get('@attributes')
+            if object.instance_variable_defined?('@attributes')
+              throw :attributes, object.instance_variable_get('@attributes')
             end
-            if @object.is_a?(Map)
-              throw :attributes, @object
+            if object.is_a?(Map)
+              throw :attributes, object
             end
-            if @object.respond_to?(:to_map)
-              throw :attributes, Map.new(@object.to_map)
+            if object.respond_to?(:to_map)
+              throw :attributes, Map.new(object.to_map)
             end
-            if @object.is_a?(Hash)
-              throw :attributes, Map.new(@object)
+            if object.is_a?(Hash)
+              throw :attributes, Map.new(object)
             end
-            if @object.respond_to?(:to_hash)
-              throw :attributes, Map.new(@object.to_hash)
+            if object.respond_to?(:to_hash)
+              throw :attributes, Map.new(object.to_hash)
             end
-            raise ArgumentError.new("found no attributes on #{ @object.inspect }(#{ @object.class.name })")
+            raise ArgumentError.new("found no attributes on #{ object.inspect }(#{ object.class.name })")
           end
 
-        case attributes
-          when Map
-            attributes
-          when Hash
-            Map.new(attributes)
-          else
-            raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
-        end
+        @attributes =
+          case attributes
+            when Map
+              attributes
+            when Hash
+              Map.new(attributes)
+            else
+              raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
+          end
       end
-      alias_method(:data, :attributes)
 
-      def add(*args, &block)
+      def validates(*args, &block)
         options = Map.options_for!(args)
         block = args.pop if args.last.respond_to?(:call)
         block ||= NotBlank
         callback = Callback.new(options, &block)
-        validations.set(args => Callback::Chain.new) unless validations.has?(args)
-        validations.get(args).add(callback)
+        key = key_for(args)
+        validations.set(key => Callback::Chain.new) unless validations.has?(key)
+        validations.get(key).add(callback)
         callback
       end
-      alias_method('validates', 'add')
+      alias_method('add', 'validates')
+
+      def key_for(args)
+        @prefix.empty? ? args : (@prefix + args)
+      end
 
       def run_validations!(*args)
         run_validations(*args)

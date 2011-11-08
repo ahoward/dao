@@ -27,19 +27,29 @@ protected
     status = object.status rescue (options[:status] || 200)
     status = status.code if status.respond_to?(:code)
 
-    respond_to do |wants|
-      wants.json{ render :json => json, :status => status }
-      wants.html{ render :text => json, :status => status, :content_type => 'text/plain' }
-      wants.xml{ render :text => 'no soup for you!', :status => 403 }
+    if @format == 'json'
+      render(:json => json, :status => status)
+    else
+      respond_to do |wants|
+        wants.json{ render :json => json, :status => status }
+        wants.html{ render :text => json, :status => status, :content_type => 'text/plain' }
+        wants.xml{ render :text => 'no soup for you!', :status => 403 }
+      end
     end
   end
 
   def setup_path
     @path = params[:path] || params[:action] || 'index'
-    unless api.route?(@path) or @path=='index'
+    @path, @format = @path.split(/\./, 2)
+    unless @format.blank?
+      params[:format] = @format
+      params[:path] = @path
+    end
+    unless api.route?(@path) or @path == 'index'
       render :nothing => true, :status => 404
     end
   end
+
 
   def setup_mode
     @mode = params['mode'] || (request.get? ? 'read' : 'write')
