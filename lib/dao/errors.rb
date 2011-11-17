@@ -68,9 +68,7 @@ module Dao
     end
 
     def size
-      size = 0
-      depth_first_each{|key, val| size += Array(val).size}
-      size
+      inject(0){|size, kv| size + Array(kv.last).size}
     end
     alias_method('count', 'size')
     alias_method('length', 'size')
@@ -82,11 +80,11 @@ module Dao
 
       args.flatten!
       message = args.pop
-      keys = args
-      keys = [Global] if keys.empty?
-      errors = Hash.new
+      key = args
+      key = [Global] if key.empty?
+      new_errors = Hash.new
 
-      if Array(keys) == [Global]
+      if Array(key) == [Global]
         sticky = true unless options.has_key?(:sticky)
       end
 
@@ -94,11 +92,11 @@ module Dao
 
       if message
         if message.respond_to?(:full_messages)
-          message.depth_first_each do |keys, msg|
-            errors[keys] = Message.new(msg, :sticky => sticky)
+          message.full_messages.each do |k, msg|
+            new_errors[k] = Message.new(msg, :sticky => sticky)
           end
         else
-          errors[keys] = Message.new(message, :sticky => sticky)
+          new_errors[key] = Message.new(message, :sticky => sticky)
         end
       else
         raise(ArgumentError, 'no message!')
@@ -108,14 +106,17 @@ module Dao
 
       result = []
 
-      errors.each do |keys, message|
+      new_errors.each do |keys, message|
         list = get(keys)
+
         unless has?(keys)
           set(keys => [])
           list = get(keys)
         end
+
         list.clear if clear
         list.push(message)
+
         result = list
       end
       
@@ -137,10 +138,11 @@ module Dao
 
     def clear
       keep = []
-      depth_first_each do |keys, message|
-        index = keys.pop
-        args = [keys, message].flatten
-        keep.push(args) if message.sticky?
+      each do |keys, messages|
+        messages.each do |message|
+          args = [keys, message].flatten
+          keep.push(args) if message.sticky?
+        end
       end
       clear!
     ensure

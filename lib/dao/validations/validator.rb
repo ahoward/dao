@@ -4,9 +4,19 @@ module Dao
       NotBlank = proc{|value| !value.to_s.strip.empty?} unless defined?(NotBlank)
       Cleared = 'Cleared'.freeze unless defined?(Cleared)
 
+      include Common
+
+      def validator
+        self
+      end
+
+      def validator=(validator)
+        raise NotImplementedError
+      end
+
       class << Validator
-        def for(*args, &block)
-          new(*args, &block)
+        def mixin(*args, &block)
+          new(*args, &block).tap{|validator| validator.mixin = true}
         end
       end
 
@@ -15,10 +25,11 @@ module Dao
       attr_accessor :validations
       attr_accessor :errors
       attr_accessor :status
-      attr_accessor :prefix
 
       fattr(:attributes){ extract_attributes! }
       alias_method(:data, :attributes)
+
+      fattr(:mixin){ false }
 
       def initialize(*args, &block)
         @object = args.shift
@@ -40,7 +51,11 @@ module Dao
         @validations ||= (@options[:validations] || Map.new)
         @errors ||= (@options[:errors] || Errors.new)
         @status ||= (@options[:status] || Status.new)
-        @prefix ||= Array(@options[:prefix]).flatten.compact
+
+        unless @object.respond_to?(:validator)
+          @object.send(:extend, Dao::Validations)
+          @object.validator = self
+        end
       end
 
       def extract_attributes!(object = @object)
@@ -76,6 +91,10 @@ module Dao
             else
               raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
           end
+
+        @attributes.extend(InstanceExec) unless @attributes.respond_to?(:instance_exec)
+
+        @attributes
       end
 
       def validates(*args, &block)
@@ -84,15 +103,58 @@ module Dao
         block ||= NotBlank
         callback = Callback.new(options, &block)
         key = key_for(args)
-        validations.set(key => Callback::Chain.new) unless validations.has?(key)
-        validations.get(key).add(callback)
+        validations = stack.validations.last || self.validations
+        validations[key] ||= Callback::Chain.new
+        validations[key].add(callback)
         callback
       end
       alias_method('add', 'validates')
 
-      def key_for(args)
-        @prefix.empty? ? args : (@prefix + args)
+      def stack
+        @stack ||= Map[:validations, [], :prefixes, []]
       end
+
+      def prefixing(*prefix, &block)
+        prefix = Array(prefix).flatten.compact
+        push_prefix(prefix)
+        begin
+          block.call(*[prefix].slice(0, block.arity))
+        ensure
+          pop_prefix
+        end
+      end
+      alias_method('validating', 'prefixing')
+
+      def push_prefix(prefix)
+        prefix = Array(prefix).flatten.compact
+        stack.prefixes.push(prefix)
+      end
+
+      def pop_prefix
+        stack.prefixes.pop
+      end
+
+      def prefix
+        stack.prefixes.flatten.compact
+      end
+
+      def key_for(*key)
+        prefix + Array(key).flatten.compact
+      end
+
+      def get(key)
+        attributes.get(key_for(key))
+      end
+
+      def set(key, val)
+        attributes.set(key_for(key), val)
+      end
+
+      def has(key)
+        attributes.has(key_for(key))
+      end
+
+      alias_method 'has?', 'has'
 
       def run_validations!(*args)
         run_validations(*args)
@@ -102,77 +164,46 @@ module Dao
 
       def validations_search_path
         @validations_search_path ||= (
-          list = [
-            object.respond_to?(:validator) ? object : nil,
-            object.class.ancestors.map{|ancestor| ancestor.respond_to?(:validator) ? ancestor : nil}
-          ]
-          list.flatten!
-          list.compact!
-          list.reverse!
-          list
+          if mixin?
+            list = [
+              object.respond_to?(:validator) ? object : nil,
+              object.class.ancestors.map{|ancestor| ancestor.respond_to?(:validator) ? ancestor : nil}
+            ]
+            list.flatten!
+            list.compact!
+            list.reverse!
+            list.uniq!
+            list
+          else
+            [self]
+          end
         )
       end
 
       def validations_list
-        validations_search_path.map{|object| object.validator.validations}
+        validations_search_path.map{|object| object.validator.validations}.uniq
       end
 
-      def run_validations(*args)
-        object = args.first || @object
-
-        attributes.extend(InstanceExec) unless attributes.respond_to?(:instance_exec)
-
+      def run_validations(list = validations_list)
         previous_errors = []
         new_errors = []
 
         errors.each_message do |keys, message|
           previous_errors.push([keys, message])
         end
+        previous_errors = []
+
         errors.clear!
         status.ok!
 
-        list = validations_list
+        loop do
+          stack.validations.push(Map.new)
 
-        list.each do |validations|
-          validations.depth_first_each do |keys, chain|
-            chain.each do |callback|
-              next unless callback and callback.respond_to?(:to_proc)
+          _run_validations(errors, new_errors, list)
 
-              number_of_errors = errors.size
-              value = attributes.get(keys)
-
-              returned =
-                catch(:validation) do
-                  args = [value, attributes].slice(0, callback.arity)
-                  attributes.instance_exec(*args, &callback)
-                end
-
-              case returned
-                when Hash
-                  map = Map(returned)
-                  valid = map[:valid]
-                  message = map[:message]
-
-                when TrueClass, FalseClass
-                  valid = returned
-                  message = nil
-
-                else
-                  any_errors_added = errors.size > number_of_errors
-                  valid = !any_errors_added
-                  message = nil
-              end
-
-              message ||= callback.options[:message]
-              message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
-
-              unless valid
-                new_errors.push([keys, message])
-              else
-                new_errors.push([keys, Cleared])
-              end
-            end
-          end
+          added = stack.validations.pop
+          break if added.empty?
+          list = [added]
         end
 
         previous_errors.each do |keys, message|
@@ -190,6 +221,50 @@ module Dao
         end
 
         errors
+      end
+
+      def _run_validations(errors, new_errors, list)
+        Array(list).each do |validations|
+          validations.each do |keys, chain|
+            chain.each do |callback|
+              next unless callback and callback.respond_to?(:to_proc)
+
+              number_of_errors = errors.size
+              value = attributes.get(keys)
+
+              returned =
+                catch(:validation) do
+                  args = [value, attributes].slice(0, callback.arity)
+                  prefixing(keys) do
+                    attributes.instance_exec(*args, &callback)
+                  end
+                end
+
+              case returned
+                when Hash
+                  map = Map(returned)
+                  valid = map[:valid]
+                  message = map[:message]
+                when TrueClass, FalseClass
+                  valid = returned
+                  message = nil
+                else
+                  any_errors_added = errors.size > number_of_errors
+                  valid = !any_errors_added
+                  message = nil
+              end
+
+              message ||= callback.options[:message]
+              message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
+
+              unless valid
+                new_errors.push([keys, message])
+              else
+                new_errors.push([keys, Cleared])
+              end
+            end
+          end
+        end
       end
 
       def validated?

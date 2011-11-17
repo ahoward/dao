@@ -6,7 +6,7 @@
 # dao libs
 #
   module Dao
-    Version = '4.2.2' unless defined?(Version)
+    Version = '4.3.0' unless defined?(Version)
 
     def version
       Dao::Version
@@ -83,6 +83,7 @@
 
     name.rb
     status.rb
+    path_map.rb
     errors.rb
     form.rb
     validations.rb

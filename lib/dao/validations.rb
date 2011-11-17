@@ -2,13 +2,13 @@ module Dao
   module Validations
     class Error < Dao::Error; end
 
-    Dao.load('validations/validator.rb')
     Dao.load('validations/callback.rb')
     Dao.load('validations/common.rb')
+    Dao.load('validations/validator.rb')
 
     ClassMethods = proc do
       def validator
-        @validator ||= Validator.new(self)
+        @validator ||= Validator.mixin(self)
       end
 
       def validator=(validator)
@@ -29,7 +29,7 @@ module Dao
 
     InstanceMethods = proc do
       def validator
-        @validator ||= Validator.new(self)
+        @validator ||= Validator.mixin(self)
       end
 
       def validator=(validator)

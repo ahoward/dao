@@ -19,13 +19,16 @@ Testing Dao::Conducer do
     o = assert{ c.new }
     assert{ !o.valid? }
 
-    assert{ !Array(o.errors.get(:bar)).empty? }
-    assert{ !Array(o.errors.get(:foo, :bar)).empty? }
+    assert{ Array(o.errors.get(:bar)).size == 1 }
+    assert{ Array(o.errors.get(:foo, :bar)).size == 1 }
 
     o.attributes.set :foo, :bar, 42
     assert{ !o.valid? }
 
-    assert{ Array(o.errors.get(:foo, :bar)).empty? }
+    assert{ Array(o.errors.get(:bar)).size == 1 }
+    assert{ Array(o.errors.get(:foo, :bar)).size == 0 }
+
+    #assert{ Array(o.errors.get(:foo, :bar)).empty? }
   end
 
 ##

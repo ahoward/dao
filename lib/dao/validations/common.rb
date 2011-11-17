@@ -10,8 +10,13 @@ module Dao
           options[:minimum] = options[:in].begin
           options[:maximum] = options[:in].end
         end
-        minimum = options[:minimum] || 1
-        maximum = options[:maximum]
+        minimum = options[:minimum] || options[:min] || 1
+        maximum = options[:maximum] || options[:max]
+
+        exact = options[:value] || options[:exact] || options[:exactly] || options[:is]
+        if exact
+          minimum = maximum = exact
+        end
 
         too_short = options[:too_short] || message || 'is too short'
         too_long = options[:too_long] || message || 'is too long'
@@ -31,7 +36,7 @@ module Dao
               throw(:validation, m)
             end
 
-            value = value.to_s.strip
+            value = value.to_s.strip unless(value.respond_to?(:empty?) and value.respond_to?(:size))
 
             if value.empty? and allow_blank
               m[:valid] = true
@@ -55,6 +60,8 @@ module Dao
 
         validates(*args, &block)
       end
+
+      alias_method('validates_size_of', 'validates_length_of')
 
       def validates_word_count_of(*args)
         options = Map.options_for!(args)
@@ -111,6 +118,95 @@ module Dao
           end
 
         validates(*args, &block)
+      end
+
+      def validates_inclusion_of(*args)
+        options = Map.options_for!(args)
+
+        list = Array(options[:in])
+        message = options[:message]
+         message ||= "not in #{ list.map{|item| item.inspect}.join(' | ') }"
+
+        allow_nil = options[:allow_nil]
+        allow_blank = options[:allow_blank]
+
+        block =
+          lambda do |value|
+            m = Map(:valid => true)
+
+            if value.nil? and allow_nil
+              m[:valid] = true
+              throw(:validation, m)
+            end
+
+            value = value.to_s.strip
+
+            if value.empty? and allow_blank
+              m[:valid] = true
+              throw(:validation, m)
+            end
+
+            unless list.any?{|item| item === value}
+              m[:message] = message
+              m[:valid] = false
+              throw(:validation, m)
+            end
+
+            m
+          end
+
+        validates(*args, &block)
+      end
+
+      def validates_case_of(*args)
+        options = Map.options_for!(args)
+
+        target = [:case, :target, :is, :as].map{|k| options.getopt(k)}.compact.first
+        message = options[:message] || "is not a case of #{ target.inspect }"
+
+        allow_nil = options[:allow_nil]
+        allow_blank = options[:allow_blank]
+
+        block =
+          lambda do |value|
+            m = Map(:valid => true)
+
+            if value.nil? and allow_nil
+              m[:valid] = true
+              throw(:validation, m)
+            end
+
+            if [value].join.strip.empty? and allow_blank
+              m[:valid] = true
+              throw(:validation, m)
+            end
+
+            unless target === value
+              m[:message] = message
+              m[:valid] = false
+              throw(:validation, m)
+            end
+
+            m
+          end
+
+        validates(*args, &block)
+      end
+
+      def validates_type_of(*args)
+        options = Map.options_for(args)
+        target = [:case, :target, :is, :as].map{|k| options.getopt(k)}.compact.first
+        options[:message] ||= "is not of type #{ target.inspect }"
+        args.push(options)
+        validates_case_of(*args)
+      end
+
+      def validates_value_of(*args)
+        options = Map.options_for(args)
+        target = [:case, :target, :is, :as].map{|k| options.getopt(k)}.compact.first
+        options[:message] ||= "does not have the value #{ target.inspect }"
+        args.push(options)
+        validates_case_of(*args)
       end
 
       def validates_as_email(*args)

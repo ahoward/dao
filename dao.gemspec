@@ -84,6 +84,7 @@ Gem::Specification::new do |spec|
  "test/active_model_conducer_lint_test.rb",
  "test/api_test.rb",
  "test/conducer_test.rb",
+ "test/db.yml",
  "test/form_test.rb",
  "test/helper.rb",
  "test/leak.rb",
