@@ -242,7 +242,7 @@ module Dao
       keys = args.flatten
 
       name = options.delete(:name) || name_for(keys)
-      from = options.delete(:from) || options.delete(:options) || attributes.get(*keys)
+      from = options.delete(:from) || options.delete(:options)
       blank = options.delete(:blank)
 
       selected =
