@@ -301,16 +301,18 @@ module Dao
 
           case returned
             when Array
-              value, content, selected, *ignored = returned
+              content, value, selected, *ignored = returned
             when Hash
+              content = returned[:content]
               value = returned[:value]
-              content = returned[:content] || value
               selected = returned[:selected]
             else
-              value = returned
               content = returned
+              value = returned
               selected = nil
           end
+
+          value ||= content
 
           if selected.nil?
             selected = value.to_s==selected_value.to_s
