@@ -164,7 +164,7 @@ module Dao
       full_messages = []
 
       depth_first_each do |keys, value|
-        #index = keys.pop
+        index = keys.pop
         key = keys
         #key = keys.join('.')
         value = value.to_s
