@@ -183,7 +183,7 @@ module Dao
   end
 
   def keys_for(keys)
-    keys.strip.split(%r/\s*[,]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+    keys.strip.split(%r/\s*[,.]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
   end
 
   def render_json(object, options = {})
