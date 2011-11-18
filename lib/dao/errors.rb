@@ -18,8 +18,8 @@ module Dao
   # you can tweak these if you want
   #
     Global = '*' unless defined?(Global)
-    #Separator = "\342\207\222" unless defined?(Separator)  ### this is an "Open-outlined rightward arrow"
-    Separator = ":" unless defined?(Separator)
+    Separator = "\342\207\222" unless defined?(Separator)  ### this is an "Open-outlined rightward arrow"
+    #Separator = ":" unless defined?(Separator)
 
   # messages know when they're sticky
   #
@@ -58,17 +58,21 @@ module Dao
       @object = args.shift
     end
 
+    def [](key)
+      return [] unless has_key?(key)
+      super
+    end
+
     def errors
       self
     end
 
-    def [](key)
-      self[key] = Array.new unless has_key?(key)
-      super
-    end
-
     def size
-      inject(0){|size, kv| size + Array(kv.last).size}
+      size = 0
+      depth_first_each do |keys, value|
+        size += Array(value).size
+      end
+      size
     end
     alias_method('count', 'size')
     alias_method('length', 'size')
