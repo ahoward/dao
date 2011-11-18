@@ -66,10 +66,6 @@ module Dao
     Form.name_for(path, *keys)
   end
 
-  def parse(*args, &block)
-    Params.process(*args, &block)
-  end
-
   def normalize_parameters(params)
     Params.normalize_parameters(params)
   end
@@ -187,7 +183,7 @@ module Dao
   end
 
   def keys_for(keys)
-    keys.strip.split(%r/\s*[,._-]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+    keys.strip.split(%r/\s*[,]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
   end
 
   def render_json(object, options = {})
