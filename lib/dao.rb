@@ -14,12 +14,13 @@
 
     def dependencies
       {
-        'rails'      =>  [ 'rails'       , ' >= 3.0'   ] ,
-        'map'        =>  [ 'map'         , ' >= 4.6'   ] ,
-        'fattr'      =>  [ 'fattr'       , ' >= 2.2'   ] ,
-        'tagz'       =>  [ 'tagz'        , ' >= 9.0'   ] ,
-        'uuidtools'  =>  [ 'uuidtools'   , ' >= 2.1'   ] ,
-        'multi_json' =>  [ 'multi_json'  , ' >= 1.0.3' ] 
+        'rails'        =>  [ 'rails'        , ' >= 3.0'   ] ,
+        'map'          =>  [ 'map'          , ' >= 5.1'   ] ,
+        'fattr'        =>  [ 'fattr'        , ' >= 2.2'   ] ,
+        'tagz'         =>  [ 'tagz'         , ' >= 9.0'   ] ,
+        'uuidtools'    =>  [ 'uuidtools'    , ' >= 2.1'   ] ,
+        'multi_json'   =>  [ 'multi_json'   , ' >= 1.0.3' ] ,
+        'upload_cache' =>  [ 'upload_cache' , ' >= 1.2.0' ]
       }
     end
 

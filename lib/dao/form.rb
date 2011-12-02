@@ -325,6 +325,55 @@ module Dao
       }
     end
 
+    def upload(*args, &block)
+      options = args.extract_options!.to_options! 
+      keys = args.flatten
+
+      name = options.delete(:name) || name_for(keys)
+      id = options.delete(:id) || id_for(keys)
+      klass = class_for(keys, options.delete(:class))
+      error = error_for(keys, options.delete(:error))
+
+      default = Map.for(options.delete(:default))
+
+      upload_cache = upload_cache_for(keys, :default => default)
+
+      upload =
+        tagz{
+          input_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error, :type => 'file')){ }
+          __
+          tagz{ upload_cache.hidden }
+        }
+
+      upload.fattr(:cache){ upload_cache }
+
+      upload
+    end
+
+    def upload_cache_for(keys, options = {})
+      upload_cache = UploadCache.for(attributes, keys, options)
+      upload_cache.name = name_for(upload_cache.cache_key)
+      uploads[keys] = upload_cache
+      upload_cache
+    end
+
+    def uploads(*key)
+      return uploads[Array(key).flatten] unless key.empty?
+      @uploads ||= Map.new
+    end
+
+    def upload?(key)
+      key = Array(key).flatten
+      uploads[key]
+    end
+
+    def clear!
+      uploads.each do |key, upload|
+        upload.clear!
+      end
+      uploads.clear
+    end
+
   # html generation support methods
   #
     def id_for(keys)
@@ -371,8 +420,12 @@ module Dao
       Tagz.escapeHTML(value)
     end
 
+    def Form.prefix_for(name)
+      "dao[#{ name }]"
+    end
+
     def Form.name_for(name, *keys)
-      "dao[#{ name }][#{ Array(keys).flatten.compact.join('.') }]"
+      "#{ prefix_for(name) }[#{ Array(keys).flatten.compact.join('.') }]"
     end
 
     def name_for(*keys)
