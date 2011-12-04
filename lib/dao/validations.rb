@@ -43,10 +43,11 @@ module Dao
         validated!
         validate
         validate!
+        run_validations
         run_validations!
         valid!
-        forcing_validity?
         valid?
+        forcing_validity?
         errors
         status
       ).each do |method|

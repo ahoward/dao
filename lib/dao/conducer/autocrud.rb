@@ -1,8 +1,13 @@
 module Dao
-## CRUD support
-#
+  class << Conducer
+    def autocrud!
+      include(Conducer::AutoCRUD)
+    end
+    alias_method('crud!', 'autocrud!')
+  end
+
   class Conducer
-    module CRUD
+    module AutoCRUD
       Code = proc do
         class << self
           def db
@@ -27,14 +32,9 @@ module Dao
         end
 
         def save
-          run_callbacks :save do
-            return(false) unless valid?
-            id = self.class.db_collection.save(@attributes)
-            @attributes.set(:id => id)
-            true
-          end
-        ensure
-          @new_record = false
+          id = self.class.db_collection.save(@attributes)
+          @attributes.set(:id => id)
+          true
         end
 
         def destroy
@@ -44,29 +44,14 @@ module Dao
             @attributes.rm(:id)
           end
           id
-        ensure
-          @destroyed = true
         end
       end
 
-      def CRUD.included(other)
+      def AutoCRUD.included(other)
         super
       ensure
         other.module_eval(&Code)
       end
     end
   end
-
-## dsl for auto-crud
-#
-  class Conducer
-    class << self
-      def crud
-        include(Conducer::CRUD)
-      end
-      alias_method('crud!', 'crud')
-      alias_method('autocrud!', 'crud')
-    end
-  end
-  #Conducer::send(:include, Conducer::CRUD)
 end

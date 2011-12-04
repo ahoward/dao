@@ -3,8 +3,8 @@ module Dao
 #
   Dao.load('conducer/view_support.rb')
   Dao.load('conducer/attributes.rb')
-  Dao.load('conducer/crud.rb')
   Dao.load('conducer/collection.rb')
+  Dao.load('conducer/autocrud.rb')
 
 ##
 #
@@ -25,16 +25,49 @@ module Dao
      
     #include ActiveModel::Validations
 
-    extend ActiveModel::Callbacks
-
-    define_model_callbacks(:save, :create, :update, :destroy)
-    define_model_callbacks(:reset, :initialize, :find, :touch)
-    include ActiveModel::Validations::Callbacks
+    #extend ActiveModel::Callbacks
+    #define_model_callbacks(:save, :create, :update, :destroy)
+    #define_model_callbacks(:reset, :initialize, :find, :touch)
+    #include ActiveModel::Validations::Callbacks
 
 ##
 #
     include Dao::Validations
     include Dao::Current
+
+##
+#
+    include Wrap
+
+    %w[
+      reset initialize save create update destroy run_validations
+    ].each do |method|
+      wrap method
+    end
+
+    wrap_alias :validation, :run_validations
+
+    before :save do
+      halt! unless valid?
+      true
+    end
+
+    after :save do
+      @new_record = false
+      @destroyed = false
+      @persisted = true
+      form.clear_caches!
+      true
+    end
+
+    after :destroy do
+      @new_record = false
+      @destroyed = true
+      @persisted = false
+      form.clear_caches!
+      true
+    end
+
 
 ## class_methods
 #
@@ -143,19 +176,8 @@ module Dao
 
     def self.new(*args, &block)
       allocate.tap do |conducer|
-        conducer.running_callbacks(:reset, :initialize) do
-          conducer.send(:reset, *args, &block)
-          conducer.send(:initialize, *args, &block)
-        end
-      end
-    end
-
-    def running_callbacks(*args, &block)
-      which = args.shift
-      if args.empty?
-        run_callbacks(which, &block)
-      else
-        run_callbacks(which){ running_callbacks(*args, &block) }
+        conducer.send(:reset, *args, &block)
+        conducer.send(:initialize, *args, &block)
       end
     end
 
@@ -329,61 +351,6 @@ module Dao
 ## view support
 #
     module_eval(&ViewSupport)
-
-## generic crud support assuming valid .all, .find, #save and #destroy
-#
-=begin
-    def self.create(*args, &block)
-      allocate.tap do |conducer|
-        conducer.running_callbacks :reset, :initialize, :create do
-          conducer.send(:reset, *args, &block)
-          conducer.send(:initialize, *args, &block)
-          return false unless conducer.save
-        end
-      end
-    end
-
-    def self.create!(*args, &block)
-      allocate.tap do |conducer|
-        conducer.running_callbacks :reset, :initialize, :create do
-          conducer.send(:reset, *args, &block)
-          conducer.send(:initialize, *args, &block)
-          raise!(:validation_error) unless conducer.save
-        end
-      end
-    end
-
-    def self.blank(params = {})
-      new
-    end
-
-    def self.build(params = {})
-      new
-    end
-
-    def self.show(id)
-      find(id)
-    end
-
-    def self.index(params = {})
-      all(params)
-    end
-
-    def self.edit(id)
-      find(id)
-    end
-
-    def self.update(id)
-      find(id)
-    end
-
-    def self.destroy(id)
-      find(id)
-    end
-=end
-
-  ##
-  #
 
   ##
   #

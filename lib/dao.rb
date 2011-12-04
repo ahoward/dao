@@ -20,7 +20,8 @@
         'tagz'         =>  [ 'tagz'         , ' >= 9.0'   ] ,
         'uuidtools'    =>  [ 'uuidtools'    , ' >= 2.1'   ] ,
         'multi_json'   =>  [ 'multi_json'   , ' >= 1.0.3' ] ,
-        'upload_cache' =>  [ 'upload_cache' , ' >= 1.2.0' ]
+        'upload_cache' =>  [ 'upload_cache' , ' >= 1.3.0' ] ,
+        'wrap'         =>  [ 'wrap'         , ' >= 1.0.0' ]
       }
     end
 

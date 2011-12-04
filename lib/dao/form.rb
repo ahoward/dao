@@ -362,16 +362,16 @@ module Dao
       @uploads ||= Map.new
     end
 
-    def upload?(key)
+    def uploaded(key)
       key = Array(key).flatten
       uploads[key]
     end
+    alias_method('upload?', 'uploaded')
 
-    def clear!
+    def clear_caches!
       uploads.each do |key, upload|
         upload.clear!
       end
-      uploads.clear
     end
 
   # html generation support methods
