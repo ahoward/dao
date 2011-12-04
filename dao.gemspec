@@ -29,8 +29,8 @@ Gem::Specification::new do |spec|
  "lib/dao/conducer",
  "lib/dao/conducer.rb",
  "lib/dao/conducer/attributes.rb",
+ "lib/dao/conducer/autocrud.rb",
  "lib/dao/conducer/collection.rb",
- "lib/dao/conducer/crud.rb",
  "lib/dao/conducer/view_support.rb",
  "lib/dao/current.rb",
  "lib/dao/data.rb",
@@ -101,7 +101,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["rails", " >= 3.0"])
   
-    spec.add_dependency(*["map", " >= 4.6"])
+    spec.add_dependency(*["map", " >= 5.1"])
   
     spec.add_dependency(*["fattr", " >= 2.2"])
   
@@ -110,6 +110,10 @@ Gem::Specification::new do |spec|
     spec.add_dependency(*["uuidtools", " >= 2.1"])
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
+  
+    spec.add_dependency(*["upload_cache", " >= 1.3.0"])
+  
+    spec.add_dependency(*["wrap", " >= 1.0.0"])
   
 
   spec.extensions.push(*[])
