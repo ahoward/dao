@@ -56,7 +56,6 @@ module Dao
       @new_record = false
       @destroyed = false
       @persisted = true
-      form.clear_caches!
       true
     end
 
@@ -64,7 +63,6 @@ module Dao
       @new_record = false
       @destroyed = true
       @persisted = false
-      form.clear_caches!
       true
     end
 
@@ -167,6 +165,7 @@ module Dao
 #
     %w(
       name
+      params
       attributes
       errors
       form
@@ -186,6 +185,7 @@ module Dao
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
 
       @name = self.class.model_name.singular.sub(/_+$/, '')
+      @params = Map.new
       @attributes = Attributes.for(self)
       @form = Form.for(self)
 
@@ -195,9 +195,11 @@ module Dao
 
       hashes.each do |hash|
         hash.each do |key, val|
-          @attributes.set(key_for(key) => val)
+          @params.set(key_for(key) => val)
         end
       end
+
+      @attributes.update(@params[@name] || @params)
 
       self
     end
