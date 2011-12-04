@@ -335,6 +335,15 @@ module Dao
       error = error_for(keys, options.delete(:error))
 
       default = Map.for(options.delete(:default))
+      placeholder = Array(options.delete(:placeholder))
+
+      case
+        when placeholder.size == 1
+          default[:url] = File.expand_path(*placeholder)
+        when placeholder.size > 1
+          default[:url] = placeholder.last
+          default[:path] = File.expand_path(File.join(*placeholder))
+      end
 
       upload_cache = upload_cache_for(keys, :default => default)
 
