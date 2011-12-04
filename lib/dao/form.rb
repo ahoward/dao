@@ -339,13 +339,14 @@ module Dao
 
       case placeholder
         when String, Symbol
-          default[:url] = File.expand_path(placeholder.to_s)
+          default[:url] = placeholder.to_s
         when Array
           case
             when placeholder.size == 1
-              default[:url] = File.expand_path(placeholder.join('/'))
+              default[:url] = placeholder.last.to_s
+
             when placeholder.size > 1
-              default[:url] = placeholder.last
+              default[:url] = placeholder.last.to_s
               default[:path] = File.expand_path(placeholder.join('/'))
           end
         when Hash
