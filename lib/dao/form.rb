@@ -334,26 +334,10 @@ module Dao
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
-      default = Map.for(options.delete(:default))
-      placeholder = options.delete(:placeholder)
+      upload_cache = uploads!(keys, options.slice(:default, :placeholder))
 
-      case placeholder
-        when String, Symbol
-          default[:url] = placeholder.to_s
-        when Array
-          case
-            when placeholder.size == 1
-              default[:url] = placeholder.last.to_s
-
-            when placeholder.size > 1
-              default[:url] = placeholder.last.to_s
-              default[:path] = File.expand_path(placeholder.join('/'))
-          end
-        when Hash
-          default.update(placeholder)
-      end
-
-      upload_cache = upload_cache_for(keys, :default => default)
+      options.delete(:default)
+      options.delete(:placeholder)
 
       upload =
         tagz{
@@ -367,7 +351,31 @@ module Dao
       upload
     end
 
-    def upload_cache_for(keys, options = {})
+    def uploads!(*args)
+      options = args.extract_options!.to_options!
+      keys = args.flatten
+
+      return uploads[keys] if uploads.has_key?(keys)
+
+      options[:default] ||= Map.new
+      default = options[:default]
+      placeholder = options.delete(:placeholder)
+
+      case placeholder
+        when String, Symbol
+          default[:url] = placeholder.to_s
+        when Array
+          case
+            when placeholder.size == 1
+              default[:url] = placeholder.last.to_s
+            when placeholder.size > 1
+              default[:url] = placeholder.last.to_s
+              default[:path] = File.expand_path(placeholder.join('/'))
+          end
+        when Hash
+          default.update(placeholder)
+      end
+
       upload_cache = UploadCache.for(attributes, keys, options)
       upload_cache.name = name_for(upload_cache.cache_key)
       uploads[keys] = upload_cache
@@ -375,15 +383,16 @@ module Dao
     end
 
     def uploads(*key)
-      return uploads[Array(key).flatten] unless key.empty?
       @uploads ||= Map.new
+      return @uploads[Array(key).flatten] unless key.empty?
+      @uploads
     end
 
     def uploaded(key)
       key = Array(key).flatten
       uploads[key]
     end
-    alias_method('upload?', 'uploaded')
+    alias_method('uploads?', 'uploaded')
 
     def clear_caches!
       uploads.each do |key, upload|
