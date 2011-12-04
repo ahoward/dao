@@ -176,7 +176,7 @@ module Dao
     def self.new(*args, &block)
       allocate.tap do |conducer|
         conducer.send(:reset, *args, &block)
-        conducer.send(:initialize, *args, &block)
+        conducer.send(:initialize, *Dao.args_for_arity(args, instance_method(:initialize).arity), &block)
       end
     end
 

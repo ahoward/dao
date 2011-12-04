@@ -225,4 +225,9 @@ module Dao
       end
     end
   end
+
+  def args_for_arity(args, arity)
+    arity = Integer(arity.respond_to?(:arity) ? arity.arity : arity)
+    arity < 0 ? args.dup : args.slice(0, arity)
+  end
 end
