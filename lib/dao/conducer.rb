@@ -52,17 +52,21 @@ module Dao
       true
     end
 
-    after :save do
-      @new_record = false
-      @destroyed = false
-      @persisted = true
+    after :save do |saved|
+      if saved or attributes.id
+        @new_record = false
+        @destroyed = false
+        @persisted = true
+      end
       true
     end
 
-    after :destroy do
-      @new_record = false
-      @destroyed = true
-      @persisted = false
+    after :destroy do |destroyed|
+      if destroyed or attributes.id.blank?
+        @new_record = false
+        @destroyed = true
+        @persisted = false
+      end
       true
     end
 
@@ -349,6 +353,16 @@ module Dao
 ## view support
 #
     module_eval(&ViewSupport)
+
+  ##
+  #
+    def save
+      NotImplementedError
+    end
+
+    def destroy
+      NotImplementedError
+    end
 
   ##
   #
