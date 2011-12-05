@@ -53,7 +53,7 @@ module Dao
     end
 
     after :save do |saved|
-      if saved or attributes.id
+      if saved or id?
         @new_record = false
         @destroyed = false
         @persisted = true
@@ -62,7 +62,7 @@ module Dao
     end
 
     after :destroy do |destroyed|
-      if destroyed or attributes.id.blank?
+      if destroyed or id?
         @new_record = false
         @destroyed = true
         @persisted = false
@@ -223,6 +223,10 @@ module Dao
 
     def id
       @attributes[:id] || @attributes[:_id]
+    end
+
+    def id?
+      id
     end
 
     def id=(id)
