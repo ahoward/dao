@@ -227,7 +227,7 @@ module Dao
   end
 
   def call(object, method, *args, &block)
-    object.send(method, *Dao.args_for_arity(args, instance_method(method).arity), &block)
+    object.send(method, *Dao.args_for_arity(args, object.method(method).arity), &block)
   end
 
   def args_for_arity(args, arity)
