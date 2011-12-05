@@ -226,6 +226,10 @@ module Dao
     end
   end
 
+  def call(object, method, *args, &block)
+    object.send(method, *Dao.args_for_arity(args, instance_method(method).arity), &block)
+  end
+
   def args_for_arity(args, arity)
     arity = Integer(arity.respond_to?(:arity) ? arity.arity : arity)
     arity < 0 ? args.dup : args.slice(0, arity)

@@ -165,7 +165,6 @@ module Dao
 #
     %w(
       name
-      params
       attributes
       errors
       form
@@ -175,8 +174,8 @@ module Dao
 
     def self.new(*args, &block)
       allocate.tap do |conducer|
-        conducer.send(:reset, *args, &block)
-        conducer.send(:initialize, *Dao.args_for_arity(args, instance_method(:initialize).arity), &block)
+        Dao.call(conducer, :reset, *args, &block)
+        Dao.call(conducer, :initialize, *args, &block)
       end
     end
 
@@ -185,7 +184,6 @@ module Dao
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
 
       @name = self.class.model_name.singular.sub(/_+$/, '')
-      @params = Map.new
       @attributes = Attributes.for(self)
       @form = Form.for(self)
 
@@ -195,11 +193,9 @@ module Dao
 
       hashes.each do |hash|
         hash.each do |key, val|
-          @params.set(key_for(key) => val)
+          @attributes.set(key_for(key) => val)
         end
       end
-
-      @attributes.update(@params[@name] || @params)
 
       self
     end
