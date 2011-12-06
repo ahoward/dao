@@ -363,7 +363,15 @@ module Dao
 
       case placeholder
         when String, Symbol
-          default[:url] = placeholder.to_s
+          placeholder = placeholder.to_s.strip
+          parts = placeholder.split(%r/\s+/)
+          case
+            when parts.size == 1
+              default[:url] = placeholder
+            when parts.size > 1
+              default[:url] = parts.last.to_s
+              default[:path] = parts.join
+          end
         when Array
           case
             when placeholder.size == 1
