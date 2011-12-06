@@ -62,7 +62,7 @@ module Dao
     end
 
     after :destroy do |destroyed|
-      if destroyed or id?
+      if destroyed or !id?
         @new_record = false
         @destroyed = true
         @persisted = false

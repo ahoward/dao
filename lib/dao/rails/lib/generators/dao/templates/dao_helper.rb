@@ -36,43 +36,32 @@ module DaoHelper
     block ? block.call(@dao) : @dao
   end
 
-  def dao_form_for(*args, &block)
-    options = args.extract_options!.to_options!
-
-    model = args.flatten.select{|arg| arg.respond_to?(:new_record?)}.last
-
-    if model
-      first = args.shift
-      url = args.shift || options.delete(:url)
-
-      method = options.delete(:method)
-      html = dao_form_attrs(options)
-
-      options.clear
-
-      if model.new_record?
-        url ||= url_for(first)
-        method ||= :post
-      else
-        url ||= url_for(first)
-        method ||= :put
-      end
-
-      options[:url] = url
-      options[:html] = html.dup.merge(:method => method)
-
-      args.push(model)
-      args.push(options)
-      
-      form_for(*args) do
-        block.call(model.form)
-      end
-    else
-      args.push(request.fullpath) if args.empty?
-      args.push(dao_form_attrs(options))
-      form_tag(*args, &block)
-    end
-  end
+  def dao_form_for(*args, &block)                                                                                                                                              
+    options = args.extract_options!.to_options!                                                                                                                                                                                                                                                                                                               
+    model = args.flatten.select{|arg| arg.respond_to?(:new_record?)}.last                                                                                                                                                                                                                                                                                     
+    if model                                                                                                                                                                   
+      first = args.shift                                                                                                                                                       
+      url = args.shift || options.delete(:url)                                                                                                                                 
+                                                                                                                                                                               
+      method = options.delete(:method)                                                                                                                                               html = dao_form_attrs(options)                                                                                                                                           
+                                                                                                                                                                               
+      options.clear                                                                                                                                                            
+                                                                                                                                                                                     url ||= url_for(first)                                                                                                                                                                                                                                                                                                                                  
+      if model.persisted?                                                                                                                                                      
+        method ||= :put                                                                                                                                                        
+      else                                                                                                                                                                     
+        method ||= :post                                                                                                                                                       
+      end                                                                                                                                                                      
+                                                                                                                                                                               
+      options[:url] = url                                                                                                                                                      
+      options[:html] = html.dup.merge(:method => method)                                                                                                                       
+                                                                                                                                                                                     args.push(model)                                                                                                                                                         
+      args.push(options)                                                                                                                                                                                                                                                                                                                                      
+      form_for(*args) do                                                                                                                                                       
+        block.call(model.form)                                                                                                                                                 
+      end                                                                                                                                                                          else                                                                                                                                                                             args.push(request.fullpath) if args.empty?                                                                                                                                     args.push(dao_form_attrs(options))                                                                                                                                             form_tag(*args, &block)                                                                                                                                                  
+    end                                                                                                                                                                        
+  end                                   
 
   def dao_form_attrs(*args)
     args.flatten!
