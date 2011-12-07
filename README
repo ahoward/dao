@@ -53,7 +53,7 @@ DESCRITPION
   logic and data is used everywhere: in tests, in controllers, from the
   command-line, and also from javascript.
 
-  this speration of concerns brings with it many, many desirable qualities:
+  this seperation of concerns brings with it many, many desirable qualities:
 
     - total seperation of concerns between the front and back end of a web
       application.  when developers are using dao changes to the data model
