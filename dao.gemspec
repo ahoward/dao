@@ -11,8 +11,8 @@ Gem::Specification::new do |spec|
   spec.files =
 ["README",
  "Rakefile",
+ "b.rb",
  "dao.gemspec",
- "db",
  "lib",
  "lib/dao",
  "lib/dao.rb",
@@ -111,7 +111,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
-    spec.add_dependency(*["upload_cache", " >= 1.3.0"])
+    spec.add_dependency(*["upload_cache", " >= 1.4.1"])
   
     spec.add_dependency(*["wrap", " >= 1.0.0"])
   
