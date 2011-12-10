@@ -8,6 +8,14 @@ module Dao
       include Tagz.globally
     end
 
+  # builder stuff for compatibity with rails' form_for()
+  #
+    class Builder
+      def Builder.new(object_name, object, view, options, block)
+        form = Form.new(object)
+      end
+    end
+
   # class methods
   #
     class << Form 
