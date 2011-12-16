@@ -40,12 +40,16 @@ module Dao
     include Wrap
 
     %w[
-      reset initialize save create update destroy run_validations
+      initialize save create update destroy run_validations
     ].each do |method|
-      wrap method
+      wrap(method)
     end
 
-    wrap_alias :validation, :run_validations
+    wrap_alias(:validation, :run_validations)
+
+    before :initialize do |*args|
+      reset(*args)
+    end
 
     before :save do
       halt! unless valid?
@@ -176,13 +180,6 @@ module Dao
 
     alias_method(:data, :attributes)
 
-    def self.new(*args, &block)
-      allocate.tap do |conducer|
-        Dao.call(conducer, :reset, *args, &block)
-        Dao.call(conducer, :initialize, *args, &block)
-      end
-    end
-
     def reset(*args, &block)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
@@ -193,15 +190,17 @@ module Dao
 
       validator.reset
 
+      @errors = validator.errors
+      @status = validator.status
+
       set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
 
-      hashes.each do |hash|
-        hash.each do |key, val|
-          @attributes.set(key_for(key) => val)
-        end
-      end
+      hashes.each{|hash| hash.each{|key, val| @attributes.set(key_for(key) => val)}}
 
       self
+    end
+
+    def initialize(*args, &block)
     end
 
     def errors
@@ -210,9 +209,6 @@ module Dao
 
     def status
       validator.status
-    end
-
-    def initialize(*args, &block)
     end
 
 ## instance_methods
@@ -371,14 +367,14 @@ module Dao
   ##
   #
     def reload
-      attributes =
+      attributes.replace(
         if id
           conducer = self.class.find(id)
           conducer ? conducer.attributes : {}
         else
           {}
         end
-      reset(attributes)
+      )
       self
     end
 
