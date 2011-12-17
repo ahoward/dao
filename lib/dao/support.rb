@@ -66,10 +66,6 @@ module Dao
     Form.name_for(path, *keys)
   end
 
-  def normalize_parameters(params)
-    Params.normalize_parameters(params)
-  end
-
   def current
     @current ||=
       Map.new(
@@ -178,7 +174,7 @@ module Dao
       end
     end
 
-    #params[:dao] = {:normalized => true}
+    params['dao'] = dao
     params
   end
 

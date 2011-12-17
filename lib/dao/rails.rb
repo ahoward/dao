@@ -42,13 +42,16 @@ if defined?(Rails)
           # pre-parse any obvious dao params
           #
             controller.instance_eval do
+              Rails.logger.info "Dao.normalize_parameters(params) before: #{ params.inspect }"
               Dao.normalize_parameters(params)
+              Rails.logger.info "Dao.normalize_parameters(params) after: #{ params.inspect }"
             end
           end
 
         # you will likely want to override this!
         #
           def current_api
+            return nil unless defined?(Api)
             @api ||= ( 
               api = Api.new
               %w( real_user effective_user current_user ).each do |attr|
