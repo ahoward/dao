@@ -36,7 +36,7 @@ if defined?(Rails)
         # normalize dao params
         #
           before_filter do |controller|
-            Dao.current_controller = defined?(Current) ? Current.controller : controller
+            Dao.current_controller = defined?(::Current) ? ::Current.controller : controller
             Dao.normalize_parameters(controller.send(:params))
           end
 
