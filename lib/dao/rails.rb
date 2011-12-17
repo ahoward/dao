@@ -30,22 +30,14 @@ if defined?(Rails)
 
     # yes yes, this should probably be somewhere else...
     #
-      config.after_initialize do
+      config.before_initialize do
 
         ActionController::Base.module_eval do
-
+        # normalize dao params
+        #
           before_filter do |controller|
-          # set the dao controller
-          #
-            Dao.current_controller = controller
-
-          # pre-parse any obvious dao params
-          #
-            controller.instance_eval do
-              Rails.logger.info "Dao.normalize_parameters(params) before: #{ params.inspect }"
-              Dao.normalize_parameters(params)
-              Rails.logger.info "Dao.normalize_parameters(params) after: #{ params.inspect }"
-            end
+            Dao.current_controller = defined?(Current) ? Current.controller : controller
+            Dao.normalize_parameters(controller.send(:params))
           end
 
         # you will likely want to override this!
