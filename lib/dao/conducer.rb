@@ -173,6 +173,7 @@ module Dao
 #
     %w(
       name
+      params
       attributes
       errors
       form
@@ -187,6 +188,7 @@ module Dao
       @name = self.class.model_name.singular.sub(/_+$/, '')
       @attributes = Attributes.for(self)
       @form = Form.for(self)
+      @params = Map.new
 
       validator.reset
 
@@ -195,7 +197,8 @@ module Dao
 
       set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
 
-      hashes.each{|hash| hash.each{|key, val| @attributes.set(key_for(key) => val)}}
+      hashes.each{|hash| hash.each{|key, val| @params.set(key_for(key) => val)}}
+      @attributes.update(@params)
 
       self
     end
