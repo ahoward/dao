@@ -155,6 +155,10 @@ module Dao
         Dao.mock_controller(*args, &block)
       end
 
+      def current
+        @current ||= (defined?(::Current) ? ::Current : Map.new)
+      end
+
       def raise!(*args, &block)
         kind = (args.first.is_a?(Symbol) ? args.shift : 'error').to_s.sub(/_error$/, '')
 
@@ -204,6 +208,10 @@ module Dao
     end
 
     def initialize(*args, &block)
+    end
+
+    def update_attributes(params)
+      @params.update(params)
     end
 
     def errors

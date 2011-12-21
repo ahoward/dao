@@ -160,7 +160,7 @@ module Dao
   def normalize_parameters(params)
     dao = (params.delete('dao') || {}).merge(params.delete(:dao) || {})
 
-    unless dao.blank?
+    unless dao.empty?
       dao.each do |key, paths_and_values|
         next if paths_and_values.blank?
         map = Map.for(params[key])
@@ -172,9 +172,10 @@ module Dao
 
         params[key] = map
       end
+
+      params['dao'] = dao
     end
 
-    params['dao'] = dao
     params
   end
 
