@@ -210,8 +210,15 @@ module Dao
     def initialize(*args, &block)
     end
 
-    def update_attributes(params)
-      @params.update(params)
+    def update_attributes(attributes = {})
+      @attributes.set(attributes)
+      @attributes
+    end
+
+    def update_attributes!(*args, &block)
+      update_attributes(*args, &block)
+    ensure
+      save!
     end
 
     def errors
