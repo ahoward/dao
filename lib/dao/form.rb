@@ -459,7 +459,7 @@ module Dao
           else
             value
         end
-      Tagz.escapeHTML(value)
+      value.respond_to?(:html_safe) ? value : Tagz.escapeHTML(value)
     end
 
     def Form.prefix_for(name)
