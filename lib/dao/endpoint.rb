@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class Endpoint
     Attrs = %w( api path route block doc )

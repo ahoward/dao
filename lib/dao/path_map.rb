@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class PathMap < ::Map
     def to_json(*args, &block)

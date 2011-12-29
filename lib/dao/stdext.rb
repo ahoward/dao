@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class Array
   def to_dao(*args, &block)
     Dao.to_dao(self, *args, &block)

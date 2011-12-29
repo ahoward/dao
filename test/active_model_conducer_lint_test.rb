@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class LintTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests
 

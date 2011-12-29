@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 Testing Dao::Form do
   testing '.new' do
     form = new_form() 

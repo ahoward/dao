@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class Slug < ::String
     Join = '-'

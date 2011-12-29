@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # FIXME - the redundancy in this file fucking kilz me... fix it.
 #
 module Dao::Current

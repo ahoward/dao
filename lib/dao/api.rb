@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class Api
     Dao.load 'api/initializers.rb'

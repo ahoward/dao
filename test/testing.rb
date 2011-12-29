@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require 'test/unit'
 
 testdir = File.expand_path(File.dirname(__FILE__))

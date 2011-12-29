@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 Testing Dao::Conducer do
   testing 'that dao has a root' do
     assert{ Dao.respond_to?(:root) }

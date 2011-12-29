@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 class User < Map
   def id() self[:id] end
   def email() self[:email] end

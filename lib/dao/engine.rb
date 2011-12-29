@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   if(defined?(Rails) && Rails::VERSION::MAJOR == 3)
     class Engine < Rails::Engine

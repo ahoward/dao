@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   module Validations
     class Error < Dao::Error; end

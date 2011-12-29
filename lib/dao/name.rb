@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class Name < ::String
     def Name.for(name)

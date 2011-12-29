@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   def map_for(*args, &block)
     Map.for(*args, &block)

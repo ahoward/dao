@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class Result < ::Map
     def initialize(*args, &block)

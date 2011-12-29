@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class Mode < ::String
   # class methods

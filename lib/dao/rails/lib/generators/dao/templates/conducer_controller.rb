@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 <%
 
   conducer_class_name = @conducer_name.camelize

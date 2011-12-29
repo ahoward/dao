@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 # built-ins
 #
   require 'enumerator'

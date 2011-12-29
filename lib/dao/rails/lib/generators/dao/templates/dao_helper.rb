@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module DaoHelper
   def render_dao(result, *args, &block)
     if result.status =~ 200

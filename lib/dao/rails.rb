@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 if defined?(Rails)
 
   module Dao

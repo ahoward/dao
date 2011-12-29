@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 module Dao
   class Status < ::String
   ## http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
