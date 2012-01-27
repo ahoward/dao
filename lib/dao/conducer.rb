@@ -49,7 +49,7 @@ module Dao
     wrap_alias(:validation, :run_validations)
 
     before :initialize do |*args|
-      reset(*args)
+      init(*args)
     end
 
     before :save do
@@ -182,13 +182,16 @@ module Dao
       attributes
       errors
       form
+      model
+      models
     ).each{|a| fattr(a)}
 
     alias_method(:data, :attributes)
 
-    def reset(*args, &block)
+    def init(*args, &block)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
+      models, args = args.partition{|arg| arg.respond_to?(:save) or arg.respond_to?(:new_record?)}
 
       @name = self.class.model_name.singular.sub(/_+$/, '')
       @attributes = Attributes.for(self)
@@ -202,13 +205,38 @@ module Dao
 
       set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
 
-      hashes.each{|hash| hash.each{|key, val| @params.set(key_for(key) => val)}}
-      @attributes.update(@params)
+      @model = Map.new
+      @models = Map.new
+
+      models.each do |model|
+        key = model.class.name.underscore
+        @model[key] ||= model
+        @models[key] ||= []
+        @models[key].push(model)
+      end
+
+      load(*models)
+
+      update_attributes(update_params(*hashes))
+
+      identify!
 
       self
     end
 
+    def load(*args, &block)
+    end
+
+    def identify!(*args, &block)
+    end
+
     def initialize(*args, &block)
+    end
+
+    def update_params(*args, &block)
+      hashes, args = args.flatten.compact.partition{|arg| arg.is_a?(Hash)}
+      hashes.each{|h| h.each{|k,v| @params.set(key_for(k) => v)}}
+      @params
     end
 
     def update_attributes(attributes = {})
