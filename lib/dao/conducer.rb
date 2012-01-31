@@ -52,6 +52,11 @@ module Dao
       init(*args)
     end
 
+    after :initialize do |*args|
+      identify!
+      initialize_for_current_action!
+    end
+
     before :save do
       halt! unless valid?
       true
@@ -182,7 +187,6 @@ module Dao
       attributes
       errors
       form
-      model
       models
     ).each{|a| fattr(a)}
 
@@ -205,32 +209,40 @@ module Dao
 
       set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
 
-      @model = Map.new
-      @models = Map.new
-
-      models.each do |model|
-        key = model.class.name.underscore
-        @model[key] ||= model
-        @models[key] ||= []
-        @models[key].push(model)
-      end
-
-      load(*models)
+      @models = models.flatten.compact
 
       update_attributes(update_params(*hashes))
-
-      identify!
 
       self
     end
 
-    def load(*args, &block)
+    def initialize(*args, &block)
     end
 
     def identify!(*args, &block)
+      id = identifier
+      attributes[:id] ||= id
+      attributes[:_id] ||= id
+      id
     end
 
-    def initialize(*args, &block)
+    def initialize_for_current_action!
+      action_name = ::Current.controller.send(:action_name)
+      method = "initialize_for_#{ action_name }"
+      send(method) if respond_to?(method)
+    end
+
+    def models(*patterns)
+      if patterns.empty?
+        @models
+      else
+        @models.detect{|model| patterns.all?{|pattern| pattern === model}}
+      end
+    end
+
+    def identifier
+      model = @models.last
+      model and !model.new_record? and model.id
     end
 
     def update_params(*args, &block)

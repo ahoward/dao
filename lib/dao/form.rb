@@ -478,9 +478,26 @@ module Dao
     def options_for(*hashes)
       map = Map.new
       hashes.flatten.each do |h|
-        h.each{|k,v| map[attr_for(k)] = v unless v.nil?}
+        case((data = h.delete(:data) || h.delete('data')))
+          when Hash
+            data.each{|k,v| map[data_attr_for(k)] = v unless v.nil?}
+          else
+            h[:data] = data
+        end
+
+        h.each do |k,v|
+          map[attr_for(k)] = v unless v.nil?
+        end
       end
       map
+    end
+
+    def attr_for(string)
+      slug_for(string).gsub(/_/, '-')
+    end
+
+    def data_attr_for(string)
+      "data-#{ attr_for(string) }"
     end
 
     def slug_for(string)
@@ -489,10 +506,6 @@ module Dao
       words.map!{|word| word.gsub(%r/[^0-9a-zA-Z_:-]/, '')}
       words.delete_if{|word| word.nil? or word.strip.empty?}
       words.join('-').downcase.sub(/_+$/, '')
-    end
-
-    def attr_for(string)
-      slug_for(string).gsub(/_/, '-')
     end
 
     def titleize(string)
