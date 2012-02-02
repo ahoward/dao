@@ -227,9 +227,21 @@ module Dao
     end
 
     def initialize_for_current_action!
-      action_name = ::Current.controller.send(:action_name)
-      method = "initialize_for_#{ action_name }"
-      send(method) if respond_to?(method)
+      current_action = ::Current.controller.send(:action_name).to_s
+
+      method = "initialize_for_#{ current_action }"
+      return(send(method)) if respond_to?(method)
+
+      synonyms = {
+        'new' => 'create',
+        'edit' => 'update'
+      }
+
+      synonym = synonyms[current_action] || synonyms.invert[current_action]
+      method = "initialize_for_#{ synonym }"
+      return(send(method)) if synonym and respond_to?(method)
+
+      nil
     end
 
     def models(*patterns)
