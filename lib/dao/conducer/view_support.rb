@@ -2,6 +2,12 @@
 module Dao
   class Conducer
     ViewSupport = proc do
+      include Tagz.globally
+
+      class << Conducer
+        include Tagz.globally
+      end
+
       url_helpers = Rails.application.try(:routes).try(:url_helpers)
       include(url_helpers) if url_helpers
       include(ActionView::Helpers) if defined?(ActionView::Helpers)
