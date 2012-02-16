@@ -227,7 +227,7 @@ module Dao
     end
 
     def initialize_for_current_action!
-      current_action = ::Current.controller.send(:action_name).to_s
+      current_action = Dao.current_controller.send(:action_name).to_s
 
       method = "initialize_for_#{ current_action }"
       return(send(method)) if respond_to?(method)

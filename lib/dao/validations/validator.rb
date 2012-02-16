@@ -235,9 +235,10 @@ module Dao
 
               returned =
                 catch(:validation) do
-                  args = [value, attributes].slice(0, callback.arity)
+                  args = [value, attributes].slice(0 .. [callback.arity - 1, -1].max)
                   prefixing(keys) do
-                    attributes.instance_exec(*args, &callback)
+                    #attributes.instance_exec(*args, &callback)
+                    object.instance_exec(*args, &callback)
                   end
                 end
 

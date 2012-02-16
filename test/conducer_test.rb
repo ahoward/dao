@@ -34,6 +34,24 @@ Testing Dao::Conducer do
 
 ##
 #
+  testing 'that validations are executed in the context of the object' do
+    c =
+      assert{
+        new_foo_conducer_class do
+          validates(:bar){ foo == 42 }
+
+          def foo
+            42
+          end
+        end
+      }
+
+    o = assert{ c.new }
+    assert{ o.valid? }
+  end
+
+##
+#
   testing 'that basic form elements work' do
     c =
       assert{
