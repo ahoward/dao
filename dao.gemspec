@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.2.2"
+  spec.version = "4.3.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -40,7 +40,6 @@ Gem::Specification::new do |spec|
  "lib/dao/exceptions.rb",
  "lib/dao/extractor.rb",
  "lib/dao/form.rb",
- "lib/dao/image_cache.rb",
  "lib/dao/instance_exec.rb",
  "lib/dao/mode.rb",
  "lib/dao/mongo_mapper.rb",
@@ -106,13 +105,13 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["tagz", " >= 9.0"])
   
-    spec.add_dependency(*["uuidtools", " >= 2.1"])
-  
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
     spec.add_dependency(*["upload_cache", " >= 1.4.1"])
   
-    spec.add_dependency(*["wrap", " >= 1.0.0"])
+    spec.add_dependency(*["wrap", " >= 1.1.0"])
+  
+    spec.add_dependency(*["rails_current", " >= 1.0"])
   
 
   spec.extensions.push(*[])
