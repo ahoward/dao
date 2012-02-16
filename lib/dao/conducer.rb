@@ -13,9 +13,9 @@ module Dao
 ##
 #      
     include ActiveModel::Naming
-    #include ActiveModel::Conversion
+    include ActiveModel::Conversion
+    extend ActiveModel::Translation
 
-    #extend ActiveModel::Translation
     #include ActiveModel::AttributeMethods
     #include ActiveModel::Serialization
     #include ActiveModel::Dirty
@@ -221,8 +221,10 @@ module Dao
 
     def identify!(*args, &block)
       id = identifier
-      attributes[:id] ||= id
-      attributes[:_id] ||= id
+      unless id.blank?
+        attributes[:id] ||= id
+        attributes[:_id] ||= id
+      end
       id
     end
 
@@ -355,18 +357,6 @@ module Dao
 
 ## include ActiveModel::Conversion
 #
-    def to_model
-      self
-    end
-
-    def to_key
-      id ? [id] : nil
-    end
-
-    def to_param
-      persisted? ? to_key.join('-') : nil
-    end
-
     def persisted
       !!(defined?(@persisted) ? @persisted : id)
     end
@@ -406,17 +396,8 @@ module Dao
       self.destroyed = true
     end
 
-
-## extend ActiveModel::Translation
+## ActiveModel::Errors
 #
-    def self.human_attribute_name(attribute, options = {})
-      attribute
-    end
-
-    def self.lookup_ancestors
-      [self]
-    end
-
     def read_attribute_for_validation(key)
       self[key]
     end
