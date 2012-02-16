@@ -57,6 +57,8 @@ module Dao
           @object.send(:extend, Dao::Validations)
           @object.validator = self
         end
+
+        @object.extend(InstanceExec) unless @object.respond_to?(:instance_exec)
       end
 
       def extract_attributes!(object = @object)
@@ -92,8 +94,6 @@ module Dao
             else
               raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
           end
-
-        @attributes.extend(InstanceExec) unless @attributes.respond_to?(:instance_exec)
 
         @attributes
       end
@@ -237,7 +237,6 @@ module Dao
                 catch(:validation) do
                   args = [value, attributes].slice(0 .. [callback.arity - 1, -1].max)
                   prefixing(keys) do
-                    #attributes.instance_exec(*args, &callback)
                     object.instance_exec(*args, &callback)
                   end
                 end

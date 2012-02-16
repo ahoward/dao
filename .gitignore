@@ -5,4 +5,4 @@ b.rb
 db/
 test/db.yml
 TODO
-*.swp
+*.sw*
