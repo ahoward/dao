@@ -268,6 +268,12 @@ module Dao
     def update_attributes(attributes = {})
       @attributes.set(attributes)
       @attributes
+    ensure
+      @form.upload_caches.each do |key, upload_cache|
+        if @attributes.get(key) != upload_cache.io
+          @form.upload_caches!(upload_cache.key, upload_cache.options)
+        end
+      end
     end
 
     def update_attributes!(*args, &block)

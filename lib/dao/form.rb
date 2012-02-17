@@ -338,17 +338,13 @@ module Dao
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
-      upload_cache = uploads(keys, options.slice(:default, :placeholder))
-
-      keys = upload_keys_for(keys)
+      upload_cache = upload_caches[keys]
+      raise "you need to call: form.upload_caches!(#{ keys.inspect }, options = {}) first!" unless upload_cache
 
       name = options.delete(:name) || name_for(keys)
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
-
-      options.delete(:default)
-      options.delete(:placeholder)
 
       upload =
         tagz{
@@ -362,28 +358,27 @@ module Dao
       upload
     end
 
-    def upload_keys_for(*keys)
-      keys = Array(keys).flatten
-      #keys.unshift(:upload) unless keys.first.to_s == 'upload'
-      #keys
-    end
-
-    def uploads(*args)
+    def upload_caches!(*args)
       options = args.extract_options!.to_options!
       keys = args.flatten.compact
 
-      unless keys.empty?
-        keys = upload_keys_for(keys) 
-        upload_cache = UploadCache.cache(attributes, keys, options)
-        name = name_for(upload_cache.cache_key)
-        upload_cache.name = name
-        upload_cache
+      upload_cache = UploadCache.cache(attributes, keys, options)
+      upload_cache.name = name_for(upload_cache.cache_key)
+      upload_caches[keys] = upload_cache
+      upload_cache
+    end
+    alias_method('upload_cache!', 'upload_caches!')
+
+    def upload_caches(*args)
+      @upload_caches ||= Map.new
+      if args.blank?
+        @upload_caches
+      else
+        keys = args.flatten.compact
+        @upload_caches[keys]
       end
     end
-
-    def uploads!(*args, &block)
-      uploads(*args, &block)
-    end
+    alias_method('upload_cache', 'upload_caches')
 
 
 =begin
