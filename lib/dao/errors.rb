@@ -226,39 +226,41 @@ module Dao
       at_least_one_error = false
       css_class = options[:class] || 'errors dao'
 
+      emap = Map.new
+
+      errors.each do |e|
+        e.full_messages.each do |key, message|
+          at_least_one_error = true
+          emap[key] ||= message
+        end
+      end
+
+      return '' unless at_least_one_error
+
       to_html =
-        div_(:class => css_class){
+        table_(:class => css_class){
           __
 
-          div_(:class => :caption){ "We're so sorry, but can you please fix the following errors?" }
+          caption_{ "We're so sorry, but can you please fix the following errors?" }
           __
 
-          ul_{
+
+          emap.each do |key, message|
+            title = Array(key).join(' ').titleize
+
+            error_class = Array(key)==Array(Global) ? "global-error" : "field-error"
+            title_class = "title"
+            separator_class = "separator"
+            message_class = "message"
+
+            tr_(:class => error_class){
+              td_(:class => title_class){ title }
+              #td_(:class => separator_class){ " #{ Separator } " }
+              td_(:class => message_class){ message }
+            }
             __
-            errors.each do |e|
-              e.full_messages.each do |key, message|
-                at_least_one_error = true
-                title = Array(key).join(' ').titleize
-
-                error_class = Array(key)==Array(Global) ? "global-error" : "field-error"
-                title_class = "title"
-                separator_class = "separator"
-                message_class = "message"
-
-                li_(:class => error_class){
-                  span_(:class => title_class){ title }
-                  span_(:class => separator_class){ " #{ Separator } " }
-                  span_(:class => message_class){ message }
-                }
-                __
-              end
-            end
-            __
-          }
-          __
+          end
         }
-
-      at_least_one_error ? to_html : '' 
     end
 
     def to_s(*args, &block)

@@ -338,12 +338,14 @@ module Dao
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
+      upload_cache = uploads(keys, options.slice(:default, :placeholder))
+
+      keys = upload_keys_for(keys)
+
       name = options.delete(:name) || name_for(keys)
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
-
-      upload_cache = uploads!(keys, options.slice(:default, :placeholder))
 
       options.delete(:default)
       options.delete(:placeholder)
@@ -360,6 +362,31 @@ module Dao
       upload
     end
 
+    def upload_keys_for(*keys)
+      keys = Array(keys).flatten
+      #keys.unshift(:upload) unless keys.first.to_s == 'upload'
+      #keys
+    end
+
+    def uploads(*args)
+      options = args.extract_options!.to_options!
+      keys = args.flatten.compact
+
+      unless keys.empty?
+        keys = upload_keys_for(keys) 
+        upload_cache = UploadCache.cache(attributes, keys, options)
+        name = name_for(upload_cache.cache_key)
+        upload_cache.name = name
+        upload_cache
+      end
+    end
+
+    def uploads!(*args, &block)
+      uploads(*args, &block)
+    end
+
+
+=begin
     def uploads!(*args)
       options = args.extract_options!.to_options!
       keys = args.flatten
@@ -404,6 +431,7 @@ module Dao
       return @uploads[Array(key).flatten] unless key.empty?
       @uploads
     end
+=end
 
     def uploaded(key)
       key = Array(key).flatten
