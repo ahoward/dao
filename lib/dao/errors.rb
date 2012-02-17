@@ -241,7 +241,7 @@ module Dao
         table_(:class => css_class){
           __
 
-          caption_{ "We're so sorry, but can you please fix the following errors?" }
+          caption_(:class => 'caption'){ "We're so sorry, but can you please fix the following errors?" }
           __
 
 
