@@ -211,9 +211,41 @@ module Dao
 
       @models = models.flatten.compact
 
-      update_attributes(update_params(*hashes))
+      set_attributes(set_params(*hashes))
 
       self
+    end
+
+    def set_params(*args, &block)
+      hashes, args = args.flatten.compact.partition{|arg| arg.is_a?(Hash)}
+      hashes.each{|h| h.each{|k,v| @params.set(key_for(k) => v)}}
+      @params
+    end
+
+    def set_attributes(attributes = {})
+      @attributes.set(attributes)
+      @attributes
+    end
+
+    def update_attributes(attributes = {})
+      @attributes.set(attributes)
+      @attributes
+    ensure
+      @form.upload_caches.each do |key, upload_cache|
+        if @attributes.get(key) != upload_cache.io
+          @form.upload_caches!(upload_cache.key, upload_cache.options)
+        end
+      end
+      after_update_attributes
+    end
+
+    def after_update_attributes
+    end
+
+    def update_attributes!(*args, &block)
+      update_attributes(*args, &block)
+    ensure
+      save!
     end
 
     def initialize(*args, &block)
@@ -257,29 +289,6 @@ module Dao
     def identifier
       model = @models.last
       model and !model.new_record? and model.id
-    end
-
-    def update_params(*args, &block)
-      hashes, args = args.flatten.compact.partition{|arg| arg.is_a?(Hash)}
-      hashes.each{|h| h.each{|k,v| @params.set(key_for(k) => v)}}
-      @params
-    end
-
-    def update_attributes(attributes = {})
-      @attributes.set(attributes)
-      @attributes
-    ensure
-      @form.upload_caches.each do |key, upload_cache|
-        if @attributes.get(key) != upload_cache.io
-          @form.upload_caches!(upload_cache.key, upload_cache.options)
-        end
-      end
-    end
-
-    def update_attributes!(*args, &block)
-      update_attributes(*args, &block)
-    ensure
-      save!
     end
 
     def errors

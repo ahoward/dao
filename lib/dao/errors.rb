@@ -224,7 +224,6 @@ module Dao
       errors = [error, *args].flatten.compact
 
       at_least_one_error = false
-      css_class = options[:class] || 'errors dao'
 
       emap = Map.new
 
@@ -235,32 +234,26 @@ module Dao
         end
       end
 
-      return '' unless at_least_one_error
+      return "" unless at_least_one_error
 
-      to_html =
-        table_(:class => css_class){
-          __
+      div_(:class => "dao errors summary"){
+        __
 
-          caption_(:class => 'caption'){ "We're so sorry, but can you please fix the following errors?" }
-          __
+        h3_(:class => "caption"){ "We're so sorry, but can you please fix the following errors?" }
+        __
 
-
+        dl_(:class => "list"){
           emap.each do |key, message|
-            title = Array(key).join(' ').titleize
+            title = Array(key).join(" ").titleize
 
-            error_class = Array(key)==Array(Global) ? "global-error" : "field-error"
-            title_class = "title"
-            separator_class = "separator"
-            message_class = "message"
+            type = Array(key) == Array(Global) ? "global" : "field"
 
-            tr_(:class => error_class){
-              td_(:class => title_class){ title }
-              #td_(:class => separator_class){ " #{ Separator } " }
-              td_(:class => message_class){ message }
-            }
-            __
+            dt_(:class => "title #{ type }"){ title }
+            dd_(:class => "message #{ type }"){ message }
           end
         }
+        __
+      }
     end
 
     def to_s(*args, &block)
