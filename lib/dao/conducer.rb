@@ -286,10 +286,6 @@ module Dao
       end
     end
 
-    def to_model
-      model
-    end
-
     def model
       @models.last
     end
