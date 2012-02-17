@@ -58,7 +58,7 @@ module Dao
           @object.validator = self
         end
 
-        @object.extend(InstanceExec) unless @object.respond_to?(:instance_exec)
+        #@object.extend(InstanceExec) unless @object.respond_to?(:instance_exec)
       end
 
       def extract_attributes!(object = @object)
