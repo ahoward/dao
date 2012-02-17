@@ -286,6 +286,18 @@ module Dao
       end
     end
 
+    def to_model
+      model
+    end
+
+    def model
+      @models.last
+    end
+
+    def model=(model)
+      @models.push(@models.delete(model)).compact.uniq
+    end
+
     def identifier
       model = @models.last
       model and !model.new_record? and model.id
