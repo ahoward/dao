@@ -30,6 +30,7 @@ Gem::Specification::new do |spec|
  "lib/dao/conducer/attributes.rb",
  "lib/dao/conducer/autocrud.rb",
  "lib/dao/conducer/collection.rb",
+ "lib/dao/conducer/controller_support.rb",
  "lib/dao/conducer/view_support.rb",
  "lib/dao/current.rb",
  "lib/dao/data.rb",

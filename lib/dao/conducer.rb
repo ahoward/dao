@@ -2,6 +2,7 @@
 module Dao
 ##
 #
+  Dao.load('conducer/controller_support.rb')
   Dao.load('conducer/view_support.rb')
   Dao.load('conducer/attributes.rb')
   Dao.load('conducer/collection.rb')
@@ -36,26 +37,32 @@ module Dao
     include Dao::Validations
     include Dao::Current
 
-##
+## callbacks
 #
     include Wrap
 
     %w[
-      initialize save create update destroy run_validations
+      initialize
+      save
+      create
+      update
+      destroy
+      update_attributes
+      run_validations
     ].each do |method|
+
       wrap(method)
+
+      module_eval <<-__, __FILE__, __LINE__
+        def before_#{ method }(*args, &block) end
+        def after_#{ method }(*args, &block) end
+      __
+
+      before(method){|*args| Dao.call(self, "before_#{ method }", *args) }
+      after(method){|*args| Dao.call(self, "after_#{ method }", *args) }
     end
 
     wrap_alias(:validation, :run_validations)
-
-    before :initialize do |*args|
-      init(*args)
-    end
-
-    after :initialize do |*args|
-      identify!
-      initialize_for_current_action!
-    end
 
     before :save do
       halt! unless valid?
@@ -80,10 +87,18 @@ module Dao
       true
     end
 
-
 ## class_methods
 #
     class << Conducer
+      def new(*args, &block)
+        conducer = allocate
+        Dao.call(conducer, :initialize!, *args, &block)
+        Dao.call(conducer, :initialize, *args, &block)
+        conducer
+      ensure
+        conducer.identify!
+      end
+
       def inherited(other)
         super
       ensure
@@ -171,8 +186,10 @@ module Dao
         case kind
           when /validation/ 
             raise Validations::Error.new(*args, &block)
+
           when /error/ 
             raise Error.new(*args, &block)
+
           else
             raise Error.new(*args, &block)
         end
@@ -181,18 +198,18 @@ module Dao
 
 ## contructor 
 #
-    %w(
+    %w[
       name
       params
       attributes
       errors
       form
       models
-    ).each{|a| fattr(a)}
+    ].each{|a| fattr(a)}
 
     alias_method(:data, :attributes)
 
-    def init(*args, &block)
+    def initialize!(*args, &block)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
       models, args = args.partition{|arg| arg.respond_to?(:save) or arg.respond_to?(:new_record?)}
@@ -202,7 +219,7 @@ module Dao
       @form = Form.for(self)
       @params = Map.new
 
-      validator.reset
+      #validator.reset # FIXME - required?
 
       @errors = validator.errors
       @status = validator.status
@@ -211,35 +228,21 @@ module Dao
 
       @models = models.flatten.compact
 
-      set_attributes(set_params(*hashes))
-
-      self
+      update_params(*hashes)
     end
 
-    def set_params(*args, &block)
+    def initialize(*args, &block)
+    end
+
+    def update_params(*args, &block)
       hashes, args = args.flatten.compact.partition{|arg| arg.is_a?(Hash)}
       hashes.each{|h| h.each{|k,v| @params.set(key_for(k) => v)}}
       @params
     end
 
-    def set_attributes(attributes = {})
-      @attributes.set(attributes)
-      @attributes
-    end
-
     def update_attributes(attributes = {})
       @attributes.set(attributes)
       @attributes
-    ensure
-      @form.upload_caches.each do |key, upload_cache|
-        if @attributes.get(key) != upload_cache.io
-          @form.upload_caches!(upload_cache.key, upload_cache.options)
-        end
-      end
-      after_update_attributes
-    end
-
-    def after_update_attributes
     end
 
     def update_attributes!(*args, &block)
@@ -248,34 +251,17 @@ module Dao
       save!
     end
 
-    def initialize(*args, &block)
-    end
-
     def identify!(*args, &block)
-      id = identifier
-      unless id.blank?
-        attributes[:id] ||= id
-        attributes[:_id] ||= id
+      return if !id.blank?
+
+      unless((id = identifier).blank?)
+        self.id = id
       end
-      id
     end
 
-    def initialize_for_current_action!
-      current_action = Dao.current_controller.send(:action_name).to_s
-
-      method = "initialize_for_#{ current_action }"
-      return(send(method)) if respond_to?(method)
-
-      synonyms = {
-        'new' => 'create',
-        'edit' => 'update'
-      }
-
-      synonym = synonyms[current_action] || synonyms.invert[current_action]
-      method = "initialize_for_#{ synonym }"
-      return(send(method)) if synonym and respond_to?(method)
-
-      nil
+    def identifier
+      model = @models.last
+      model.id if(model and model.persisted?)
     end
 
     def models(*patterns)
@@ -294,11 +280,6 @@ module Dao
       @models.push(@models.delete(model)).compact.uniq
     end
 
-    def identifier
-      model = @models.last
-      model and !model.new_record? and model.id
-    end
-
     def errors
       validator.errors
     end
@@ -307,28 +288,66 @@ module Dao
       validator.status
     end
 
-## instance_methods
-#
-    def inspect
-      Dao.json_for(@attributes)
+  ## crud action based lifecycles
+  #
+    %w( new create edit update destroy ).each do |action|
+      module_eval <<-__, __FILE__, __LINE__
+        def Conducer.for_#{ action }(*args, &block)
+          conducer = new(*args, &block)
+          conducer.action = Action.new('#{ action }', conducer)
+          conducer.action.call(:initialize, *args, &block)
+          conducer.update_attributes(conducer.params)
+          conducer.action.call(:update_attributes, *args, &block)
+          conducer
+        end
+      __
     end
 
-    def id
-      @attributes[:id] || @attributes[:_id]
+  ## upload_cache support
+  #
+    def upload_caches!(*args)
+      options = args.extract_options!.to_options!
+      keys = args.flatten.compact
+
+      upload_cache = UploadCache.cache(attributes, keys, options)
+      upload_cache.name = Form.name_for(name, upload_cache.cache_key)
+      upload_caches[keys] = upload_cache
+      upload_cache
+    end
+    alias_method('upload_cache!', 'upload_caches!')
+
+    def upload_caches(*args)
+      @upload_caches ||= Map.new
+      if args.blank?
+        @upload_caches
+      else
+        keys = args.flatten.compact
+        @upload_caches[keys]
+      end
+    end
+    alias_method('upload_cache', 'upload_caches')
+
+  ## instance_methods
+  #
+    def id(*args)
+      if args.blank?
+        @attributes[:id] || @attributes[:_id]
+      else
+        id = args.flatten.compact.shift
+        @attributes[:id] = id
+      end
     end
 
     def id?
-      id
+      self.id
     end
 
     def id=(id)
-      @attributes[:id] = id
+      self.id(id)
     end
 
-    def key_for(*keys)
-      keys.flatten.map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
-      #key = keys.flatten.join('.').strip
-      #key.split(%r/\s*[,.]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+    def id!(id)
+      self.id(id)
     end
 
     def [](key)
@@ -370,16 +389,16 @@ module Dao
       end
     end
 
+    def key_for(*keys)
+      keys.flatten.map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+    end
+
     def inspect
       "#{ self.class.name }(#{ @attributes.inspect.chomp })"
     end
 
-# active_model support
-#
-
-
-## include ActiveModel::Conversion
-#
+  ## active_model support
+  #
     def persisted
       !!(defined?(@persisted) ? @persisted : id)
     end
@@ -419,14 +438,16 @@ module Dao
       self.destroyed = true
     end
 
-## ActiveModel::Errors
-#
     def read_attribute_for_validation(key)
       self[key]
     end
 
-## view support
-#
+  ## controller support
+  #
+    module_eval(&ControllerSupport)
+
+  ## view support
+  #
     module_eval(&ViewSupport)
 
   ##

@@ -338,8 +338,8 @@ module Dao
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
-      upload_cache = upload_caches[keys]
-      raise "you need to call: form.upload_caches!(#{ keys.inspect }, options = {}) first!" unless upload_cache
+      value = attributes.get(keys)
+      upload_cache = value.upload_cache if value.respond_to?(:upload_cache)
 
       name = options.delete(:name) || name_for(keys)
       id = options.delete(:id) || id_for(keys)
@@ -349,8 +349,7 @@ module Dao
       upload =
         tagz{
           input_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error, :type => 'file')){ }
-          __
-          tagz{ upload_cache.hidden }
+          tagz{ upload_cache.hidden } if upload_cache
         }
 
       upload.fattr(:cache){ upload_cache }
