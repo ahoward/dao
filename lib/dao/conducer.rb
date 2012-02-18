@@ -459,17 +459,6 @@ module Dao
       true
     end
 
-    def update_attributes(attributes = {})
-      @attributes.set(attributes)
-      @attributes
-    end
-
-    def update_attributes!(*args, &block)
-      update_attributes(*args, &block)
-    ensure
-      save!
-    end
-
   ## misc
   #
     def model_name
