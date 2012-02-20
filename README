@@ -100,6 +100,14 @@ DESCRITPION
     " 
       - http://en.wikipedia.org/wiki/Data_access_object
 
+  and
+
+    "
+      Models are not data access objects...
+    "
+
+      - http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller
+
 READING
   http://martinfowler.com/eaaCatalog/serviceLayer.html
   http://blog.firsthand.ca/2011/10/rails-is-not-your-application.html
