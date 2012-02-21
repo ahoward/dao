@@ -200,7 +200,7 @@ module Dao
       input_(options_for(options)){}
     end
 
-    def button(*args)
+    def button(*args, &block)
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
@@ -218,6 +218,31 @@ module Dao
         end
 
       button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
+    end
+
+    def radio_button(*args, &block)
+      options = args.extract_options!.to_options! 
+      keys = args.flatten
+
+      type = options.delete(:type) || :radio
+      name = options.delete(:name) || name_for(keys)
+      id = options.delete(:id) || id_for(keys)
+      klass = class_for(keys, options.delete(:class))
+      error = error_for(keys, options.delete(:error))
+
+      unless options.has_key?(:checked)
+        checked =
+          if options.has_key?(:value) and attributes.has?(keys)
+            a = attributes.get(keys)
+            b = options[:value]
+            a==b or a.to_s==b.to_s
+          else
+            false
+          end
+        options[:checked] = checked if checked
+      end
+
+      input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
     end
 
     def reset(*args)
