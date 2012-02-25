@@ -228,20 +228,42 @@ module Dao
 
       @models = models.flatten.compact
 
-      update_params(*hashes)
+      hashes.each{|hash| @params.apply(hash)}
+
+      @params.depth_first_each{|key, val| set(key, val)}
     end
 
     def initialize(*args, &block)
     end
 
-    def update_params(*args, &block)
-      hashes, args = args.flatten.compact.partition{|arg| arg.is_a?(Hash)}
-      hashes.each{|h| h.each{|k,v| @params.set(key_for(k) => v)}}
-      @params
+    def set(key, val)
+      setter = key.join('__') + '='
+      if respond_to?(setter)
+        send(setter, val)
+      else
+        @attributes.set(key, val)
+      end
+    end
+
+    def get(key)
+      getter = key.join('__')
+      if respond_to?(getter)
+        send(getter)
+      else
+        @attributes.get(key)
+      end
+    end
+
+    def has?(key)
+      @attributes.has?(key)
+    end
+
+    def update(*args)
+      @attributes.update(*args)
     end
 
     def update_attributes(attributes = {})
-      @attributes.set(attributes)
+      Map.for(attributes).depth_first_each{|key, val| set(key, val)}
       @attributes
     end
 
@@ -290,15 +312,19 @@ module Dao
 
   ## crud action based lifecycles
   #
+    def Conducer.for(action, *args, &block)
+      conducer = new(*args, &block)
+      conducer.action = Action.new(action, conducer)
+      conducer.action.call(:initialize, *args, &block)
+      conducer.update_attributes(conducer.params)
+      conducer.action.call(:update_attributes, *args, &block)
+      conducer
+    end
+
     %w( new create edit update destroy ).each do |action|
       module_eval <<-__, __FILE__, __LINE__
         def Conducer.for_#{ action }(*args, &block)
-          conducer = new(*args, &block)
-          conducer.action = Action.new('#{ action }', conducer)
-          conducer.action.call(:initialize, *args, &block)
-          conducer.update_attributes(conducer.params)
-          conducer.action.call(:update_attributes, *args, &block)
-          conducer
+          Conducer.for(#{ action.inspect }, *args, &block)
         end
       __
     end
@@ -356,14 +382,6 @@ module Dao
 
     def []=(key, val)
       @attributes.set(key_for(key), val)
-    end
-
-    %w( set get has? update ).each do |m|
-      module_eval <<-__, __FILE__, __LINE__
-        def #{ m }(*a, &b)
-          @attributes.#{ m }(*a, &b)
-        end
-      __
     end
 
     def method_missing(method, *args, &block)
