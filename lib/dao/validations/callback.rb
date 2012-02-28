@@ -25,6 +25,10 @@ module Dao
         def each(&block)
           @chain.each(&block)
         end
+
+        def each_with_index(&block)
+          @chain.each_with_index(&block)
+        end
       end
     end
   end

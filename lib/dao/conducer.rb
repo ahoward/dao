@@ -2,129 +2,30 @@
 module Dao
 ##
 #
+  Dao.load('conducer/attributes.rb')
+  Dao.load('conducer/active_model.rb')
   Dao.load('conducer/controller_support.rb')
   Dao.load('conducer/view_support.rb')
-  Dao.load('conducer/attributes.rb')
-  Dao.load('conducer/collection.rb')
-  Dao.load('conducer/autocrud.rb')
 
 ##
 #
   class Conducer
-##
-#      
-    include ActiveModel::Naming
-    include ActiveModel::Conversion
-    extend ActiveModel::Translation
-
-    #include ActiveModel::AttributeMethods
-    #include ActiveModel::Serialization
-    #include ActiveModel::Dirty
-    #include ActiveModel::MassAssignmentSecurity
-    #include ActiveModel::Observing
-    #include ActiveModel::Serializers::JSON
-    #include ActiveModel::Serializers::Xml
-     
-    #include ActiveModel::Validations
-
-    #extend ActiveModel::Callbacks
-    #define_model_callbacks(:save, :create, :update, :destroy)
-    #define_model_callbacks(:reset, :initialize, :find, :touch)
-    #include ActiveModel::Validations::Callbacks
-
-##
-#
+  ##
+  #
     include Dao::Validations
-    include Dao::Current
 
-## callbacks
-#
-    include Wrap
-
-    %w[
-      initialize
-      save
-      create
-      update
-      destroy
-      update_attributes
-      run_validations
-    ].each do |method|
-
-      wrap(method)
-
-      module_eval <<-__, __FILE__, __LINE__
-        def before_#{ method }(*args, &block) end
-        def after_#{ method }(*args, &block) end
-      __
-
-      before(method){|*args| Dao.call(self, "before_#{ method }", *args) }
-      after(method){|*args| Dao.call(self, "after_#{ method }", *args) }
-    end
-
-    wrap_alias(:validation, :run_validations)
-
-    before :save do
-      halt! unless valid?
-      true
-    end
-
-    after :save do |saved|
-      if saved or id?
-        @new_record = false
-        @destroyed = false
-        @persisted = true
-      end
-      true
-    end
-
-    after :destroy do |destroyed|
-      if destroyed or !id?
-        @new_record = false
-        @destroyed = true
-        @persisted = false
-      end
-      true
-    end
-
-## class_methods
-#
+  ## class_methods
+  #
     class << Conducer
-      def new(*args, &block)
-        conducer = allocate
-        Dao.call(conducer, :initialize!, *args, &block)
-        Dao.call(conducer, :initialize, *args, &block)
-        conducer
-      ensure
-        conducer.identify!
-      end
-
       def inherited(other)
         super
       ensure
-        other.build_collection_class!
+        subclasses.push(other)
+        subclasses.uniq!
       end
 
-      def build_collection_class!
-        begin
-          remove_const(:Collection) if const_defined?(:Collection)
-        rescue NameError
-        end
-        collection_class = Class.new(Collection)
-        collection_class.conducer_class = self
-        const_set(:Collection, collection_class)
-      end
-
-      def collection_class
-        const_get(:Collection)
-      end
-
-      def collection(*args, &block)
-        if args.empty? and block.nil?
-          const_get(:Collection)
-        else
-          const_get(:Collection).new(*args, &block)
-        end
+      def subclasses
+        defined?(@@subclasses) ? @@subclasses : (@@subclasses = [])
       end
 
       def name(*args)
@@ -136,44 +37,12 @@ module Dao
         @name = name.to_s
       end
 
-      def model_name(*args)
-        return send('model_name=', args.first) unless args.empty?
-        @model_name ||= default_model_name
-      end
-
-      def model_name=(model_name)
-        @model_name = model_name_for(model_name)
-      end
-
-      def model_name_for(model_name)
-        ActiveModel::Name.new(Map[:name, model_name])
-      end
-
-      def default_model_name
-        return model_name_for('Conducer') if self == Dao::Conducer
-        model_name_for(name.to_s.sub(/Conducer$/, '').sub(/(:|_)+$/, ''))
-      end
-
-      def table_name
-        @table_name ||= model_name.plural.to_s
-      end
-      alias_method('collection_name', 'table_name')
-
-      def table_name=(table_name)
-        @table_name = table_name.to_s 
-      end
-      alias_method('collection_name=', 'table_name=')
-
       def controller
-        defined?(@controller) ? @controller : Dao.current_controller
+        Dao.current_controller || Dao.mock_controller
       end
 
       def controller=(controller)
-        @controller = controller
-      end
-
-      def mock_controller(*args, &block)
-        Dao.mock_controller(*args, &block)
+        Dao.current_controller = controller
       end
 
       def current
@@ -182,143 +51,25 @@ module Dao
 
       def raise!(*args, &block)
         kind = (args.first.is_a?(Symbol) ? args.shift : 'error').to_s.sub(/_error$/, '')
-
         case kind
           when /validation/ 
             raise Validations::Error.new(*args, &block)
-
           when /error/ 
             raise Error.new(*args, &block)
-
           else
             raise Error.new(*args, &block)
         end
       end
     end
 
-## contructor 
-#
-    %w[
-      name
-      params
-      attributes
-      errors
-      form
-      models
-    ].each{|a| fattr(a)}
-
-    alias_method(:data, :attributes)
-
-    def initialize!(*args, &block)
-      controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
-      hashes, args = args.partition{|arg| arg.is_a?(Hash)}
-      models, args = args.partition{|arg| arg.respond_to?(:save) or arg.respond_to?(:new_record?)}
-
-      @name = self.class.model_name.singular.sub(/_+$/, '')
-      @attributes = Attributes.for(self)
-      @form = Form.for(self)
-      @params = Map.new
-
-      #validator.reset # FIXME - required?
-
-      @errors = validator.errors
-      @status = validator.status
-
-      set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
-
-      @models = models.flatten.compact
-
-      hashes.each{|hash| @params.apply(hash)}
-
-      @params.depth_first_each{|key, val| set(key, val)}
-    end
-
-    def initialize(*args, &block)
-    end
-
-    def set(key, val)
-      setter = key.join('__') + '='
-      if respond_to?(setter)
-        send(setter, val)
-      else
-        @attributes.set(key, val)
-      end
-    end
-
-    def get(key)
-      getter = key.join('__')
-      if respond_to?(getter)
-        send(getter)
-      else
-        @attributes.get(key)
-      end
-    end
-
-    def has?(key)
-      @attributes.has?(key)
-    end
-
-    def update(*args)
-      @attributes.update(*args)
-    end
-
-    def update_attributes(attributes = {})
-      Map.for(attributes).depth_first_each{|key, val| set(key, val)}
-      @attributes
-    end
-
-    def update_attributes!(*args, &block)
-      update_attributes(*args, &block)
-    ensure
-      save!
-    end
-
-    def identify!(*args, &block)
-      return if !id.blank?
-
-      unless((id = identifier).blank?)
-        self.id = id
-      end
-    end
-
-    def identifier
-      model = @models.last
-      model.id if(model and model.persisted?)
-    end
-
-    def models(*patterns)
-      if patterns.empty?
-        @models
-      else
-        @models.detect{|model| patterns.all?{|pattern| pattern === model}}
-      end
-    end
-
-    def model
-      @models.last
-    end
-
-    def model=(model)
-      @models.push(@models.delete(model)).compact.uniq
-    end
-
-    def errors
-      validator.errors
-    end
-
-    def status
-      validator.status
-    end
-
-  ## crud action based lifecycles
+  ## crud-y lifecycle ctors
   #
     def Conducer.for(action, *args, &block)
-      conducer = new(*args, &block)
-      conducer.action = Action.new(action, conducer)
-      conducer.action.call(:initialize, *args, &block)
-      conducer.update_attributes(conducer.params)
-      conducer.action.call(:update_attributes, *args, &block)
-      conducer
+      allocate.tap do |conducer|
+        action = Action.new(action, conducer)
+        Dao.call(conducer, :init, action, *args, &block)
+        Dao.call(conducer, :initialize, *args, &block)
+      end
     end
 
     %w( new create edit update destroy ).each do |action|
@@ -329,31 +80,149 @@ module Dao
       __
     end
 
-  ## upload_cache support
+  ## ctor
   #
-    def upload_caches!(*args)
-      options = args.extract_options!.to_options!
-      keys = args.flatten.compact
-
-      upload_cache = UploadCache.cache(attributes, keys, options)
-      upload_cache.name = Form.name_for(name, upload_cache.cache_key)
-      upload_caches[keys] = upload_cache
-      upload_cache
-    end
-    alias_method('upload_cache!', 'upload_caches!')
-
-    def upload_caches(*args)
-      @upload_caches ||= Map.new
-      if args.blank?
-        @upload_caches
-      else
-        keys = args.flatten.compact
-        @upload_caches[keys]
+    def Conducer.new(*args, &block)
+      allocate.tap do |conducer|
+        Dao.call(conducer, :init, *args, &block)
+        Dao.call(conducer, :initialize, *args, &block)
       end
     end
-    alias_method('upload_cache', 'upload_caches')
 
-  ## instance_methods
+    %w[
+      name
+      attributes
+      form
+      params
+      errors
+      status
+    ].each{|attr| fattr(attr)}
+
+    def init(*args, &block)
+      controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
+      actions, args = args.partition{|arg| arg.is_a?(Action)}
+      hashes, args = args.partition{|arg| arg.is_a?(Hash)}
+
+      @name = self.class.model_name.singular.sub(/_+$/, '')
+      @attributes = Attributes.for(self)
+      @form = Form.for(self)
+      @params = Map.new
+
+      @errors = validator.errors
+      @status = validator.status
+
+      set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
+      set_action(actions.shift) unless actions.empty?
+
+      hashes.each{|hash| @params.apply(hash)}
+    end
+
+    def initialize(*args, &block)
+      update_attributes(params)
+    end
+
+  ## accessors
+  #
+    def update_attributes(*args, &block)
+      params =
+        case
+          when args.size == 1 && args.first.is_a?(Hash)
+            args.first
+          else
+            if args.size >= 2
+              val = args.pop
+              key = args.flatten.compact
+              {key => val}
+            else
+              {}
+            end
+        end
+
+      (@setting ||= []).push(params)
+      recursion_depth = @setting.size - 1
+
+      begin
+        Dao.tree_walk(params) do |key, value|
+          unless recursion_depth > 0
+            handler = key.join('__') + '='
+            if respond_to?(handler)
+              send(handler, value)
+              throw(:tree_walk, :next_sibling)
+            end
+
+            if((handler = @attributes.get(key)).respond_to?(:_update_attributes))
+              handler._update_attributes(:value => value)
+              throw(:tree_walk, :next_sibling)
+            end
+          end
+
+          @attributes.set(key, value)
+        end
+      ensure
+        @setting.pop
+      end
+    end
+
+    def attributes=(attributes)
+      update_attributes(attributes)
+    end
+
+    def update_attributes!(*args, &block)
+      update_attributes(*args, &block)
+    ensure
+      save!
+    end
+
+    def set(*args, &block)
+      update_attributes(*args, &block)
+    end
+
+    def has?(*key)
+      key = key_for(key)
+      tester = key.join('__') + '?'
+      if respond_to?(tester)
+        send(tester)
+      else
+        @attributes.has?(key)
+      end
+    end
+
+    def get(*key)
+      key = key_for(key)
+      getter = key.join('__')
+      if respond_to?(getter)
+        send(getter)
+      else
+        @attributes.get(key)
+      end
+    end
+
+    def [](key)
+      get(key)
+    end
+
+    def []=(key, val)
+      set(key, val)
+    end
+
+    def method_missing(method, *args, &block)
+      re = /^([^=!?]+)([=!?])?$/imox
+
+      matched, key, suffix = re.match(method.to_s).to_a
+      
+      case suffix
+        when '='
+          set(key, args.first)
+        when '!'
+          set(key, args.size > 0 ? args.first : true)
+        when '?'
+          has?(key)
+        else
+          has?(key) ? get(key) : super
+      end
+    end
+
+  ## id support 
   #
     def id(*args)
       if args.blank?
@@ -376,95 +245,11 @@ module Dao
       self.id(id)
     end
 
-    def [](key)
-      @attributes.get(key_for(key))
-    end
-
-    def []=(key, val)
-      @attributes.set(key_for(key), val)
-    end
-
-    def method_missing(method, *args, &block)
-      case method.to_s
-        when /^(.*)[=]$/
-          key = key_for($1)
-          val = args.first
-          @attributes.set(key => val)
-
-        when /^(.*)[!]$/
-          key = key_for($1)
-          val = true
-          @attributes.set(key => val)
-
-        when /^(.*)[?]$/
-          key = key_for($1)
-          @attributes.has?(key)
-
-        else
-          key = key_for(method)
-          return @attributes.get(key) if @attributes.has?(key)
-          super
-      end
-    end
-
-    def key_for(*keys)
-      keys.flatten.map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
-    end
-
-    def inspect
-      "#{ self.class.name }(#{ @attributes.inspect.chomp })"
-    end
-
-  ## active_model support
-  #
-    def persisted
-      !!(defined?(@persisted) ? @persisted : id)
-    end
-    def persisted?
-      persisted
-    end
-    def persisted=(value)
-      @persisted = !!value
-    end
-    def persisted!
-      self.persisted = true
-    end
-
-    def new_record
-      !!(defined?(@new_record) ? @new_record : id.blank?)
-    end
-    def new_record?
-      new_record
-    end
-    def new_record=(value)
-      @new_record = !!value
-    end
-    def new_record!
-      self.new_record = true
-    end
-
-    def destroyed
-      !!(defined?(@destroyed) ? @destroyed : id.blank?)
-    end
-    def destroyed?
-      destroyed
-    end
-    def destroyed=(value)
-      @destroyed = !!value
-    end
-    def destroyed!
-      self.destroyed = true
-    end
-
-    def read_attribute_for_validation(key)
-      self[key]
-    end
-
-  ## controller support
+  ## mixin controller support
   #
     module_eval(&ControllerSupport)
 
-  ## view support
+  ## mixin view support
   #
     module_eval(&ViewSupport)
 
@@ -473,33 +258,39 @@ module Dao
     def save
       NotImplementedError
     end
+    
+    def save!
+      raise!(:validation_error) unless !!save 
+      true
+    end
 
     def destroy
       NotImplementedError
     end
 
-  ##
-  #
-    def reload
-      attributes.replace(
-        if id
-          conducer = self.class.find(id)
-          conducer ? conducer.attributes : {}
-        else
-          {}
-        end
-      )
-      self
-    end
-
-    def save!
-      saved = !!save
-      raise!(:validation_error) unless saved
+    def destroy!
+      raise!(:deletion_error) unless !!destroy
       true
     end
 
   ## misc
   #
+    def mount(object, *args, &block)
+      object.mount(self, *args, &block)
+    end
+
+    def key_for(key)
+      Dao.key_for(key)
+    end
+
+    def errors
+      validator.errors
+    end
+
+    def status
+      validator.status
+    end
+
     def model_name
       self.class.model_name
     end
@@ -518,6 +309,10 @@ module Dao
 
     def conducer
       self
+    end
+
+    def inspect
+      "#{ self.class.name }(#{ @attributes.inspect.chomp })"
     end
   end
 end

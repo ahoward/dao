@@ -22,33 +22,22 @@ Testing Dao::Validations do
 
 ## errors
 #
-  testing 'that clear does not drop sticky errors' do
+  testing 'that errors can relay from other each-able sources' do
     errors = Dao::Errors.new
-    errors.add! 'sticky', 'error'
-    assert{ errors['sticky'].first.sticky? }
-    errors.add 'not-sticky', 'error'
-    errors.clear
-    assert{ errors['sticky'].first == 'error' }
-    assert{ errors['not-sticky'].empty? }
-  end
 
-  testing 'that clear! ***does*** drop sticky errors' do
-    errors = Dao::Errors.new
-    errors.add! 'sticky', 'error'
-    errors.add 'not-sticky', 'error'
-    errors.clear!
-    assert{ errors['sticky'].empty? }
-    assert{ errors['not-sticky'].empty? }
-  end
+    source =
+      assert do
+        c = Class.new Hash do
+          def self.human_attribute_name(*a) a.first.to_s end
+        end
+        m = c.new 
+        e = ActiveModel::Errors.new(m)
+        e.add('foo', 'is fucked')
+      end
 
-  testing 'that global errors are sticky' do
-    errors = Dao::Errors.new
-    global = Dao::Errors::Global
-    errors.add! 'global-error'
-    errors.clear
-    assert{ errors[global].first == 'global-error' }
-    errors.clear!
-    assert{ errors[global].empty? }
+    assert{ errors.relay(source) }
+
+    assert{ errors.on(:foo) }
   end
 
 ## validations
@@ -82,7 +71,7 @@ Testing Dao::Validations do
     }
   end
 
-  testing 'that validations use instance_exec' do
+  testing 'that validations use instance_exec - as god intended' do
     return :pending
 
     a, b = nil
@@ -127,21 +116,38 @@ Testing Dao::Validations do
 
 ## validating
 #
-  testing 'that validations can be cleared and do not clobber manually added errors' do
+  testing 'that validations clear only that which they know about' do
     params = Dao::Params.new
     errors = params.errors
 
     assert{ params.validates(:email){|email| email.to_s.split(/@/).size == 2} }
     assert{ params.validates(:password){|password| password == 'pa$$w0rd'} }
 
-    params.set(:email => 'ara@dojo4.com', :password => 'pa$$w0rd')
-    assert{ params.valid? }
+    params.set(:email => 'ara@dojo4.com')
+
 
     params.set(:password => 'haxor')
-    assert{ !params.valid?(:validate => true) }
+    assert{ !params.valid? }
+    assert{ !params.errors.on(:password).empty? }
 
-    errors.add(:name, 'ara')
-    assert{ not params.valid? }
+    params.set(:password => 'pa$$w0rd')
+    assert{ params.valid? }
+    assert{ params.errors.on(:password).empty? }
+
+
+    params.errors.add 'foo', 'is fucked'
+
+
+    params.set(:password => 'haxor')
+    assert{ !params.valid? }
+    assert{ !params.errors.on(:password).empty? }
+    assert{ !params.errors.on(:foo).empty? }
+
+
+    params.set(:password => 'pa$$w0rd')
+    assert{ !params.valid? }
+    assert{ params.errors.on(:password).empty? }
+    assert{ !params.errors.on(:foo).empty? }
   end
 
 ## stand alone validations

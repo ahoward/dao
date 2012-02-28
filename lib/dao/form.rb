@@ -363,105 +363,18 @@ module Dao
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
-      value = attributes.get(keys)
-      upload_cache = value.upload_cache if value.respond_to?(:upload_cache)
-
       name = options.delete(:name) || name_for(keys)
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
-      upload =
-        tagz{
-          input_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error, :type => 'file')){ }
-          tagz{ upload_cache.hidden } if upload_cache
-        }
+      upload = attributes.get(keys)
+      raise "no uploader mounted at #{ keys.inspect }" unless upload
 
-      upload.fattr(:cache){ upload_cache }
-
-      upload
-    end
-
-    def upload_caches!(*args)
-      options = args.extract_options!.to_options!
-      keys = args.flatten.compact
-
-      upload_cache = UploadCache.cache(attributes, keys, options)
-      upload_cache.name = name_for(upload_cache.cache_key)
-      upload_caches[keys] = upload_cache
-      upload_cache
-    end
-    alias_method('upload_cache!', 'upload_caches!')
-
-    def upload_caches(*args)
-      @upload_caches ||= Map.new
-      if args.blank?
-        @upload_caches
-      else
-        keys = args.flatten.compact
-        @upload_caches[keys]
-      end
-    end
-    alias_method('upload_cache', 'upload_caches')
-
-
-=begin
-    def uploads!(*args)
-      options = args.extract_options!.to_options!
-      keys = args.flatten
-
-      return uploads[keys] if uploads.has_key?(keys)
-
-      options[:default] ||= Map.new
-      default = options[:default]
-      placeholder = options.delete(:placeholder)
-
-      case placeholder
-        when String, Symbol
-          placeholder = placeholder.to_s.strip
-          parts = placeholder.split(%r/\s+/)
-          case
-            when parts.size == 1
-              default[:url] = placeholder
-            when parts.size > 1
-              default[:url] = parts.last.to_s
-              default[:path] = parts.join
-          end
-        when Array
-          case
-            when placeholder.size == 1
-              default[:url] = placeholder.last.to_s
-            when placeholder.size > 1
-              default[:url] = placeholder.last.to_s
-              default[:path] = File.expand_path(placeholder.join('/'))
-          end
-        when Hash
-          default.update(placeholder)
-      end
-
-      upload_cache = UploadCache.for(attributes, keys, options)
-      upload_cache.name = name_for(upload_cache.cache_key)
-      uploads[keys] = upload_cache
-      upload_cache
-    end
-
-    def uploads(*key)
-      @uploads ||= Map.new
-      return @uploads[Array(key).flatten] unless key.empty?
-      @uploads
-    end
-=end
-
-    def uploaded(key)
-      key = Array(key).flatten
-      uploads[key]
-    end
-    alias_method('uploads?', 'uploaded')
-
-    def clear_caches!
-      uploads.each do |key, upload|
-        upload.clear!
-      end
+      tagz{
+        input_(:name => name, :value => upload.value, :type => :hidden){ }
+        input_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error, :type => :file)){ }
+      }
     end
 
   # html generation support methods

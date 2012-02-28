@@ -248,9 +248,10 @@ module Dao
 
   # instance methods
   #
-    attr :code
-    attr :message
-    attr :group
+    attr_accessor :code
+    attr_accessor :message
+    attr_accessor :group
+    attr_accessor :source
 
     def initialize(*args)
       update(*args)

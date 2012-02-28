@@ -25,17 +25,12 @@ module Dao
   # messages know when they're sticky
   #
     class Message < ::String
-      attr_accessor :sticky
+      attr_accessor :source
 
       def initialize(*args)
         options = Map.options_for!(args)
         replace(args.join(' '))
-        @sticky = options[:sticky]
-      end
-
-      def sticky?
-        @sticky ||= nil
-        !!@sticky
+        self.source = options[:source]
       end
 
       def to_s
@@ -78,81 +73,86 @@ module Dao
     alias_method('count', 'size')
     alias_method('length', 'size')
 
+    def empty?
+      size == 0
+    end
+
     def add(*args)
+      return relay(args.first) if args.size == 1 and relay?(args.first)
       options = Map.options_for!(args)
-      sticky = options[:sticky]
+
       clear = options[:clear]
+      source = options[:source]
 
       args.flatten!
-      message = args.pop
-      key = args
-      key = [Global] if key.empty?
-      new_errors = Hash.new
 
-      if Array(key) == [Global]
-        sticky = true unless options.has_key?(:sticky)
-      end
+      message = args.pop or raise(ArgumentError, 'no message!')
+      key = args.empty? ? [Global] : args
 
-      sticky = true if(message.respond_to?(:sticky?) and message.sticky?)
+      message = message.is_a?(Message) ? message : Message.new(message)
+      message.source = source
 
-      if message
-        if message.respond_to?(:full_messages)
-          message.full_messages.each do |k, msg|
-            new_errors[k] = Message.new(msg, :sticky => sticky)
-          end
-        else
-          new_errors[key] = Message.new(message, :sticky => sticky)
-        end
-      else
-        raise(ArgumentError, 'no message!')
-      end
-
-      message = Message.new(message) unless message.is_a?(Message)
-
-      result = []
-
-      new_errors.each do |keys, message|
-        list = get(keys)
-
-        unless has?(keys)
-          set(keys => [])
-          list = get(keys)
-        end
-
-        list.clear if clear
-        list.push(message)
-
-        result = list
-      end
-      
-      result
+      set(key => []) unless has?(key)
+      list = get(key)
+      list.clear if clear
+      list.push(message)
+      list.uniq!
+      list
+      self
     end
-
+    alias_method('add!', 'add')
     alias_method('add_to_base', 'add')
-
-    def add!(*args)
-      options = Map.new(args.last.is_a?(Hash) ? args.last : {}) 
-      options[:sticky] = true
-      args.push(options)
-      add(*args)
-    end
-
     alias_method('add_to_base!', 'add!')
 
-    alias_method('clear!', 'clear')
+    def relay(other, options = {})
+      case
+        when other.respond_to?(:each)
+          other.each do |key, messages|
+            Array(messages).each do |message|
+              add(key, message, options = {})
+            end
+          end
+        when other.respond_to?(:each_pair)
+          other.each_pair do |key, messages|
+            Array(messages).each do |message|
+              add(key, message, options = {})
+            end
+          end
+
+        when other.respond_to?(:each_slice)
+          Array(other).flatten.each_slice(2) do |key, messages|
+            Array(messages).each do |message|
+              add(key, message, options = {})
+            end
+          end
+
+        else
+          raise(ArgumentError, other.class.name)
+      end
+      self
+    end
+
+    def relay?(arg)
+      [:each, :each_pair, :each_slice].any?{|method| arg.respond_to?(method)}
+    end
+
+    def add_from_source(keys, callback, message)
+      add(keys, message, :source => callback)
+      self
+    end
+
+    def delete_from_source(keys, callback)
+      if((messages = errors.on(keys)))
+        messages.delete_if{|m| m.respond_to?(:source) and m.source==callback}
+        rm(*keys) if messages.empty?
+      end
+      self
+    end
 
     def clear
-      keep = []
-      each do |keys, messages|
-        messages.each do |message|
-          args = [keys, message].flatten
-          keep.push(args) if message.sticky?
-        end
-      end
-      clear!
-    ensure
-      keep.each{|args| add!(*args)}
+      super
     end
+    alias_method('clear!', 'clear')
 
     def invalid?(*keys)
       has?(keys) and !get(keys).nil?
@@ -171,7 +171,6 @@ module Dao
       depth_first_each do |keys, value|
         index = keys.pop
         key = keys
-        #key = keys.join('.')
         value = value.to_s
         next if value.strip.empty?
         if key == Global

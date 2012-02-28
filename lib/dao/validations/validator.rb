@@ -186,45 +186,29 @@ module Dao
       end
 
       def run_validations(list = validations_list)
-        previous_errors = []
-        new_errors = []
-
-        errors.each_message do |keys, message|
-          previous_errors.push([keys, message])
-        end
-        previous_errors = []
-
-        errors.clear!
-        status.ok!
-
         loop do
           stack.validations.push(Map.new)
 
-          _run_validations(errors, new_errors, list)
+          _run_validations(errors, list)
 
           added = stack.validations.pop
           break if added.empty?
           list = [added]
         end
 
-        previous_errors.each do |keys, message|
-          errors.add(keys, message) unless new_errors.assoc(keys)
-        end
-
-        new_errors.each do |keys, value|
-          next if value == Cleared
-          message = value
-          errors.add(keys, message)
-        end
-
         if status.ok? and !errors.empty?
+          status.source = errors
           status.update(412)
+        end
+
+        if status == 412 and status.source == errors and errors.empty?
+          status.update(200)
         end
 
         errors
       end
 
-      def _run_validations(errors, new_errors, list)
+      def _run_validations(errors, list)
         Array(list).each do |validations|
           validations.each do |keys, chain|
             chain.each do |callback|
@@ -235,33 +219,39 @@ module Dao
 
               returned =
                 catch(:validation) do
-                  args = [value, attributes].slice(0 .. [callback.arity - 1, -1].max)
+                  args = Dao.args_for_arity([value, attributes], callback.arity)
+
                   prefixing(keys) do
                     object.instance_exec(*args, &callback)
                   end
                 end
 
+              errors_added = errors.size > number_of_errors
+
               case returned
                 when Hash
-                  map = Map(returned)
+                  map = Map.for(returned)
                   valid = map[:valid]
                   message = map[:message]
                 when TrueClass, FalseClass
                   valid = returned
                   message = nil
                 else
-                  any_errors_added = errors.size > number_of_errors
-                  valid = !any_errors_added
+                  valid = !errors_added
                   message = nil
               end
 
-              message ||= callback.options[:message]
-              message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
+              valid = false if errors_added
 
-              unless valid
-                new_errors.push([keys, message])
+              unless errors_added
+                message ||= callback.options[:message]
+                message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
+              end
+
+              if not valid
+                errors.add_from_source(keys, callback, message)
               else
-                new_errors.push([keys, Cleared])
+                errors.delete_from_source(keys, callback)
               end
             end
           end

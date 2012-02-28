@@ -68,33 +68,28 @@ module Dao
   end
 
   def current
-    @current ||=
-      Map.new(
-        :controller => nil
-      )
+    Current
   end
 
   def current_controller(*args)
-    current.controller = args.first unless args.empty?
-    current.controller || mock_controller
+    Current.controller = args.first unless args.empty?
+    Current.controller
   end
   alias_method('controller', 'current_controller')
 
   def current_controller=(controller)
-    current.controller = controller
+    Current.controller = controller
   end
   alias_method('controller=', 'current_controller=')
+
+  def mock_controller
+    Current.mock_controller
+  end
 
   %w( request response session ).each do |attr|
     module_eval <<-__, __FILE__, __LINE__
       def current_#{ attr }
-        @current_#{ attr } ||= current_controller.instance_eval{ #{ attr } }
-      end
-      def current_#{ attr }=(value)
-        @current_#{ attr } = value
-      end
-      def #{ attr }
-        current_#{ attr }
+        current_controller.instance_eval{ #{ attr } }
       end
     __
   end
@@ -102,7 +97,7 @@ module Dao
   %w( current_user effective_user real_user ).each do |attr|
     module_eval <<-__, __FILE__, __LINE__
       def #{ attr }
-        @#{ attr } ||= current_controller.instance_eval{ #{ attr } }
+        current_controller.instance_eval{ #{ attr } }
       end
     __
   end
@@ -112,49 +107,6 @@ module Dao
       Rails.root
     else
       '.'
-    end
-  end
-
-  def key_for(*keys)
-    key = keys.flatten.join('.').strip
-    key.split(%r/\s*[,.:_-]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
-  end
-
-  def mock_controller
-    ensure_rails_application do
-      require 'action_dispatch/testing/test_request.rb'
-      require 'action_dispatch/testing/test_response.rb'
-      store = ActiveSupport::Cache::MemoryStore.new
-      controller = 
-        begin
-          ApplicationController.new
-        rescue NameError
-          ActionController::Base.new
-        end
-      controller.perform_caching = true
-      controller.cache_store = store
-      request = ActionDispatch::TestRequest.new
-      response = ActionDispatch::TestResponse.new
-      controller.request = request
-      controller.response = response
-      #controller.send(:initialize_template_class, response)
-      #controller.send(:assign_shortcuts, request, response)
-      controller.send(:default_url_options).merge!(DefaultUrlOptions) if defined?(DefaultUrlOptions)
-      controller
-    end
-  end
-
-  def ensure_rails_application(&block)
-    if Rails.application.nil?
-      mock = Class.new(Rails::Application)
-      Rails.application = mock.instance
-      begin
-        block.call()
-      ensure
-        Rails.application = nil
-      end
-    else
-      block.call()
     end
   end
 
@@ -180,9 +132,11 @@ module Dao
     params
   end
 
-  def keys_for(keys)
-    keys.strip.split(%r/\s*[,.]\s*/).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+  def keys_for(*keys)
+    keys.join('.').scan(/[^\,\.\s]+/iomx).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
   end
+
+  alias_method(:key_for, :keys_for)
 
   def render_json(object, options = {})
     options = options.to_options!
@@ -225,11 +179,52 @@ module Dao
   end
 
   def call(object, method, *args, &block)
-    object.send(method, *Dao.args_for_arity(args, object.method(method).arity), &block)
+    args = Dao.args_for_arity(args, object.method(method).arity)
+    object.send(method, *args, &block)
   end
 
   def args_for_arity(args, arity)
     arity = Integer(arity.respond_to?(:arity) ? arity.arity : arity)
     arity < 0 ? args.dup : args.slice(0, arity)
   end
+
+  def tree_walk(node, *path, &block)
+    iterator = Array === node ? :each_with_index : :each
+
+    node.send(iterator) do |key, val|
+      key, val = val, key if Array === node
+      path.push(key)
+      begin
+        caught =
+          catch(:tree_walk) do
+            block.call(path, val)
+            nil
+          end
+        next if caught==:next_sibling
+
+        case val
+          when Hash, Array
+            tree_walk(val, *path, &block)
+        end
+      ensure
+        path.pop
+      end
+    end
+  end
+
+
+  {
+    'ffi-uuid'  => proc{|*args| FFI::UUID.generate_time.to_s},
+    'uuid'      => proc{|*args| UUID.generate.to_s},
+    'uuidtools' => proc{|*args| UUIDTools::UUID.timestamp_create.to_s}
+  }.each do |lib, implementation|
+    begin
+      require(lib)
+      define_method(:uuid, &implementation)
+      break
+    rescue LoadError
+      nil
+    end
+  end
+  abort 'no suitable uuid generation library detected' unless method_defined?(:uuid)
 end

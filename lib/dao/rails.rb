@@ -4,9 +4,9 @@ if defined?(Rails)
   module Dao
   ## support unloadable
   #
-    def Api.before_remove_const
-      unload!
-    end
+    #def Api.before_remove_const
+      #unload!
+    #end
 
   ##
   #
@@ -18,8 +18,7 @@ if defined?(Rails)
 
       paths.path = ROOT_DIR
 
-      config.autoload_paths += %w( app/models app )
-
+      ### config.autoload_paths += %w( app/models app )
       ### config.autoload_paths << APP_DIR
       ### $LOAD_PATH.push(File.join(Rails.root.to_s, 'app'))
 
@@ -37,26 +36,9 @@ if defined?(Rails)
         # normalize dao params
         #
           before_filter do |controller|
-            Dao.current_controller = defined?(::Current) ? ::Current.controller : controller
+            Dao.current_controller ||= controller
             Dao.normalize_parameters(controller.send(:params))
           end
-
-        # you will likely want to override this!
-        #
-          def current_api
-            return nil unless defined?(Api)
-            @api ||= ( 
-              api = Api.new
-              %w( real_user effective_user current_user ).each do |attr|
-                getter, setter = "#{ attr }", "#{ attr }="
-                api.send(setter, send(getter)) if(respond_to?(getter) and api.respond_to?(setter))
-              end
-              api
-            )
-          end
-          helper_method(:current_api)
-          alias_method(:api, :current_api)
-          helper_method(:api)
 
         # setup sane rescuing from dao errors with crap statuses
         #

@@ -3,6 +3,9 @@
 #
   require 'enumerator'
   require 'set'
+  require 'fileutils'
+  require 'cgi'
+  require 'tmpdir'
 
 # dao libs
 #
@@ -20,9 +23,9 @@
         'fattr'         => [ 'fattr'         , ' >= 2.2'   ] , 
         'tagz'          => [ 'tagz'          , ' >= 9.3'   ] , 
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] , 
-        'upload_cache'  => [ 'upload_cache'  , ' >= 1.4.1' ] , 
-        'wrap'          => [ 'wrap'          , ' >= 1.1.0' ] , 
-        'rails_current' => [ 'rails_current' , ' >= 1.0'   ]
+        #'upload_cache'  => [ 'upload_cache'  , ' >= 1.4.1' ] , 
+        #'wrap'          => [ 'wrap'          , ' >= 1.4.0' ] , 
+        'rails_current' => [ 'rails_current' , ' >= 1.6'   ]
       }
     end
 
@@ -94,8 +97,6 @@
     result.rb
     params.rb
 
-    current.rb
-
     mode.rb
     route.rb
     path.rb
@@ -109,6 +110,7 @@
     mongo_mapper.rb
 
     conducer.rb
+    upload.rb
   ]
 
 # protect against rails' too clever reloading

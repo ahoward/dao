@@ -5,32 +5,33 @@ module Dao
     ##
     #
       def controller
-        @controller ||= (Dao.current_controller || Dao.mock_controller)
+        unless defined?(@controller)
+          set_controller(Conducer.controller)
+        end
         @controller
       end
 
       def controller=(controller)
+        set_controller(controller)
+      end
+
+      def set_controller(controller)
         @controller = controller
       ensure
         default_url_options[:protocol] = @controller.request.protocol
         default_url_options[:host] = @controller.request.host
         default_url_options[:port] = @controller.request.port
-
-        self.action = @controller.send(:action_name).to_s
-      end
-
-      def set_controller(controller)
-        self.controller = controller
+        @action = Action.new(@controller.send(:action_name).to_s, self)
       end
 
     ##
     #
       class Action < ::String
-        fattr :object
+        fattr :conducer
 
-        def initialize(action, object = nil)
-          super(action)
-          @object = object
+        def initialize(action, conducer = nil)
+          super(action.to_s.downcase.strip)
+          @conducer = conducer
         end
 
         def action
@@ -38,23 +39,23 @@ module Dao
         end
 
         Synonyms = {
-          'new' => 'create',
-          'edit' => 'update'
+          'new'    => 'create',
+          'create' => 'new',
+
+          'edit'   => 'update',
+          'update' => 'edit'
         }
 
         def call(method, *args, &block)
-          return unless object
+          return unless conducer
 
           action_method = "#{ method }_for_#{ action }"
 
-          synonym = Synonyms[action] || Synonyms.invert[action]
-          synonym_method = "#{ method }_for_#{ synonym }" if synonym
+          return Dao.call(conducer, action_method, *args, &block) if conducer.respond_to?(action_method)
 
-          [action_method, synonym_method].compact.each do |method|
-            if object.respond_to?(method)
-              result = Dao.call(object, method, *args, &block)
-              return result
-            end
+          if((synonym = Synonyms[action]))
+            action_method = "#{ method }_for_#{ synonym }"
+            return Dao.call(conducer, action_method, *args, &block) if conducer.respond_to?(action_method)
           end
 
           nil
@@ -62,11 +63,22 @@ module Dao
       end
 
       def action
-        @action ||= Action.new('new', self)
+        unless defined?(@action)
+          set_action(:new)
+        end
+        @action
+      end
+
+      def set_action(action)
+        unless action.is_a?(Action)
+          action = Action.new(action)
+        end
+        action.conducer = self
+        @action = action
       end
 
       def action=(action)
-        @action = Action.new(action, self)
+        set_action(action)
       end
 
     ##
