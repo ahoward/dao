@@ -89,6 +89,15 @@ module Dao
       message = args.pop or raise(ArgumentError, 'no message!')
       key = args.empty? ? [Global] : args
 
+      if message.is_a?(Hash) or message.respond_to?(:full_messages)
+        message.each do |k, v|
+          Array(v).each do |msg|
+            add(key + [k], msg)
+          end
+        end
+        return(self)
+      end
+
       message = message.is_a?(Message) ? message : Message.new(message)
       message.source = source
 
