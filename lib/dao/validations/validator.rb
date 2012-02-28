@@ -243,10 +243,8 @@ module Dao
 
               valid = false if errors_added
 
-              unless errors_added
-                message ||= callback.options[:message]
-                message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
-              end
+              message ||= callback.options[:message]
+              message ||= (value.to_s.strip.empty? ? 'is blank' : 'is invalid')
 
               if not valid
                 errors.add_from_source(keys, callback, message)

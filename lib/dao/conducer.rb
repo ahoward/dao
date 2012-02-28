@@ -218,7 +218,12 @@ module Dao
         when '?'
           has?(key)
         else
-          has?(key) ? get(key) : super
+          case key
+            when /^current_(.*)/
+              Current.send($1)
+            else
+              has?(key) ? get(key) : super
+          end
       end
     end
 
