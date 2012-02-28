@@ -27,12 +27,11 @@ Gem::Specification::new do |spec|
  "lib/dao/blankslate.rb",
  "lib/dao/conducer",
  "lib/dao/conducer.rb",
+ "lib/dao/conducer/active_model.rb",
  "lib/dao/conducer/attributes.rb",
  "lib/dao/conducer/autocrud.rb",
- "lib/dao/conducer/collection.rb",
  "lib/dao/conducer/controller_support.rb",
  "lib/dao/conducer/view_support.rb",
- "lib/dao/current.rb",
  "lib/dao/data.rb",
  "lib/dao/db.rb",
  "lib/dao/endpoint.rb",
@@ -74,6 +73,7 @@ Gem::Specification::new do |spec|
  "lib/dao/status.rb",
  "lib/dao/stdext.rb",
  "lib/dao/support.rb",
+ "lib/dao/upload.rb",
  "lib/dao/validations",
  "lib/dao/validations.rb",
  "lib/dao/validations/callback.rb",
@@ -104,15 +104,11 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["fattr", " >= 2.2"])
   
-    spec.add_dependency(*["tagz", " >= 9.0"])
+    spec.add_dependency(*["tagz", " >= 9.3"])
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
-    spec.add_dependency(*["upload_cache", " >= 1.4.1"])
-  
-    spec.add_dependency(*["wrap", " >= 1.1.0"])
-  
-    spec.add_dependency(*["rails_current", " >= 1.0"])
+    spec.add_dependency(*["rails_current", " >= 1.6"])
   
 
   spec.extensions.push(*[])
