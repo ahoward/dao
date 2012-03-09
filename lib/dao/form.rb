@@ -153,17 +153,17 @@ module Dao
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
+      content =
+        if block.nil? and !options.has_key?(:content)
+          titleize(keys.pop)
+        else
+          block ? block.call() : options.delete(:content)
+        end
+
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
       target = options.delete(:for) || id_for(keys)
-
-      content =
-        if block.nil? and !options.has_key?(:content)
-          titleize(keys.last)
-        else
-          block ? block.call() : options.delete(:content)
-        end
 
       label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error)){ content }
     end
