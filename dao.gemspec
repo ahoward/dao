@@ -63,7 +63,6 @@ Gem::Specification::new do |spec|
  "lib/dao/rails/lib/generators/dao/templates/api.rb",
  "lib/dao/rails/lib/generators/dao/templates/api_controller.rb",
  "lib/dao/rails/lib/generators/dao/templates/conducer.rb",
- "lib/dao/rails/lib/generators/dao/templates/conducer_controller.rb",
  "lib/dao/rails/lib/generators/dao/templates/dao.css",
  "lib/dao/rails/lib/generators/dao/templates/dao.js",
  "lib/dao/rails/lib/generators/dao/templates/dao_helper.rb",
