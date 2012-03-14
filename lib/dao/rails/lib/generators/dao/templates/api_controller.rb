@@ -1,5 +1,9 @@
 # -*- encoding : utf-8 -*-
+
+Kernel.load(File.join(Rails.root, 'lib/api.rb'))
+
 class APIController < ApplicationController
+
   layout false
 
   skip_before_filter :verify_authenticity_token
@@ -85,13 +89,13 @@ protected
         return
       end
     else
-      if defined?(current_user)
+      begin
         if current_user
           @api = Api.new(current_user)
         else
           render(:nothing => true, :status => :unauthorized)
         end
-      else
+      rescue NameError
         @api = Api.new
       end
     end

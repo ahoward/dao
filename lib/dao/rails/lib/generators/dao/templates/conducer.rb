@@ -5,29 +5,40 @@
   model_name = class_name.sub(/Conducer/, '') 
 
 -%>
+
 class <%= class_name %> < Dao::Conducer
-## class_methods
-#
-  class << <%= class_name %>
-    def all(params = {})
-      records = <%= model_name %>.paginate(params)
+  def initialize(user, model, params = {})
+    @user = user
+    @model = model
 
-      records.map! do |record|
-        new(record.attributes)
-      end
-    end
+    update_attributes(
+      :user  => @user.attributes,
+      :model => @model.attributes,
 
-    def find(id)
-      raise NotImplementedError, <<-__
-        this needs to return an instance based on the id
-      __
+      :foo  => 'bar'
+    )
+
+    id!(@model.id) unless @model.new_record?
+
+    mount(Dao::Upload, :logo, :placeholder => (@model.logo.try(:url) || 'http://placeholder.com/image.png'))
+
+    case action
+      when 'new', 'create'
+        @attributes.email = @user.email
+        @model.field = @page.field
+
+        update_attributes(params)
+
+      when 'edit', 'update', 'show'
+        @attributes.email = @user.email
+        @model.field = @page.field
+
+        update_attributes(params)
     end
   end
 
-## instance_methods
-#
-  def initialize
-  end
+
+  validates_presence_of :something
 
   def save
     return(false) unless valid?

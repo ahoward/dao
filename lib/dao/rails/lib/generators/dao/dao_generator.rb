@@ -6,9 +6,6 @@ class DaoGenerator < Rails::Generators::NamedBase
     ARGV.shift if ARGV.first == name
 
     case name
-      when /conducer_controller/
-        generate_conducer_controller!
-
       when /conducer/
         generate_conducer!
       
@@ -16,9 +13,6 @@ class DaoGenerator < Rails::Generators::NamedBase
         generate_system!
 
       when /api/
-        generate_system!
-
-      when /conducers/
         generate_system!
 
       when /assets/
@@ -30,13 +24,6 @@ class DaoGenerator < Rails::Generators::NamedBase
   end
 
 protected
-  def generate_conducer_controller!
-    @conducer_name = ARGV.shift.sub(/_?conducer$/i, '') + '_conducer'
-    @controller_name = @conducer_name.sub(/_conducer/, '_controller')
-
-    template "conducer_controller.rb", "app/controllers/#{ @conducer_name.underscore }.rb"
-    #template "conducer.rb", "app/conducers/#{ @conducer_name.underscore }.rb"
-  end
 
   def generate_conducer!
     @conducer_name = ARGV.shift.sub(/_?conducer$/i, '') + '_conducer'
@@ -44,33 +31,26 @@ protected
   end
 
   def generate_system!
-    dao_dir = File.join(Rails.root, 'app/dao')
+    FileUtils.mkdir_p(File.join(Rails.root, 'app/conducers'))
 
-    FileUtils.mkdir_p(dao_dir)
-    FileUtils.mkdir_p(File.join(dao_dir, 'apis'))
-    FileUtils.mkdir_p(File.join(dao_dir, 'conducers'))
-
-    copy_file("api.rb", "app/dao/api.rb")
+    copy_file("api.rb", "lib/api.rb")
 
     copy_file("api_controller.rb", "app/controllers/api_controller.rb")
+
     copy_file("dao_helper.rb", "app/helpers/dao_helper.rb")
 
-    copy_file("dao.js", "public/javascripts/dao.js")
-    copy_file("dao.css", "public/stylesheets/dao.css")
+    copy_file("dao.js", "app/assets/javascripts/dao.js")
+
+    copy_file("dao.css", "app/assets/stylesheets/dao.css")
 
     route("match 'api(/*path)' => 'api#index', :as => 'api'")
-
-    gem("yajl-ruby")
 
     application(
       <<-__
 
         config.after_initialize do
-          require 'app/dao/api.rb'
-          require 'yajl/json_gem'
+          require File.join(Rails.root, 'lib/api.rb')
         end
-
-        config.autoload_paths += %w( app/models app/dao app/dao/apis app/dao/conducers )
 
         ### config.action_view.javascript_expansions[:defaults] ||= []
         ### config.action_view.javascript_expansions[:defaults] += %( dao )

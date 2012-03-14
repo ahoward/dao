@@ -22,7 +22,7 @@ Api =
     call('/pong'){
       require_current_user!
       data.update :time => Time.now
-      data.update :current_user => current_user.id
+      data.update :current_user => current_user
     }
 
   ## this is simply a suggested way to model your api.  it is not required.

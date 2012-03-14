@@ -1,5 +1,5 @@
 Description:
-  rails generate dao system
+  rails generate dao system|conducer
 
 Example:
-  rails generate dao system
+  rails generate dao system|conducer
