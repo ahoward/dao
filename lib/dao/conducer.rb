@@ -308,7 +308,7 @@ module Dao
       self.class.raise!(*args, &block)
     end
 
-    def as_json
+    def as_json(*args, &block)
       @attributes
     end
 
