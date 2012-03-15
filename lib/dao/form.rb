@@ -154,16 +154,16 @@ module Dao
       keys = args.flatten
 
       content =
-        if block.nil? and !options.has_key?(:content)
-          titleize(keys.pop)
+        if block.nil?
+          keys.map{|key| key.to_s.titleize}.join(' ')
         else
-          block ? block.call() : options.delete(:content)
+          block ? block.call() : (options.delete(:content) || options.delete(:value))
         end
 
-      id = options.delete(:id) || id_for(keys)
+      id = options.delete(:id) || id_for(keys + [:label])
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
-      target = options.delete(:for) || id_for(keys)
+      target = options.delete(:for) || name_for(keys)
 
       label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error)){ content }
     end
