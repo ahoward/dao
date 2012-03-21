@@ -10,7 +10,7 @@
 # dao libs
 #
   module Dao
-    Version = '4.3.0' unless defined?(Version)
+    Version = '4.3.1' unless defined?(Version)
 
     def version
       Dao::Version
@@ -18,8 +18,8 @@
 
     def dependencies
       {
-        'rails'         => [ 'rails'         , ' >= 3.0'   ] , 
-        'map'           => [ 'map'           , ' >= 5.1'   ] , 
+        'rails'         => [ 'rails'         , ' >= 3.1'   ] , 
+        'map'           => [ 'map'           , ' >= 5.4'   ] , 
         'fattr'         => [ 'fattr'         , ' >= 2.2'   ] , 
         'tagz'          => [ 'tagz'          , ' >= 9.3'   ] , 
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] , 

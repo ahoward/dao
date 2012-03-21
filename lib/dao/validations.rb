@@ -40,6 +40,7 @@ module Dao
       %w(
         validations
         validates
+        validates_each
         validated?
         validated!
         validate

@@ -167,6 +167,127 @@ Testing Dao::Validations do
     v.set(:password => 'haxor')
     assert{ !v.valid? }
   end
+
+## prefixed validations
+#
+  testing 'nested validations' do
+  #
+    attributes = {
+      :list => [
+        {:k => :v},
+        {:K => :V}
+      ]
+    }
+
+  #
+    v = assert{ Dao::Validations.for(attributes) }
+    ran = 0
+    assert{
+      v.validates :list do |list|
+        list.size.times do |i|
+          validates i do
+            ran += 1
+          end
+        end
+        true
+      end
+    }
+    assert{ v.run_validations }
+    assert{ ran == 2 }
+
+  #
+    v = assert{ Dao::Validations.for(attributes) }
+    ran = 0
+    assert{
+      v.validates :list do |list|
+        list.each_with_index do |item, index|
+          item.each do |k,v|
+            validates index, k do |value|
+              ran += 1
+              value==v
+            end
+          end
+        end
+        true
+      end
+    }
+    assert{ v.run_validations }
+    assert{ ran == 2 }
+
+  #
+    v = assert{ Dao::Validations.for(attributes) }
+    ran = 0
+    assert{
+      v.validates_each :list do |item|
+        item.each do |k,v|
+          validates k do |value|
+            ran += 1
+            value==v
+          end
+        end
+        true
+      end
+    }
+    assert{ v.run_validations }
+    assert{ ran == 2 }
+
+  #
+    attributes = {
+      :users => [
+        {
+          :name => 'jane doe',
+
+          :roles => [
+            { :name => :admin },
+            { :name => :user },
+          ]
+        },
+        {
+          :name => 'john doe',
+
+          :roles => [
+            { :name => :user },
+          ]
+        }
+      ]
+    }
+
+    v = assert{ Dao::Validations.for(attributes) }
+    ran = 0
+    assert{
+
+      v.validates_each :users do
+        validates_presence_of :name
+        validates_presence_of :missing
+
+        validates :name do |name|
+          ran += 1
+          name =~ /doe/
+        end
+
+        validates_each :roles do |role|
+          validates_presence_of :missing
+
+          validates :name do |name|
+            ran += 1
+            name =~ /admin|user/
+          end
+        end
+      end
+
+    }
+    assert{ v.run_validations }
+    assert{ ran == 5 }
+    assert{ v.errors.on(:users, 0, :name).blank? }
+    assert{ v.errors.on(:users, 1, :name).blank? }
+
+    assert{ !v.errors.on(:users, 0, :missing).blank? }
+    assert{ !v.errors.on(:users, 1, :missing).blank? }
+
+    assert{ !v.errors.on(:users, 0, :roles, 0, :missing).blank? }
+    assert{ !v.errors.on(:users, 0, :roles, 1, :missing).blank? }
+    assert{ !v.errors.on(:users, 1, :roles, 0, :missing).blank? }
+  end
 end
 
 

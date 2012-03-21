@@ -99,10 +99,10 @@ module Dao
       end
 
       def validates(*args, &block)
-        options = Map.options_for!(args)
         block = args.pop if args.last.respond_to?(:call)
         block ||= NotBlank
         callback = Callback.new(options, &block)
+        options = Map.options_for!(args)
         key = key_for(args)
         validations = stack.validations.last || self.validations
         validations[key] ||= Callback::Chain.new
@@ -110,6 +110,21 @@ module Dao
         callback
       end
       alias_method('add', 'validates')
+
+      def validates_each(*args, &block)
+        options = Map.options_for!(args)
+        key = key_for(args)
+
+        args.push(options)
+
+        validates(*args) do |list|
+          Array(list).each_with_index do |item, index|
+            args = Dao.args_for_arity([item], block.arity)
+            validates(index, &block)
+          end
+          true
+        end
+      end
 
       def stack
         @stack ||= Map[:validations, [], :prefixes, []]
