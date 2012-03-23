@@ -298,6 +298,13 @@ module Dao
       }
     end
 
+    def hidden(*args, &block)
+      options = args.extract_options!.to_options!
+      options[:type] = :hidden
+      args.push(options)
+      input(*args, &block)
+    end
+
     def reset(*args)
       options = args.extract_options!.to_options! 
       options[:type] = :reset
