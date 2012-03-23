@@ -221,7 +221,7 @@ module Dao
     end
 
     def radio_button(*args, &block)
-      options = args.extract_options!.to_options! 
+      options = args.extract_options!.to_options!
       keys = args.flatten
 
       type = options.delete(:type) || :radio
@@ -243,6 +243,59 @@ module Dao
       end
 
       input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
+    end
+
+    def checkbox(*args, &block)
+      options = args.extract_options!.to_options!
+      keys = args.flatten
+
+      type = options.delete(:type) || :checkbox
+      name = options.delete(:name) || name_for(keys)
+      id = options.delete(:id) || id_for(keys)
+      klass = class_for(keys, options.delete(:class))
+      error = error_for(keys, options.delete(:error))
+      values = options.delete(:values) || options.delete(:checked)
+
+      unless options.has_key?(:checked)
+        checked = !!attributes.get(keys)
+        options[:checked] = checked if checked
+      end
+
+      value_for =
+        case values
+          when false, nil
+            {true => '1', false => '0'}
+          when Hash
+            h = {}
+            values.map{|k, v| h[ k =~ /t|1|on|yes/ ? true : false ] = v}
+            h
+          else
+            t, f, *ignored = Array(values).flatten.compact
+            {true => t, false => f}
+        end
+      value_for[true] ||= '1'
+      value_for[false] ||= '0'
+
+      hidden_options =
+        options.dup.tap{|o| o.delete(:checked)}
+
+      tagz{
+        input_(options_for(hidden_options, :type => :hidden, :name => name, :value => value_for[false])){}
+
+        __
+
+        input_(
+          options_for(
+            options,
+            :type => :checkbox,
+            :name => name,
+            :value => value_for[true],
+            :class => klass,
+            :id => id,
+            :data_error => error
+          )
+        ){}
+      }
     end
 
     def reset(*args)
@@ -373,6 +426,9 @@ module Dao
 
       tagz{
         input_(:name => name, :value => upload.value, :type => :hidden){ }
+
+        __
+
         input_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error, :type => :file)){ }
       }
     end
