@@ -163,7 +163,7 @@ module Dao
       id = options.delete(:id) || id_for(keys + [:label])
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
-      target = options.delete(:for) || name_for(keys)
+      target = options.delete(:for) || id_for(keys)
 
       label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error)){ content }
     end
