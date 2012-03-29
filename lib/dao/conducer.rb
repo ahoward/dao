@@ -138,6 +138,8 @@ module Dao
             end
         end
 
+      params = Map.new(params)
+
       (@setting ||= []).push(params)
       recursion_depth = @setting.size - 1
 
