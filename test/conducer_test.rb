@@ -54,14 +54,25 @@ Testing Dao::Conducer do
   testing 'that conducers can register handlers for setting deeply nested attributes' do
     c =
       new_conducer_class do
-        def user__first_name=(value)
-          set(:user, :first_name, value.to_s.upcase)
+        def _update_attributes(attributes = {})
+          attributes.each do |key, value|
+            case Array(key).join('.')
+              when 'user.first_name'
+                set(key, value.to_s.upcase)
+                return true
+              else
+                return false
+            end
+          end
         end
       end
 
     o = assert{ c.new :user => {:first_name => 'ara', :last_name => 'howard'} }
     assert{ o.user.first_name == 'ARA' }
     assert{ o.user.last_name == 'howard' }
+
+    o = assert{ c.new :name => 'ara howard' }
+    assert{ o.attributes.get(:name) == 'ara howard' }
   end
 
 ## classes 

@@ -146,9 +146,7 @@ module Dao
       begin
         Dao.tree_walk(params) do |key, value|
           unless recursion_depth > 0
-            handler = key.join('__') + '='
-            if respond_to?(handler)
-              send(handler, value)
+            if respond_to?(:_update_attributes) and send(:_update_attributes, key => value)
               throw(:tree_walk, :next_sibling)
             end
 
