@@ -3,84 +3,34 @@ NAME
 
 SYNOPSIS
   a sa-weet-ass library for structuring rails applications using the 'data
-  access object' design pattern.
-
-DESCRITPION
-  applications that are written on dao look like this in ruby
-
-    result = api.call('/posts/new', params)
-
-  and like this in javascript
-
-    result = api.call('/posts/new', params)
-
-  in command-line applications they look like this
-
-    result = api.call('/posts/new', params)
-
-  and in tests this syntax is used
-
-    result = api.call('/posts/new', params)
-
-  when a developer wants to understand the interface of a dao application she
-  does this
-
-    vi app/api.rb
-
-  when a developer of a dao application wants to play with a dao application
-  interactively she does
-
-    (rails console)
-
-    > api = Api.new
-    > result = api.call('/posts/new', params)
-
-  when a remote client wants to understand the api of a dao application she
-  does
-
-    curl --silent http://dao.app.com/api | less
+  access object' design pattern.  dao consists of two main data access
+  objects, *api* objects and *conducer* objects.  conducers combine the
+  presenter pattern with the conductor pattern.
 
 
+  API
 
-  this kind of brutally consistent interface is made possible by structuring
-  access to data around the finest data structure of all time - the hash.  in
-  the case of dao the hash is a well structured and slightly clever hash, but
-  a simple hash interface is the basis of every bit of goodness dao has to
-  offer.
+    class Api < Dao::Api
+      call('/posts') do
+        get do
+          data[:posts] = Post.all.map{|post| post.attributes}
+        end
 
-  in dao, application developers do not bring models into controllers and,
-  especially not into views.  instead, a unified interface to application
-  logic and data is used everywhere: in tests, in controllers, from the
-  command-line, and also from javascript.
+        post do
+          post = Post.new(params[:post])
 
-  this seperation of concerns brings with it many, many desirable qualities:
+          if post.save
+            data[:post] = post.attributes
+          else
+            status 420
+          end
+        end
+      end
+    end
 
-    - total seperation of concerns between the front and back end of a web
-      application.  when developers are using dao changes to the data model
-      have zero effect on controllers and views.
+  CONDUCER
 
-    - issues related to having models in controllers and views such as
-      difficulty reasoning about caching and n+1 queries in views killing the
-      db simply disappear.
-
-    - bad programming practices like using quasi-global variables
-      (current_user) or decorating models with view specific attributes
-      (password_verification) are no longer needed.
-
-    - developers are able to reason over the abilities of an application by
-      reading only a few source files.
-
-    - databases can be swapped, mixed, or alternate storage/caching mechanisms
-      added at any time without affecting the application's controllers or
-      views.
-
-    - transition from form based views to semi-ajax ones to fully-ajax ones is
-      direct.
-
-    - forms and interfaces that involve dozens of models are as easy to deal
-      with as simple ones.
-
-    - code can be optimized at the interface
+    # TODO
 
 
   wikipedia has this to say about dao in general
@@ -108,7 +58,86 @@ DESCRITPION
 
       - http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller
 
+DESCRITPION
+
+  API
+    applications that are written on dao look like this in ruby
+
+      result = api.call('/posts/new', params)
+
+    and like this in javascript
+
+      result = api.call('/posts/new', params)
+
+    in command-line applications they look like this
+
+      result = api.call('/posts/new', params)
+
+    and in tests this syntax is used
+
+      result = api.call('/posts/new', params)
+
+    when a developer wants to understand the interface of a dao application
+    she does this
+
+      vi app/api.rb
+
+    when a developer of a dao application wants to play with a dao application
+    interactively she does
+
+      (rails console)
+
+      > api = Api.new result = api.call('/posts/new', params)
+
+    when a remote client wants to understand the api of a dao application she
+    does
+
+      curl --silent http://dao.app.com/api | less
+
+
+
+    this kind of brutally consistent interface is made possible by structuring
+    access to data around the finest data structure of all time - the hash.
+    in the case of dao the hash is a well structured and slightly clever hash,
+    but a simple hash interface is the basis of every bit of goodness dao has
+    to offer.
+
+    in dao, application developers do not bring models into controllers and,
+    especially not into views.  instead, a unified interface to application
+    logic and data is used everywhere: in tests, in controllers, from the
+    command-line, and also from javascript.
+
+    this seperation of concerns brings with it many, many desirable qualities:
+
+      - total seperation of concerns between the front and back end of a web
+        application.  when developers are using dao changes to the data model
+        have zero effect on controllers and views.
+
+      - issues related to having models in controllers and views such as
+        difficulty reasoning about caching and n+1 queries in views killing
+        the db simply disappear.
+
+      - bad programming practices like using quasi-global variables
+        (current_user) or decorating models with view specific attributes
+        (password_verification) are no longer needed.
+
+      - developers are able to reason over the abilities of an application by
+        reading only a few source files.
+
+      - databases can be swapped, mixed, or alternate storage/caching
+        mechanisms added at any time without affecting the application's
+        controllers or views.
+
+      - transition from form based views to semi-ajax ones to fully-ajax ones
+        is direct.
+
+      - forms and interfaces that involve dozens of models are as easy to deal
+        with as simple ones.
+
+      - code can be optimized at the interface
+
 READING
+  http://blog.plataformatec.com.br/2012/03/barebone-models-to-use-with-actionpack-in-rails-4-0/
   http://martinfowler.com/eaaCatalog/serviceLayer.html
   http://blog.firsthand.ca/2011/10/rails-is-not-your-application.html
   http://best-practice-software-engineering.ifs.tuwien.ac.at/patterns/dao.html
@@ -117,6 +146,7 @@ READING
   http://www.paperplanes.de/2010/5/7/activerecord_callbacks_ruined_my_life.html
   http://google-styleguide.googlecode.com/svn/trunk/jsoncstyleguide.xml
   http://pragdave.blogs.pragprog.com/pragdave/2007/03/the_radar_archi.html
+
 
 INSTALL
   gem 'dao', :path => File.expand_path('..') ### Gemfile
