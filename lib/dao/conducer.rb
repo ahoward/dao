@@ -348,6 +348,8 @@ module Dao
   ##
   #
     def save
+      return false unless valid?
+
       if @model
         attributes = self.attributes.dup
 

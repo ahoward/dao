@@ -2,9 +2,9 @@
 Testing Dao::Conducer do
 ##
 #
-  context :ctor do
+  context :teh_ctor do
   #
-    testing 'that conducers have a POLS .new method' do
+    testing 'conducers have a POLS .new method' do
       [
         {:key => :val, :array => [0,1,2]},
         {}
@@ -39,7 +39,7 @@ Testing Dao::Conducer do
 
 ##
 #
-  context :default_initialize do
+  context :teh_default_initialize do
   #
     testing 'that the last mode determines the lifecycle state when a models are passed in' do
       user = User.new
@@ -153,7 +153,7 @@ Testing Dao::Conducer do
 
 ##
 #
-  context :default_save do
+  context :teh_default_save do
   #
     testing 'is sane and based solely on the last model' do
       user = User.new
@@ -170,10 +170,29 @@ Testing Dao::Conducer do
       assert{ comment.text == 'hai!' }
       assert{ comment[:user].nil? }
       assert{ comment[:post].nil? }
+    end
 
-      assert{ comment.errors[:foo] = 'is fucked' }
+  #
+    testing 'halts when the conducer is invalid with errors' do
+      conducer_class =
+        new_conducer_class do
+          validates_presence_of(:foo)
+        end
+
+      c = conducer_class.new
+
       assert{ !c.save }
-      assert{ c.errors[:foo] == Array(comment.errors[:foo]) }
+      assert{ !c.valid? }
+      assert{ !c.errors.empty? }
+    end
+
+  #
+    testing 'halts when the model is invalid and relays errors' do
+      post = Post.new
+      post.errors[:foo] = 'is fucked'
+      c = new_conducer(post)
+      assert{ !c.save }
+      assert{ c.errors[:foo] == Array(post.errors[:foo]) }
     end
 
   #
