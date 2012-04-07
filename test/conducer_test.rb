@@ -175,6 +175,19 @@ Testing Dao::Conducer do
       assert{ !c.save }
       assert{ c.errors[:foo] == Array(comment.errors[:foo]) }
     end
+
+  #
+    testing 'raises a validation error on #save!' do
+      post = Post.new
+      post.errors[:foo] = 'is fucked'
+      c = new_conducer(post)
+
+      error = assert{ begin; c.save!; rescue Object => e; e; end; }
+
+      assert{ error.errors == c.errors }
+      assert{ error.errors[:foo] = Array(post.errors[:foo]) }
+      assert{ c.errors[:foo] = Array(post.errors[:foo]) }
+    end
   end
 
 ##
