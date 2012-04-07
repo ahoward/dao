@@ -51,6 +51,7 @@ module Dao
 
       def raise!(*args, &block)
         kind = (args.first.is_a?(Symbol) ? args.shift : 'error').to_s.sub(/_error$/, '')
+
         case kind
           when /validation/ 
             raise Validations::Error.new(*args, &block)
@@ -96,11 +97,17 @@ module Dao
       params
       errors
       status
+      models
+      model
+      conduces
     ].each{|attr| fattr(attr)}
 
+  ## init runs *before* initialize - aka inside allocate
+  #
     def init(*args, &block)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       actions, args = args.partition{|arg| arg.is_a?(Action)}
+      models, args = args.partition{|arg| arg.respond_to?(:new_record?) }
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
 
       @name = self.class.model_name.singular.sub(/_+$/, '')
@@ -114,11 +121,82 @@ module Dao
       set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
       set_action(actions.shift) unless actions.empty?
 
-      hashes.each{|hash| @params.apply(hash)}
+      set_models(models)
+
+      update_params(hashes)
     end
 
+    def set_models(*models)
+      @models = models.flatten.compact
+      @model = @models.last
+      @models
+    end
+
+    def update_params(*hashes)
+      hashes.flatten.compact.each{|hash| @params.apply(hash)}
+    end
+
+  ## a sane initialize is provided for you.  you are free to override it
+  # *without* calling super
+  #
     def initialize(*args, &block)
+      default_initialize(*args, &block)
+    end
+
+    def default_initialize(*args, &block)
+      update_models()
+
+      initialize_for_action(*args, &block)
+
       update_attributes(params)
+    end
+
+    def update_models(*models)
+      set_models(models) unless models.empty?
+
+      @models.each do |model|
+        key = model_key_for(model)
+        ivar = "@#{ key }"
+        instance_variable_set(ivar, model) unless instance_variable_defined?(ivar)
+
+        next unless model.respond_to?(:attributes)
+
+        update_attributes(
+          conduces?(model) ? model.attributes : {key => model.attributes}
+        )
+      end
+    end
+
+    def model_key_for(model)
+      case model
+        when String
+          model
+        else
+          model.class.name
+      end.demodulize.underscore
+    end
+
+    def initialize_for_action(*args, &block)
+      @action.call(:initialize, *args, &block)
+    end
+
+    def conduces(*args)
+      if args.empty?
+        @model
+      else
+        @model = args.flatten.compact.first
+        @models.delete(@model)
+        @models.push(@model)
+        @model
+      end
+    end
+
+    def conduces=(model)
+      conduces(model)
+    end
+
+    def conduces?(model)
+      conduces == model
     end
 
   ## accessors
@@ -231,10 +309,11 @@ module Dao
   #
     def id(*args)
       if args.blank?
-        @attributes[:id] || @attributes[:_id]
+        @attributes[:_id] || @attributes[:id]
       else
         id = args.flatten.compact.shift
-        @attributes[:id] = id
+        key = [:_id, :id].detect{|k| @attributes.has_key?(k)} || :id
+        @attributes[key] = id_for(id)
       end
     end
 
@@ -250,6 +329,14 @@ module Dao
       self.id(id)
     end
 
+    def id_for(object)
+      model?(object) ? object.id : object
+    end
+
+    def model?(object)
+      object.respond_to?(:new_record?)
+    end
+
   ## mixin controller support
   #
     module_eval(&ControllerSupport)
@@ -261,16 +348,39 @@ module Dao
   ##
   #
     def save
-      NotImplementedError
+      if @model
+        attributes = self.attributes.dup
+
+        @models.each do |model|
+          next if model == @model
+          key = model_key_for(model)
+          attributes.delete(key)
+        end
+
+        @model.update_attributes(attributes)
+
+        if @model.save
+          return true
+        else
+          errors.relay(@model.errors)
+          return false
+        end
+      else
+        raise NotImplementedError
+      end
     end
     
     def save!
-      raise!(:validation_error) unless !!save 
+      raise!(:validation_error, errors) unless !!save
       true
     end
 
     def destroy
-      NotImplementedError
+      if @model and @model.destroy
+        return true
+      else
+        raise NotImplementedError
+      end
     end
 
     def destroy!

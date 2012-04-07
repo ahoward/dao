@@ -52,7 +52,7 @@ module Dao
     end
     
     def persisted
-      !!(defined?(@persisted) ? @persisted : id)
+      !!(defined?(@persisted) ? @persisted : @model ? @model.persisted? : !id.blank?)
     end
     def persisted?
       persisted
@@ -65,7 +65,7 @@ module Dao
     end
 
     def new_record
-      !!(defined?(@new_record) ? @new_record : id.blank?)
+      !!(defined?(@new_record) ? @new_record : @model ? @model.new_record? : id.blank?)
     end
     def new_record?
       new_record
@@ -78,7 +78,7 @@ module Dao
     end
 
     def destroyed
-      !!(defined?(@destroyed) ? @destroyed : id.blank?)
+      !!(defined?(@destroyed) ? @destroyed : @model ? @model.destroyed : id.blank?)
     end
     def destroyed?
       destroyed

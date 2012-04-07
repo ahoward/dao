@@ -1,7 +1,18 @@
 # -*- encoding : utf-8 -*-
 module Dao
   module Validations
-    class Error < Dao::Error; end
+    class Error < Dao::Error
+      attr_accessor :errors
+
+      def initialize(*args, &block)
+        @errors = args.shift if args.first.respond_to?(:full_messages)
+        super(*args, &block)
+      end
+
+      def object
+        @errors.object if(@errors and @errors.respond_to?(:object))
+      end
+    end
 
     Dao.load('validations/callback.rb')
     Dao.load('validations/common.rb')
