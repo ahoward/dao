@@ -227,4 +227,10 @@ module Dao
     end
   end
   abort 'no suitable uuid generation library detected' unless method_defined?(:uuid)
+
+  def ensure_interface!(object, *interface)
+    interface.flatten.compact.each do |method|
+      raise(NotImplementedError, "#{ object.class.name }##{ method }") unless object.respond_to?(method)
+    end
+  end
 end

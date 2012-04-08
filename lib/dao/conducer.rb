@@ -107,7 +107,7 @@ module Dao
     def init(*args, &block)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       actions, args = args.partition{|arg| arg.is_a?(Action)}
-      models, args = args.partition{|arg| arg.respond_to?(:new_record?) }
+      models, args = args.partition{|arg| arg.respond_to?(:persisted?) }
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
 
       @name = self.class.model_name.singular.sub(/_+$/, '')
@@ -146,6 +146,8 @@ module Dao
     def default_initialize(*args, &block)
       update_models()
 
+      update_mounted()
+
       initialize_for_action(*args, &block)
 
       update_attributes(params)
@@ -164,6 +166,13 @@ module Dao
         update_attributes(
           conduces?(model) ? model.attributes : {key => model.attributes}
         )
+      end
+    end
+
+    def update_mounted(list = [])
+      list = self.class.mounted if list.empty?
+      list.each do |args, block|
+        mount(*args, &block)
       end
     end
 
@@ -218,27 +227,17 @@ module Dao
 
       params = Map.new(params)
 
-      (@setting ||= []).push(params)
-      recursion_depth = @setting.size - 1
+      @attributes.set(params)
 
-      begin
-        Dao.tree_walk(params) do |key, value|
-          unless recursion_depth > 0
-            if respond_to?(:_update_attributes) and send(:_update_attributes, key => value)
-              throw(:tree_walk, :next_sibling)
-            end
+      deepest_first = mounted.sort_by{|mnt| mnt._key.size}.reverse
 
-            if((handler = @attributes.get(key)).respond_to?(:_update_attributes))
-              handler._update_attributes(:value => value)
-              throw(:tree_walk, :next_sibling)
-            end
-          end
-
-          @attributes.set(key, value)
-        end
-      ensure
-        @setting.pop
+      deepest_first.each do |mnt|
+        value = @attributes.get(mnt._key)
+        mnt._set(value)
+        @attributes.set(mnt._key => mnt)
       end
+
+      @attributes
     end
 
     def attributes=(attributes)
@@ -348,6 +347,10 @@ module Dao
   ##
   #
     def save
+      default_save
+    end
+
+    def default_save
       return false unless valid?
 
       if @model
@@ -359,9 +362,14 @@ module Dao
           attributes.delete(key)
         end
 
+        mounted.each do |mnt|
+          attributes.set(mnt._key, mnt._value)
+        end
+
         @model.update_attributes(attributes)
 
         if @model.save
+          mounted.each{|mnt| mnt._clear}
           return true
         else
           errors.relay(@model.errors)
@@ -393,7 +401,22 @@ module Dao
   ## misc
   #
     def mount(object, *args, &block)
-      object.mount(self, *args, &block)
+      mounted = object.mount(self, *args, &block)
+    ensure
+      Dao.ensure_interface!(mounted, :_set, :_key, :_value, :_clear)
+      self.mounted.push(mounted)
+    end
+
+    def mounted
+      @mounted ||= []
+    end
+
+    def self.mount(*args, &block)
+      mounted.push([args, block])
+    end
+
+    def self.mounted
+      @mounted ||= []
     end
 
     def key_for(key)

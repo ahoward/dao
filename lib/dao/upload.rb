@@ -138,7 +138,8 @@ class Upload
       end
     end
 
-    alias_method :mount, :new
+    alias_method('mount', 'new')
+
     attr_accessor :placeholder
   end
 
@@ -176,16 +177,24 @@ class Upload
     @io = nil
   end
 
-  def _update_attributes(attributes = {})
-    attributes.to_options!
-
-    value = attributes[:value]
-
+  def _set(value)
     if value.respond_to?(:read) or value.is_a?(IO)
       process_currently_uploaded(value)
     else
       process_previously_uploaded(value)
     end
+  end
+
+  def _key
+    key
+  end
+
+  def _value
+    path
+  end
+
+  def _clear
+    clear!
   end
 
   def process_currently_uploaded(value)

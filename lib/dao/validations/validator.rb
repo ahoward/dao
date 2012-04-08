@@ -172,12 +172,6 @@ module Dao
 
       alias_method 'has?', 'has'
 
-      def run_validations!(*args)
-        run_validations(*args)
-      ensure
-        validated!
-      end
-
       def validations_search_path
         @validations_search_path ||= (
           if mixin?
@@ -221,7 +215,12 @@ module Dao
         end
 
         errors
+      ensure
+        validated!(true)
       end
+
+      alias_method 'run_validations!', 'run_validations'
+      alias_method 'validate', 'run_validations'
 
       def _run_validations(errors, list)
         Array(list).each do |validations|
@@ -280,10 +279,6 @@ module Dao
         @validated = !!boolean
       end
 
-      def validate
-        run_validations
-      end
-
       def validate!
         raise Error.new("#{ object.class.name } is invalid!") unless valid?
         object
@@ -306,7 +301,7 @@ module Dao
           true
         else
           options = Map.options_for!(args)
-          validate #if(options[:validate] or !validated?)
+          run_validations
           errors.empty? and status.ok?
         end
       end

@@ -349,6 +349,7 @@ Testing Dao::Conducer do
       assert{ o.errors.respond_to?(:[]) }
     end
 
+=begin
     testing 'that conducers can register handlers for setting deeply nested attributes' do
       c =
         new_conducer_class do
@@ -371,6 +372,70 @@ Testing Dao::Conducer do
 
       o = assert{ c.new :name => 'ara howard' }
       assert{ o.attributes.get(:name) == 'ara howard' }
+    end
+=end
+  end
+
+
+  context :teh_mount do
+    testing 'that mounted objects can be declared at the class level' do
+      conducer_class =
+        new_conducer_class do
+          mount Dao::Upload, :a, :b, :placeholder => '/images/foo.jpg'
+        end
+
+      assert{ !conducer_class.mounted.empty? }
+
+      c = conducer_class.new
+
+      assert{ c.mounted.first.is_a?(Dao::Upload) }
+      assert{ c.mounted.first._key.join('.') == 'a.b' }
+      assert{ c.mounted.first._value.nil? }
+    end
+
+    testing 'that mounted objects replace their location in attributes' do
+      conducer_class =
+        new_conducer_class do
+          mount Dao::Upload, :a, :b, :placeholder => '/images/foo.jpg'
+        end
+
+      path = __FILE__
+      up = Upload.new(path)
+
+      c = conducer_class.new( :a => {:b => up} )
+
+      upload = assert{ c.get(:a, :b) }
+
+      assert{ upload.is_a?(Dao::Upload) }
+      assert{ test(?f, upload._value) }
+    end
+
+    testing 'that the default save uses the mounted _value and _clears it' do
+      conducer_class =
+        new_conducer_class do
+          mount Dao::Upload, :up, :placeholder => '/images/foo.jpg'
+        end
+
+      path = File.join(File.dirname(__FILE__), 'data/han-solo.jpg') 
+      assert{ test(?s, path) }
+      up = Upload.new(path)
+      comment = Comment.new
+
+      c = conducer_class.new( comment, :up => up ) 
+
+      upload = assert{ c.get(:up) }
+      assert{ upload.is_a?(Dao::Upload) }
+
+      assert{ test(?f, upload.path) }
+      assert{ File.basename(upload.path) == File.basename(path) }
+      assert{ IO.read(upload.path) == IO.read(path) }
+
+      assert{ c.save }
+
+      value_was_relayed = assert{ comment.attributes[:up] == upload._value }
+      value_was_cleared = assert{ !test(?f, upload.path) }
+
+      assert{ test(?s, path) }
     end
   end
 
@@ -429,6 +494,32 @@ protected
 
   def collection
     $db[:foos]
+  end
+
+  class Mounted
+    def Mounted.mount(*args, &block)
+      new(*args, &block)
+    end
+
+    def _set
+    end
+
+    def _key
+    end
+
+    def _value
+    end
+
+    def _clear
+    end
+  end
+
+  class Upload < StringIO
+    attr_accessor :path
+
+    def initialize(path)
+      super(IO.read(@path = path))
+    end
   end
 
   class Model
@@ -528,4 +619,5 @@ BEGIN {
   libdir = File.join(rootdir, 'lib')
   require File.join(libdir, 'dao')
   require File.join(testdir, 'testing')
+  require 'stringio'
 }
