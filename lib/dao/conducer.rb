@@ -28,6 +28,11 @@ module Dao
         defined?(@@subclasses) ? @@subclasses : (@@subclasses = [])
       end
 
+      def collection_for(results, &block)
+        block ||= proc{|model| new(model)}
+        results.dup.map!(&block)
+      end
+
       def name(*args)
         return send('name=', args.first) unless args.empty?
         @name ||= super

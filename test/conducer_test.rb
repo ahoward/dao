@@ -377,7 +377,10 @@ Testing Dao::Conducer do
   end
 
 
+##
+#
   context :teh_mount do
+  #
     testing 'that mounted objects can be declared at the class level' do
       conducer_class =
         new_conducer_class do
@@ -393,6 +396,7 @@ Testing Dao::Conducer do
       assert{ c.mounted.first._value.nil? }
     end
 
+  #
     testing 'that mounted objects replace their location in attributes' do
       conducer_class =
         new_conducer_class do
@@ -410,6 +414,7 @@ Testing Dao::Conducer do
       assert{ test(?f, upload._value) }
     end
 
+  #
     testing 'that the default save uses the mounted _value and _clears it' do
       conducer_class =
         new_conducer_class do
@@ -439,18 +444,29 @@ Testing Dao::Conducer do
     end
   end
 
-=begin
-  context 'collections' do
-    testing 'that subclasses have their own collection subclass' do
-      c = assert{ new_foo_conducer_class }
-      assert{ c::Collection }
-      assert{ c.collection.new.is_a?(Array) }
-      assert{ c.collection_class.ancestors.include?(Dao::Conducer::Collection) }
-      assert{ c.collection.new.is_a?(Array) }
+##
+#
+  context :collections do
+    testing 'can be created from page-y blessed arrays' do
+      paginated = Paginated[Post.new, Post.new, Post.new]
+      paginated.limit = 42
+      paginated.offset = 42.0
+      paginated.total_count = 420
+
+      conducer_class = new_conducer_class
+
+      collection = assert{ conducer_class.collection_for(paginated) }
+      assert{ collection.limit == 42 }
+      assert{ collection.offset == 42.0 }
+      assert{ collection.total_count == 420 }
+
+      user = User.new
+      collection = assert{ conducer_class.collection_for(paginated){|model| conducer_class.for(:show, user, model)} }
+      assert{ collection.all?{|conducer| conducer.action == :show} }
+      assert{ collection.all?{|conducer| conducer.models.first==user} }
+      assert{ collection.all?{|conducer| conducer.models.last.is_a?(Post)} }
     end
   end
-=end
-  
 
 protected
   def new_foo_conducer_class(&block)
@@ -600,6 +616,12 @@ protected
       self.new_record = false
       self.destroyed = true
     end
+  end
+
+  class Paginated < ::Array
+    attr_accessor :limit
+    attr_accessor :offset
+    attr_accessor :total_count
   end
 
   class User < Model

@@ -38,6 +38,10 @@ module Dao
           to_s
         end
 
+        def ==(other)
+          super(other.to_s)
+        end
+
         Synonyms = {
           'new'    => 'create',
           'create' => 'new',
