@@ -5,7 +5,7 @@ class Upload
     def url
       @url ||= (
         if defined?(Rails.root) and Rails.root
-          '/system/dao/uploads'
+          '/system/uploads'
         else
           "file:/#{ root }"
         end
