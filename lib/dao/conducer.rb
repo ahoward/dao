@@ -238,7 +238,7 @@ module Dao
 
       deepest_first.each do |mnt|
         value = @attributes.get(mnt._key)
-        mnt._set(value)
+        mnt._set(value) if mnt.respond_to?(:_set)
         @attributes.set(mnt._key => mnt)
       end
 
