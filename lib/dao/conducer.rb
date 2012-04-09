@@ -237,7 +237,7 @@ module Dao
       deepest_first = mounted.sort_by{|mnt| mnt._key.size}.reverse
 
       deepest_first.each do |mnt|
-        value = @attributes.get(mnt._key)
+        value = params.get(mnt._key)
         mnt._set(value) if mnt.respond_to?(:_set)
         @attributes.set(mnt._key => mnt)
       end
