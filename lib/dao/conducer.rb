@@ -448,6 +448,10 @@ module Dao
       @form
     end
 
+    def helper
+      @helper ||= ::Helper.new
+    end
+
     def raise!(*args, &block)
       self.class.raise!(*args, &block)
     end

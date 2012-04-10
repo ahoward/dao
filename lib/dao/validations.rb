@@ -30,6 +30,7 @@ module Dao
       %w(
         validations
         validates
+        validates_each
       ).each do |method|
         module_eval <<-__, __FILE__, __LINE__
           def self.#{ method }(*args, &block)

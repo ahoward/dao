@@ -256,6 +256,41 @@ Testing Dao::Conducer do
       assert{ o.errors.get(:a).empty? }
       assert{ !o.errors.get(:b).empty? }
     end
+
+  #
+    testing 'that validates_each werks at the class and instance level' do
+      conducer_class =
+        new_conducer_class do
+          validates_each :a do |item|
+            validated.push(item)
+            true
+          end
+
+          def save
+            validates_each :b do |item|
+              validated.push(item)
+              true
+            end
+            return valid?
+          end
+
+          def validated
+            @validated ||= []
+          end
+        end
+
+      a = %w( a b c )
+      b = %w( 1 2 3 )
+
+      c = assert{ conducer_class.new(:a => a, :b => b) }
+      assert{ c.run_validations }
+      assert{ c.validated == %w( a b c ) }
+
+    
+      c = conducer_class.new(:a => a, :b => b)
+      assert{ c.save }
+      assert{ c.validated == %w( a b c 1 2 3 ) }
+    end
   end
 
 ##
