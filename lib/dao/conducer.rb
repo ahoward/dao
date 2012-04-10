@@ -78,6 +78,10 @@ module Dao
       end
     end
 
+    def Conducer.call(*args, &block)
+      Conducer.for(*args, &block)
+    end
+
     %w( new create edit update destroy ).each do |action|
       module_eval <<-__, __FILE__, __LINE__
         def Conducer.for_#{ action }(*args, &block)
