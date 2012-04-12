@@ -79,7 +79,7 @@ module Dao
     end
 
     def Conducer.call(*args, &block)
-      Conducer.for(*args, &block)
+      self.for(*args, &block)
     end
 
     %w( new create edit update destroy ).each do |action|
