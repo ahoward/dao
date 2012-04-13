@@ -467,5 +467,9 @@ module Dao
     def inspect
       "#{ self.class.name }(#{ @attributes.inspect.chomp })"
     end
+
+    def to_s
+      inspect
+    end
   end
 end
