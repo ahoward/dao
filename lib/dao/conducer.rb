@@ -170,10 +170,19 @@ module Dao
         ivar = "@#{ key }"
         instance_variable_set(ivar, model) unless instance_variable_defined?(ivar)
 
-        next unless model.respond_to?(:attributes)
+        attributes = case
+          when model.respond_to?(:to_dao)
+            model.to_dao
+          when model.respond_to?(:to_map)
+            model.to_map
+          when model.respond_to?(:to_attributes)
+            model.attributes
+          else
+            next
+        end
 
         update_attributes(
-          conduces?(model) ? model.attributes : {key => model.attributes}
+          conduces?(model) ? attributes : {key => attributes}
         )
       end
     end
