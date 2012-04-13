@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.3.0"
+  spec.version = "4.3.1"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -30,6 +30,7 @@ Gem::Specification::new do |spec|
  "lib/dao/conducer/active_model.rb",
  "lib/dao/conducer/attributes.rb",
  "lib/dao/conducer/autocrud.rb",
+ "lib/dao/conducer/callback_support.rb",
  "lib/dao/conducer/controller_support.rb",
  "lib/dao/conducer/view_support.rb",
  "lib/dao/data.rb",
@@ -83,6 +84,8 @@ Gem::Specification::new do |spec|
  "test/active_model_conducer_lint_test.rb",
  "test/api_test.rb",
  "test/conducer_test.rb",
+ "test/data",
+ "test/data/han-solo.jpg",
  "test/form_test.rb",
  "test/helper.rb",
  "test/leak.rb",
@@ -97,15 +100,17 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", " >= 3.0"])
+    spec.add_dependency(*["rails", " >= 3.1"])
   
-    spec.add_dependency(*["map", " >= 5.1"])
+    spec.add_dependency(*["map", " >= 5.4"])
   
     spec.add_dependency(*["fattr", " >= 2.2"])
   
     spec.add_dependency(*["tagz", " >= 9.3"])
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
+  
+    spec.add_dependency(*["wrap", " >= 1.5.0"])
   
     spec.add_dependency(*["rails_current", " >= 1.6"])
   
