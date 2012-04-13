@@ -505,6 +505,40 @@ Testing Dao::Conducer do
     end
   end
 
+##
+#
+  context :callbacks do
+    testing 'can be added lazily in an ad-hoc fashion' do
+      callbacks = []
+
+      conducer_class =
+        new_conducer_class do
+          before_initialize do
+            callbacks.push(:before_initialize)
+          end
+
+          after_initialize do
+            callbacks.push(:after_initialize)
+          end
+
+          define_method(:foobar){ 42 }
+
+          before :foobar do
+            callbacks.push(:before_foobar)
+          end
+
+          after :foobar do
+            callbacks.push(:after_foobar)
+          end
+        end
+
+      c = assert{ conducer_class.new }
+      assert{ callbacks == [:before_initialize, :after_initialize] }
+      assert{ c.foobar; true }
+      assert{ callbacks == [:before_initialize, :after_initialize, :before_foobar, :after_foobar] }
+    end
+  end
+
 protected
   def new_foo_conducer_class(&block)
     const = :FooConducer

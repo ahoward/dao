@@ -5,6 +5,7 @@ module Dao
   Dao.load('conducer/attributes.rb')
   Dao.load('conducer/active_model.rb')
   Dao.load('conducer/controller_support.rb')
+  Dao.load('conducer/callback_support.rb')
   Dao.load('conducer/view_support.rb')
 
 ##
@@ -175,7 +176,7 @@ module Dao
             model.to_dao
           when model.respond_to?(:to_map)
             model.to_map
-          when model.respond_to?(:to_attributes)
+          when model.respond_to?(:attributes)
             model.attributes
           else
             next
@@ -357,6 +358,10 @@ module Dao
   ## mixin controller support
   #
     module_eval(&ControllerSupport)
+
+  ## mixin callback support
+  #
+    module_eval(&CallbackSupport)
 
   ## mixin view support
   #

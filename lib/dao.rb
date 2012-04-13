@@ -24,7 +24,7 @@
         'tagz'          => [ 'tagz'          , ' >= 9.3'   ] , 
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] , 
         #'upload_cache'  => [ 'upload_cache'  , ' >= 1.4.1' ] , 
-        #'wrap'          => [ 'wrap'          , ' >= 1.4.0' ] , 
+        'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] , 
         'rails_current' => [ 'rails_current' , ' >= 1.6'   ]
       }
     end
