@@ -110,6 +110,8 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
+    spec.add_dependency(*["uuidtools", " >= 2.1.2"])
+  
     spec.add_dependency(*["wrap", " >= 1.5.0"])
   
     spec.add_dependency(*["rails_current", " >= 1.6"])

@@ -23,7 +23,7 @@
         'fattr'         => [ 'fattr'         , ' >= 2.2'   ] , 
         'tagz'          => [ 'tagz'          , ' >= 9.3'   ] , 
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] , 
-        #'upload_cache'  => [ 'upload_cache'  , ' >= 1.4.1' ] , 
+        'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
         'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] , 
         'rails_current' => [ 'rails_current' , ' >= 1.6'   ]
       }

@@ -215,8 +215,8 @@ module Dao
 
   {
     'ffi-uuid'  => proc{|*args| FFI::UUID.generate_time.to_s},
+    'uuidtools' => proc{|*args| UUIDTools::UUID.timestamp_create.to_s},
     'uuid'      => proc{|*args| UUID.generate.to_s},
-    'uuidtools' => proc{|*args| UUIDTools::UUID.timestamp_create.to_s}
   }.each do |lib, implementation|
     begin
       require(lib)
