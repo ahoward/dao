@@ -129,18 +129,38 @@ module Dao
       @status = validator.status
 
       set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
+
       set_action(actions.shift) unless actions.empty?
 
       set_models(models)
+
+      set_mounts(self.class.mounted)
 
       update_params(hashes)
     end
 
     def set_models(*models)
-      @models = models.flatten.compact
-      @model = @models.last
-      @models
+      @models =
+        models.flatten.compact
+
+      candidates =
+        @models.select{|model| model.class.model_name == self.class.model_name}
+
+      @model =
+        case candidates.size == 1
+          when 1
+            candidates.first
+          else
+            @models.last
+        end
+
+      @models.each do |model|
+        key = model_key_for(model)
+        ivar = "@#{ key }"
+        instance_variable_set(ivar, model) unless instance_variable_defined?(ivar)
+      end
     end
+    alias_method('set_model', 'set_models')
 
     def update_params(*hashes)
       hashes.flatten.compact.each{|hash| @params.apply(hash)}
@@ -154,42 +174,12 @@ module Dao
     end
 
     def default_initialize(*args, &block)
-      update_models()
-
-      update_mounted()
-
       initialize_for_action(*args, &block)
 
-      update_attributes(params)
+      update_attributes(models, params)
     end
 
-    def update_models(*models)
-      set_models(models) unless models.empty?
-
-      @models.each do |model|
-        key = model_key_for(model)
-        ivar = "@#{ key }"
-        instance_variable_set(ivar, model) unless instance_variable_defined?(ivar)
-
-        attributes = case
-          when model.respond_to?(:to_dao)
-            model.to_dao
-          when model.respond_to?(:to_map)
-            model.to_map
-          when model.respond_to?(:attributes)
-            model.attributes
-          else
-            next
-        end
-
-        update_attributes(
-          conduces?(model) ? attributes : {key => attributes}
-        )
-      end
-    end
-
-    def update_mounted(list = [])
-      list = self.class.mounted if list.empty?
+    def set_mounts(list)
       list.each do |args, block|
         mount(*args, &block)
       end
@@ -230,7 +220,53 @@ module Dao
   ## accessors
   #
     def update_attributes(*args, &block)
-      params =
+    # process updates
+    #
+      pos = 0
+
+    # process leading models: update_attributes(@user, ...)
+    #
+      attributes = Map.new
+
+      while(pos < args.size)
+        arg = args[pos]
+        pos += 1
+
+        if(model?(arg) or (arg.is_a?(Array) and model?(arg.first)))
+          models = Array(arg)
+          models.each do |model|
+            key = conduces?(model) ? nil : model_key_for(model)
+            attributes[key] = model
+          end
+        else
+          break
+        end
+      end
+
+      merge_attributes(attributes)
+
+    # process leading hashes: update_attributes(@user, params, ...)
+    #
+      attributes = Map.new
+
+      while(pos < args.size)
+        arg = args[pos]
+        pos += 1
+
+        if arg.is_a?(Hash)
+          attributes.update(arg)
+        else
+          break
+        end
+      end
+
+      merge_attributes(attributes)
+
+    # process the rest: update_attributes(@user, params, :user, :name, 'Fred')
+    #
+      args = args[pos -1 .. -1]
+
+      attributes =
         case
           when args.size == 1 && args.first.is_a?(Hash)
             args.first
@@ -244,18 +280,20 @@ module Dao
             end
         end
 
-      params = Map.new(params)
+      merge_attributes(attributes)
 
-      @attributes.set(params)
-
+    # allow mounted interceptors to process teh values, and re-mount them
+    #
       deepest_first = mounted.sort_by{|mnt| mnt._key.size}.reverse
 
       deepest_first.each do |mnt|
-        value = params.get(mnt._key)
+        value = @attributes.get(mnt._key)
         mnt._set(value) if mnt.respond_to?(:_set)
         @attributes.set(mnt._key => mnt)
       end
 
+    # teh result
+    #
       @attributes
     end
 
@@ -267,6 +305,21 @@ module Dao
       update_attributes(*args, &block)
     ensure
       save!
+    end
+
+    def merge_attributes(attributes)
+      Map.for(attributes).depth_first_each do |keys, value|
+        unless value.is_a?(Hash)
+          %w( to_dao to_map attributes ).each do |method|
+            if value.respond_to?(method)
+              converted = value.send(method)
+              value = converted
+              break
+            end
+          end
+        end
+        keys == [nil] ? @attributes.set(value) : @attributes.set(keys, value)
+      end
     end
 
     def set(*args, &block)
@@ -352,7 +405,7 @@ module Dao
     end
 
     def model?(object)
-      object.respond_to?(:new_record?)
+      object.respond_to?(:persisted?)
     end
 
   ## mixin controller support
@@ -426,8 +479,10 @@ module Dao
     def mount(object, *args, &block)
       mounted = object.mount(self, *args, &block)
     ensure
-      Dao.ensure_interface!(mounted, :_set, :_key, :_value, :_clear)
-      self.mounted.push(mounted)
+      if mounted
+        Dao.ensure_interface!(mounted, :_set, :_key, :_value, :_clear)
+        self.mounted.push(mounted)
+      end
     end
 
     def mounted

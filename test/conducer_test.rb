@@ -11,7 +11,6 @@ Testing Dao::Conducer do
         {:key => :val, :array => [0,1,2]},
         {}
       ].each do |attributes|
-
         c = new_conducer(attributes)
         assert{ c.attributes =~ attributes }
       end
@@ -65,10 +64,10 @@ Testing Dao::Conducer do
 
   #
     testing 'that passed in models/params are sanely ker-sploded onto the attributes' do
-      user = User.new :k => 1
-      post = Post.new :k => 2
+      user    = User.new :k => 1
+      post    = Post.new :k => 2
       comment = Comment.new :k => 3, :x => 4
-      params = {:x => 5}
+      params  = {:x => 5}
 
       args = [user, post, comment, params]
 
@@ -80,8 +79,7 @@ Testing Dao::Conducer do
       assert{ c.attributes[:post] =~ {:k => 2} }
       assert{ c.instance_variable_get('@post') == post }
 
-
-      expected = {}
+      expected = Map.new
       expected.update :user => user.attributes
       expected.update :post => post.attributes
       expected.update comment.attributes
@@ -92,7 +90,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that .new specilizes based on current action' do
+    testing 'that .new specialises based on current action' do
       conducer_class =
         new_conducer_class do
           def initialize_for_new
@@ -610,6 +608,13 @@ protected
   end
 
   class Model
+    class << self
+      def model_name
+        name = self.name.split(/::/).last
+        ActiveModel::Name.new(Map[:name, name])
+      end
+    end
+
     {
       :new_record => true,
       :persisted => false,

@@ -433,9 +433,7 @@ module Dao
 
       tagz{
         input_(:name => name, :value => upload.value, :type => :hidden){ }
-
         __
-
         input_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error, :type => :file)){ }
       }
     end
