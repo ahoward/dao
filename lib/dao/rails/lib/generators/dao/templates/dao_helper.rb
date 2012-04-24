@@ -47,6 +47,8 @@ module DaoHelper
     end
   end
 
+  alias_method(:dao_form, :dao_form_for)
+
   def dao_form_attrs(*args)
     args.flatten!
     options = args.extract_options!.to_options!.dup

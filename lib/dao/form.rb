@@ -423,18 +423,24 @@ module Dao
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
-      name = options.delete(:name) || name_for(keys)
+      cache_key = keys + [:cache]
+      file_key = keys + [:file]
+
+      cache_name = options.delete(:cache_name) || name_for(cache_key)
+      file_name = options.delete(:file_name) || options.delete(:name) || name_for(file_key)
+
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
-      upload = attributes.get(keys)
-      raise "no uploader mounted at #{ keys.inspect }" unless upload
+      cache_value = attributes.get(cache_key)
 
       tagz{
-        input_(:name => name, :value => upload.value, :type => :hidden){ }
+        input_(:name => cache_name, :value => cache_value, :type => :hidden){ }
+
         __
-        input_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error, :type => :file)){ }
+
+        input_(options_for(options, :name => file_name, :class => klass, :id => id, :data_error => error, :type => :file)){ }
       }
     end
 

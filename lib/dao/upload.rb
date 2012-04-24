@@ -1,6 +1,5 @@
 module Dao
-
-class Upload
+class Upload < ::Map
   class << Upload
     def url
       @url ||= (
@@ -19,7 +18,9 @@ class Upload
     def root
       @root ||= (
         if defined?(Rails.root) and Rails.root
-          File.join(Rails.root, 'public', Upload.url)
+          root = File.join(Rails.root, 'public', Upload.url)
+          FileUtils.mkdir_p(root) unless test(?d, root)
+          root
         else
           Dir.tmpdir
         end
@@ -36,8 +37,8 @@ class Upload
 
     def tmpdir(&block)
       tmpdir = File.join(root, uuid)
+      FileUtils.mkdir_p(tmpdir)
       if block
-        FileUtils.mkdir_p(tmpdir)
         block.call(tmpdir)
       else
         tmpdir
@@ -95,6 +96,19 @@ class Upload
       end
     end
 
+    Thread.new do
+      Thread.current.abort_on_exception = true
+
+      loop do
+        sleep(60 * 60)
+        begin
+          Upload.clear!
+        rescue Object
+          nil
+        end
+      end
+    end
+
     at_exit{ Upload.clear! }
 
     def turd?
@@ -139,8 +153,6 @@ class Upload
     end
 
     alias_method('mount', 'new')
-
-    attr_accessor :placeholder
   end
 
   attr_accessor :conducer
@@ -153,36 +165,48 @@ class Upload
   attr_accessor :dirname
   attr_accessor :basename
   attr_accessor :io
+  attr_accessor :tmpdir
   attr_accessor :placeholder
 
   IOs = {}
 
   def initialize(conducer, *args, &block)
-    @conducer = conducer
-    
-    @options = Map.options_for!(args)
+    @conducer   = conducer
 
-    @key = Dao.key_for(args)
+    @options    = Map.options_for!(args)
+    @key        = Dao.key_for(args)
     @hidden_key = Upload.hidden_key_for(@key)
+    @name       = Upload.name_for(@hidden_key)
 
-    @name = Upload.name_for(@hidden_key)
-
-    @placeholder = @options[:placeholder] || Upload.placeholder
-
-    @conducer.attributes.set(@key, upload=self)
+    @placeholder = Placeholder.new(@options[:placeholder])
 
     @path = nil
     @dirname, @basename = nil
     @value = nil
     @io = nil
+    @tmpdir = nil
+
+    url = @placeholder.url
+
+    update(:file => @io, :cache => @value, :url => url)
   end
 
   def _set(value)
-    if value.respond_to?(:read) or value.is_a?(IO)
-      process_currently_uploaded(value)
-    else
-      process_previously_uploaded(value)
+    value = Map.for(value)
+    cache = value[:cache]
+    file = value[:file]
+
+    unless cache.blank?
+      process_previously_uploaded(cache)
     end
+
+    unless file.blank?
+      process_currently_uploaded(file)
+    end
+
+    url = @value ? File.join(Upload.url, @value) : @placeholder.url
+
+    update(:file => @io, :cache => @value, :url => url)
   end
 
   def _key
@@ -197,60 +221,78 @@ class Upload
     clear!
   end
 
-  def process_currently_uploaded(value)
-    Upload.tmpdir do |tmp|
-      original_basename =
-        [:original_path, :original_filename, :path, :filename].
-          map{|msg| value.send(msg) if value.respond_to?(msg)}.
-          compact.
-          first
-
-      basename = Upload.cleanname(original_basename)
-
-      path = File.join(tmp, basename)
-
-      copied = false
-
-      Upload.rewind(value) do
-        src = value.path
-        dst = path
-
-        strategies = [
-          proc{ `ln -f #{ src.inspect } #{ dst.inspect } || cp -f #{ src.inspect } #{ dst.inspect }`},
-          proc{ FileUtils.ln(src, dst) },
-          proc{ FileUtils.cp(src, dst) },
-          proc{ 
-            open(dst, 'wb'){|fd| fd.write(value.read)} 
-          }
-        ]
-
-        FileUtils.rm_f(dst)
-        strategies.each do |strategy|
-          strategy.call rescue nil
-          break if((copied = test(?e, dst)))
-        end
-      end
-
-      raise("failed to copy #{ value.path.inspect } -> #{ path.inspect }") unless copied
-
-      gcopen(path) if test(?s, path)
-    end
+  def hidden_value
+    @value
   end
 
-  def process_previously_uploaded(value)
-    value = value.to_s.strip
-    unless value.empty?
-      dirname, basename = File.split(File.expand_path(value))
+  def blank?
+    @value.blank?
+  end
+
+  def url
+    self[:url]
+  end
+
+  def to_s
+    self[:url]
+  end
+
+  def process_previously_uploaded(cache)
+    cache = cache.to_s.strip
+
+    unless cache.empty?
+      dirname, basename = File.split(File.expand_path(cache))
       relative_dirname = File.basename(dirname)
       relative_basename = File.join(relative_dirname, basename)
       path = Upload.root + '/' + relative_basename
 
-      gcopen(path) if test(?s, path)
+      if test(?s, path)
+        gcopen(path)
+        @tmpdir = @dirname
+      end
     end
   end
 
-  def hidden_value
-    @value
+  def process_currently_uploaded(io)
+    unless @tmpdir
+      @tmpdir = Upload.tmpdir
+    end
+
+    original_basename =
+      [:original_path, :original_filename, :path, :filename, :pathname].
+        map{|msg| io.send(msg).to_s if io.respond_to?(msg)}.
+        compact.
+        first
+
+    basename = Upload.cleanname(original_basename)
+
+    path = File.join(@tmpdir, basename)
+
+    copied = false
+
+    Upload.rewind(io) do
+      src = io.path
+      dst = path
+
+      strategies = [
+        proc{ `ln -f #{ src.inspect } #{ dst.inspect } || cp -f #{ src.inspect } #{ dst.inspect }`},
+        proc{ FileUtils.ln(src, dst) },
+        proc{ FileUtils.cp(src, dst) },
+        proc{ 
+          open(dst, 'wb'){|fd| fd.write(io.read)} 
+        }
+      ]
+
+      FileUtils.rm_f(dst)
+      strategies.each do |strategy|
+        strategy.call rescue nil
+        break if((copied = test(?e, dst)))
+      end
+    end
+
+    raise("failed to copy #{ io.path.inspect } -> #{ path.inspect }") unless copied
+
+    gcopen(path) if test(?s, path)
   end
 
   def gcopen(path)
@@ -267,49 +309,14 @@ class Upload
     {
       Upload.name =>
         {
-          :key => key,
-          :hidden_key => hidden_key,
+          :key          => key,
+          :hidden_key   => hidden_key,
           :hidden_value => hidden_value,
-          :name => name,
-          :path => path,
-          :io => io
+          :name         => name,
+          :path         => path,
+          :io           => io
         }
     }.inspect
-  end
-
-  def blank?
-    @value.blank?
-  end
-
-  def url
-    if @value
-      File.join(Upload.url, @value)
-    else
-      @placeholder
-    end
-  end
-
-  def to_s
-    url
-  end
-
-  def hidden
-    options = Map.for(options)
-    options[:type] = :hidden
-    options[:name] = @name
-    options[:value] = @value
-    options[:class] = [options[:class], 'dao hidden upload'].compact.join(' ')
-    block ||= proc{}
-    input_(options, &block) if @value
-  end
-
-  def input(options = {}, &block)
-    options = Map.for(options)
-    options[:type] = :file
-    options[:name] = @name
-    options[:class] = [options[:class], 'dao upload'].compact.join(' ')
-    block ||= proc{}
-    input_(options, &block)
   end
 
   def clear!(&block)
@@ -317,19 +324,64 @@ class Upload
 
     unless Upload.turd?
       begin
-        FileUtils.rm_rf(@dirname) if test(?d, @dirname)
+        FileUtils.rm_rf(@tmpdir) if test(?d, @tmpdir)
       rescue
         nil
       ensure
         @io.close rescue nil
         IOs.delete(object_id)
-        Thread.new{ Upload.clear! }
       end
     end
 
     result
   end
   alias_method('clear', 'clear!')
+
+  class Placeholder < ::String
+    def Placeholder.route
+      "/assets"
+    end
+
+    def Placeholder.root
+      File.join(Rails.root, "app", "assets", "placeholders")
+    end
+
+    attr_accessor :url
+    attr_accessor :path
+
+    def initialize(placeholder = '', options = {})
+      replace(placeholder.to_s)
+      options.to_options!
+      @url = options[:url] || default_url
+      @path = options[:path] || default_path
+    end
+
+    def default_url
+      return nil if blank?
+      absolute? ? self : File.join(Placeholder.route, self)
+    end
+
+    def default_path
+      return nil if blank?
+      absolute? ? nil : File.join(Placeholder.root, self)
+    end
+
+    def basename
+      File.basename(self)
+    end
+
+    def absolute?
+      self =~ %r|\A([^:/]++:/)?/|
+    end
+  end
+
+  def placeholder
+    @placeholder ||= Placeholder.new
+  end
+
+  def placeholder=(placeholder)
+    @placeholder = placeholder.is_a?(Placeholder) ? placeholder : Placeholder.new(placeholder)
+  end
 end
 
 end

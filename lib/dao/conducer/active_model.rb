@@ -21,7 +21,7 @@ module Dao
 
     class << Conducer
       def model_name(*args)
-        return send('model_name=', args.first) unless args.empty?
+        return send('model_name=', args.first.to_s) unless args.empty?
         @model_name ||= default_model_name
       end
 
