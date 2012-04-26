@@ -134,6 +134,8 @@ module Dao
       set_mounts(self.class.mounted)
 
       update_params(hashes)
+
+      @default_initialize = nil
     end
 
     def set_models(*models)
@@ -163,16 +165,12 @@ module Dao
     end
 
   ## a sane initialize is provided for you.  you are free to override it
-  # *without* calling super
+  # *** without *** calling super
   #
     def initialize(*args, &block)
-      default_initialize(*args, &block)
-    end
-
-    def default_initialize(*args, &block)
       initialize_for_action(*args, &block)
-
-      update_attributes(models, params)
+      update_models(models) unless models.empty?
+      update_attributes(params) unless params.empty?
     end
 
     def set_mounts(list)
@@ -214,55 +212,17 @@ module Dao
       conduces == model
     end
 
-  ## accessors
-  #
+    def update_models(*models)
+      models.flatten.compact.each do |model|
+        if conduces?(model)
+          update_attributes(model.attributes)
+        else
+          update_attributes(model_key_for(model), model.attributes)
+        end
+      end
+    end
+
     def update_attributes(*args, &block)
-    # process updates
-    #
-      pos = 0
-
-    # process leading models: update_attributes(@user, ...)
-    #
-      attributes = Map.new
-
-      while(pos < args.size)
-        arg = args[pos]
-        pos += 1
-
-        if(model?(arg) or (arg.is_a?(Array) and model?(arg.first)))
-          models = Array(arg)
-          models.each do |model|
-            key = conduces?(model) ? nil : model_key_for(model)
-            attributes[key] = model
-          end
-        else
-          break
-        end
-      end
-
-      merge_attributes(attributes)
-
-    # process leading hashes: update_attributes(@user, params, ...)
-    #
-      attributes = Map.new
-
-      while(pos < args.size)
-        arg = args[pos]
-        pos += 1
-
-        if arg.is_a?(Hash)
-          attributes.update(arg)
-        else
-          break
-        end
-      end
-
-      merge_attributes(attributes)
-
-    # process the rest: update_attributes(@user, params, :user, :name, 'Fred')
-    #
-      args = args[pos -1 .. -1]
-
       attributes =
         case
           when args.size == 1 && args.first.is_a?(Hash)
@@ -277,25 +237,21 @@ module Dao
             end
         end
 
-      merge_attributes(attributes)
+      @attributes.set(attributes)
 
-    # allow mounted interceptors to process teh values, and re-mount them
-    #
-      deepest_first = mounted.sort_by{|mnt| mnt._key.size}.reverse
+      update_mounted_attributes!
 
-      deepest_first.each do |mnt|
-        value = @attributes.get(mnt._key)
-        mnt._set(value) if mnt.respond_to?(:_set)
-        @attributes.set(mnt._key => mnt)
-      end
-
-    # teh result
-    #
       @attributes
     end
 
-    def attributes=(attributes)
-      update_attributes(attributes)
+    def update_mounted_attributes!
+      deepest_mounts_first = mounted.sort_by{|mnt| mnt._key.size}.reverse
+
+      deepest_mounts_first.each do |mount|
+        value = @attributes.get(mount._key)
+        mount._set(value) if mount.respond_to?(:_set)
+        @attributes.set(mount._key => mount)
+      end
     end
 
     def update_attributes!(*args, &block)
@@ -304,19 +260,9 @@ module Dao
       save!
     end
 
-    def merge_attributes(attributes)
-      Map.for(attributes).depth_first_each do |keys, value|
-        unless value.is_a?(Hash)
-          %w( to_dao to_map attributes ).each do |method|
-            if value.respond_to?(method)
-              converted = value.send(method)
-              value = converted
-              break
-            end
-          end
-        end
-        keys == [nil] ? @attributes.set(value) : @attributes.set(keys, value)
-      end
+    def attributes=(attributes)
+      @attributes.clear
+      update_attributes(attributes)
     end
 
     def set(*args, &block)

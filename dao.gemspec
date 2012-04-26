@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.3.1"
+  spec.version = "4.4.1"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -31,6 +31,7 @@ Gem::Specification::new do |spec|
  "lib/dao/conducer/attributes.rb",
  "lib/dao/conducer/autocrud.rb",
  "lib/dao/conducer/callback_support.rb",
+ "lib/dao/conducer/collection.rb",
  "lib/dao/conducer/controller_support.rb",
  "lib/dao/conducer/view_support.rb",
  "lib/dao/data.rb",
