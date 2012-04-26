@@ -23,16 +23,16 @@ Testing Dao::Conducer do
       comment = Comment.new
       params = {}
 
-      args = [user, post, comment, params]
+      args = [comment, post, user, params]
 
       c = new_conducer(*args)
 
-      assert{ c.models == [user, post, comment] }
+      assert{ c.models == [comment, post, user] }
       assert{ c.model == comment }
       assert{ c.model == c.conduces }
 
       assert{ c.conduces(post) }
-      assert{ c.models == [user, comment, post] }
+      assert{ c.models == [post, comment, user] }
       assert{ c.model == post }
       assert{ c.model == c.conduces }
     end
@@ -48,7 +48,7 @@ Testing Dao::Conducer do
       comment = Comment.new
       params = {}
 
-      args = [user, post, comment, params]
+      args = [comment, post, user, params]
 
       c = new_conducer(*args)
 
@@ -69,7 +69,7 @@ Testing Dao::Conducer do
       comment = Comment.new :k => 3, :x => 4
       params  = {:x => 5}
 
-      args = [user, post, comment, params]
+      args = [comment, post, user, params]
 
       c = new_conducer(*args)
 
@@ -161,7 +161,7 @@ Testing Dao::Conducer do
       comment = Comment.new
       params = {:text => 'hai!', :user => {:params => 'are ignored'}, :post => {:params => 'are ignored'}}
 
-      args = [user, post, comment, params]
+      args = [comment, post, user, params]
 
       c = new_conducer(*args)
 
@@ -441,7 +441,7 @@ Testing Dao::Conducer do
       path = __FILE__
       up = Upload.new(path)
 
-      c = conducer_class.new( :a => {:b => up} )
+      c = conducer_class.new( :a => {:b => {:file => up}} )
 
       upload = assert{ c.get(:a, :b) }
 
@@ -461,7 +461,7 @@ Testing Dao::Conducer do
       up = Upload.new(path)
       comment = Comment.new
 
-      c = conducer_class.new( comment, :up => up ) 
+      c = conducer_class.new( comment, :up => {:file => up} ) 
 
       upload = assert{ c.get(:up) }
       assert{ upload.is_a?(Dao::Upload) }
@@ -490,7 +490,9 @@ Testing Dao::Conducer do
 
       conducer_class = new_conducer_class
 
+      conducer_class.collection_for(paginated)
       collection = assert{ conducer_class.collection_for(paginated) }
+      assert{ collection.models == paginated }
       assert{ collection.limit == 42 }
       assert{ collection.offset == 42.0 }
       assert{ collection.total_count == 420 }

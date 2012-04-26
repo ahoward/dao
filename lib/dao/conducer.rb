@@ -3,6 +3,7 @@ module Dao
 ##
 #
   Dao.load('conducer/attributes.rb')
+  Dao.load('conducer/collection.rb')
   Dao.load('conducer/active_model.rb')
   Dao.load('conducer/controller_support.rb')
   Dao.load('conducer/callback_support.rb')
@@ -21,17 +22,13 @@ module Dao
       def inherited(other)
         super
       ensure
+        other.build_collection_class!
         subclasses.push(other)
         subclasses.uniq!
       end
 
       def subclasses
         defined?(@@subclasses) ? @@subclasses : (@@subclasses = [])
-      end
-
-      def collection_for(results, &block)
-        block ||= proc{|model| new(model)}
-        results.dup.map!(&block)
       end
 
       def name(*args)
@@ -151,7 +148,7 @@ module Dao
           when 1
             candidates.first
           else
-            @models.last
+            @models.first
         end
 
       @models.each do |model|
@@ -160,7 +157,6 @@ module Dao
         instance_variable_set(ivar, model) unless instance_variable_defined?(ivar)
       end
     end
-    alias_method('set_model', 'set_models')
 
     def update_params(*hashes)
       hashes.flatten.compact.each{|hash| @params.apply(hash)}
@@ -204,10 +200,11 @@ module Dao
       else
         @model = args.flatten.compact.first
         @models.delete(@model)
-        @models.push(@model)
+        @models.unshift(@model)
         @model
       end
     end
+    alias_method(:set_model, :conduces)
 
     def conduces=(model)
       conduces(model)
@@ -328,22 +325,12 @@ module Dao
 
     def has?(*key)
       key = key_for(key)
-      tester = key.join('__') + '?'
-      if respond_to?(tester)
-        send(tester)
-      else
-        @attributes.has?(key)
-      end
+      @attributes.has?(key)
     end
 
     def get(*key)
       key = key_for(key)
-      getter = key.join('__')
-      if respond_to?(getter)
-        send(getter)
-      else
-        @attributes.get(key)
-      end
+      @attributes.get(key)
     end
 
     def [](key)

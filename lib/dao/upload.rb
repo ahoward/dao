@@ -192,7 +192,16 @@ class Upload < ::Map
   end
 
   def _set(value)
-    value = Map.for(value)
+    value =
+      case
+        when value.is_a?(Hash)
+          Map.for(value)
+        when value.respond_to?(:read)
+          Map.for(:file => value)
+        else
+          Map.for(:cache => value.to_s)
+      end
+
     cache = value[:cache]
     file = value[:file]
 
