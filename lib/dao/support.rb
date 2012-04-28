@@ -156,26 +156,21 @@ module Dao
     end
   end
 
-  if Rails.env.production?
-    def json_for(object)
-      object = object.as_json if object.respond_to?(:as_json)
-      begin
-        MultiJson.encode(object, :pretty => false)
-      rescue Object => e
-        Rails.logger.error(e)
-        YAML.load( object.to_yaml ).to_json
-      end
+  def json_for(object, options = {})
+    object = object.as_json if object.respond_to?(:as_json)
+
+    options = options.empty? ? Map.for(options) : options
+    options[:pretty] = json_pretty?  unless options.has_key?(:pretty)
+
+    begin
+      MultiJson.dump(object, options)
+    rescue Object => e
+      YAML.load( object.to_yaml ).to_json
     end
-  else
-    def json_for(object)
-      object = object.as_json if object.respond_to?(:as_json)
-      begin
-        MultiJson.encode(object, :pretty => true)
-      rescue Object => e
-        Rails.logger.error(e)
-        YAML.load( object.to_yaml ).to_json
-      end
-    end
+  end
+
+  def json_pretty?
+    @json_pretty ||= (defined?(Rails) ? !Rails.env.production? : true)
   end
 
   def call(object, method, *args, &block)
