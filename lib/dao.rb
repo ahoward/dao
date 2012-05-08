@@ -10,7 +10,7 @@
 # dao libs
 #
   module Dao
-    Version = '4.4.1' unless defined?(Version)
+    Version = '4.4.2' unless defined?(Version)
 
     def version
       Dao::Version
@@ -18,14 +18,15 @@
 
     def dependencies
       {
-        'rails'         => [ 'rails'         , ' >= 3.1'   ] , 
-        'map'           => [ 'map'           , ' >= 5.4'   ] , 
-        'fattr'         => [ 'fattr'         , ' >= 2.2'   ] , 
-        'tagz'          => [ 'tagz'          , ' >= 9.3'   ] , 
-        'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] , 
+        'rails'         => [ 'rails'         , ' >= 3.1'   ] ,
+        'map'           => [ 'map'           , ' >= 5.4'   ] ,
+        'fattr'         => [ 'fattr'         , ' >= 2.2'   ] ,
+        'tagz'          => [ 'tagz'          , ' >= 9.3'   ] ,
+        'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] ,
         'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
-        'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] , 
-        'rails_current' => [ 'rails_current' , ' >= 1.6'   ]
+        'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] ,
+        'rails_current' => [ 'rails_current' , ' >= 1.6'   ] ,
+        'rails_nav'     => [ 'rails_nav'     , ' >= 1.0.1' ]
       }
     end
 
