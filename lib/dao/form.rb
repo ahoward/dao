@@ -495,7 +495,24 @@ module Dao
     end
 
     def Form.name_for(name, *keys)
-      "#{ prefix_for(name) }[#{ Array(keys).flatten.compact.join('.') }]"
+      "#{ prefix_for(name) }[#{ key_for(*keys) }]"
+    end
+
+    def Form.key_for(*keys)
+      keys.flatten.compact.map do |key|
+        case
+          when Integer === key
+            key
+          when key =~ /^\d+$/
+            "~#{ key }"
+          else
+            key
+        end
+      end.join('.')
+    end
+
+    def key_for(*keys)
+      Form.key_for(name, *keys)
     end
 
     def name_for(*keys)

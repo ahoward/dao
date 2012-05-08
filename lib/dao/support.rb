@@ -133,7 +133,13 @@ module Dao
   end
 
   def keys_for(*keys)
-    keys.join('.').scan(/[^\,\.\s]+/iomx).map{|key| key =~ %r/^\d+$/ ? Integer(key) : key}
+    keys = keys.join('.').scan(/[^\,\.\s]+/iomx)
+    
+    keys.map do |key|
+      digity, stringy, digits = %r/^(~)?(\d+)$/iomx.match(key).to_a
+
+      digity ? stringy ? String(digits) : Integer(digits) : key
+    end
   end
 
   alias_method(:key_for, :keys_for)

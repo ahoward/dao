@@ -25,7 +25,8 @@ Testing Dao::Conducer do
 
         'bars' => {
           'a' => 'b',
-          'hash.k' => 'v'
+          'hash.k' => 'v',
+          '~42' => 'foobar'
         }
       }
     )
@@ -40,6 +41,7 @@ Testing Dao::Conducer do
     assert{ params[:bars].is_a?(Hash) }
     assert{ params[:bars][:a] == 'b' }
     assert{ params[:bars][:hash] == {'k' => 'v'} }
+    assert{ params[:bars]['42'] == 'foobar' }
   end
 end
 
