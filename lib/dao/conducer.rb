@@ -162,7 +162,7 @@ module Dao
     end
 
     def update_params(*hashes)
-      hashes.flatten.compact.each{|hash| @params.apply(hash)}
+      hashes.flatten.compact.each{|hash| @params.update(hash)}
     end
 
   ## a sane initialize is provided for you.  you are free to override it
