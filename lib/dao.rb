@@ -10,7 +10,7 @@
 # dao libs
 #
   module Dao
-    Version = '4.4.2' unless defined?(Version)
+    Version = '4.4.4' unless defined?(Version)
 
     def version
       Dao::Version
@@ -26,7 +26,7 @@
         'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
         'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] ,
         'rails_current' => [ 'rails_current' , ' >= 1.6'   ] ,
-        'rails_nav'     => [ 'rails_nav'     , ' >= 1.0.1' ] ,
+        'rails_nav'     => [ 'rails_nav'     , ' >= 1.1.0' ] ,
         'rails_helper'  => [ 'rails_helper'  , ' >= 1.3.0' ]
       }
     end
