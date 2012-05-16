@@ -6,5 +6,6 @@ module Dao
     end
     alias_method(:nav, :nav_for)
     alias_method(:navigation, :nav_for)
+    alias_method(:navigation_for, :nav_for)
   end
 end

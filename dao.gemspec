@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.4.2"
+  spec.version = "4.4.5"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -118,7 +118,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["rails_current", " >= 1.6"])
   
-    spec.add_dependency(*["rails_nav", " >= 1.0.1"])
+    spec.add_dependency(*["rails_nav", " >= 1.1.0"])
   
     spec.add_dependency(*["rails_helper", " >= 1.3.0"])
   
