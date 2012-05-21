@@ -80,10 +80,10 @@ Testing Dao::Conducer do
       assert{ c.instance_variable_get('@post') == post }
 
       expected = Map.new
-      expected.update :user => user.attributes
-      expected.update :post => post.attributes
-      expected.update comment.attributes
-      expected.update params
+      expected.add :user => user.attributes
+      expected.add :post => post.attributes
+      expected.add comment.attributes
+      expected.add params
 
       assert{ c.attributes =~ expected }
       assert{ c.instance_variable_get('@comment') == comment }
@@ -150,6 +150,15 @@ Testing Dao::Conducer do
       end
     end
   end
+
+ #
+    testing 'that conducers *fold* in attributes' do
+      c = new_conducer
+
+      assert{ c.update_attributes :key => {:a => :b} }
+      assert{ c.update_attributes :key => {:nested => {:a => :b}} }
+      assert{ c.attributes =~ {:key => {:a => :b, :nested => {:a => :b}}}  }
+    end
 
 ##
 #

@@ -19,7 +19,7 @@
     def dependencies
       {
         'rails'         => [ 'rails'         , ' >= 3.1'   ] ,
-        'map'           => [ 'map'           , ' >= 5.4'   ] ,
+        'map'           => [ 'map'           , ' >= 5.7.0' ] ,
         'fattr'         => [ 'fattr'         , ' >= 2.2'   ] ,
         'tagz'          => [ 'tagz'          , ' >= 9.3'   ] ,
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] ,

@@ -134,7 +134,7 @@ module Dao
 
       set_mounts(self.class.mounted)
 
-      update_params(hashes)
+      update_params(*hashes)
 
       @default_initialize = nil
     end
@@ -162,7 +162,9 @@ module Dao
     end
 
     def update_params(*hashes)
-      hashes.flatten.compact.each{|hash| @params.update(hash)}
+      hashes.flatten.compact.each do |hash|
+        @params.add(hash)
+      end
     end
 
   ## a sane initialize is provided for you.  you are free to override it
@@ -238,7 +240,7 @@ module Dao
             end
         end
 
-      @attributes.set(attributes)
+      @attributes.add(attributes)
 
       update_mounted_attributes!
 
