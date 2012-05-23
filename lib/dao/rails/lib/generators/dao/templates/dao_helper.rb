@@ -1,53 +1,69 @@
 # -*- encoding : utf-8 -*-
 module DaoHelper
   def dao_form_for(*args, &block)
+    model = args.flatten.select{|arg| arg.respond_to?(:persisted?)}.last
+
     options = args.extract_options!.to_options!
 
-    model = args.flatten.detect{|arg| arg.respond_to?(:persisted?)}
+    options[:builder] = DaoFormBuilder
 
-    if model
-      first = args.shift
-      url = args.shift || options.delete(:url)
+    if options[:post] or model.blank?
+      options[:url] ||= (options.delete(:post) || request.fullpath)
+      options[:method] ||= :post
+    end
 
-      method = options.delete(:method)
-      html = dao_form_attrs(options)
+    args.push(options)
 
-      options.clear
+    if model.blank?
+      name = 'form'
+      model = Class.new(Dao::Conducer){ model_name(name) }.new(params[name])
+      args.unshift(model)
+    end
 
-      if model.persisted?
-        method ||= :put
-      else
-        method ||= :post
+    form_for(*args, &block)
+  end
+  alias_method(:dao_form, :dao_form_for)
+
+  class DaoFormBuilder
+    def initialize(object_name, object, view, options, block)
+    ##
+    #
+      @object_name = object_name
+      @object = object
+      @view = view
+      @options = options
+      @block = block
+
+    ##
+    #
+      html = @options[:html] || {}
+      html[:class] ||= 'dao'
+      unless html[:class] =~ /(\s|\A)dao(\Z|\s)/o
+        html[:class] << ' dao'
       end
 
-      url =
-        case method
-          when :put
-            url_for(:action => :update)
-          when :post
-            url_for(:action => :create)
-          else
-            './'
+    ##
+    #
+      @form = @object.form
+    end
+
+    def multipart?
+      true
+    end
+
+    %w( [] []= get set has has? ).each do |method|
+      class_eval <<-__
+        def #{ method }(*args, &block)
+          attributes.#{ method }(*args, &block)
         end
+      __
+    end
 
-      options[:url] = url
-      options[:html] = html.dup.merge(:method => method)
-      #options[:builder] = Dao::Form::Builder
-
-      args.push(model)
-      args.push(options)
-      
-      form_for(*args) do
-        block.call(model.form)
-      end
-    else
-      args.push(request.fullpath) if args.empty?
-      args.push(dao_form_attrs(options))
-      form_tag(*args, &block)
+    def method_missing(method, *args, &block)
+      return super unless @form.respond_to?(method)
+      @form.send(method, *args, &block)
     end
   end
-
-  alias_method(:dao_form, :dao_form_for)
 
   def dao_form_attrs(*args)
     args.flatten!
@@ -92,11 +108,10 @@ module DaoHelper
 
     @dao = api.send(mode, path, params)
     @dao.route = request.fullpath
-    #@dao.mode = mode
 
-    #unless options[:error!] == false
-      @dao.error! unless @dao.status.ok?
-    #end
+    unless options[:error!] == false
+      @dao.error! unless(@dao.status =~ or @dao.status == 420)
+    end
 
     block ? block.call(@dao) : @dao
   end
