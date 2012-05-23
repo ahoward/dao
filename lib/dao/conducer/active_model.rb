@@ -35,7 +35,14 @@ module Dao
 
       def default_model_name
         return model_name_for('Conducer') if self == Dao::Conducer
-        model_name_for(name.to_s.sub(/Conducer$/, '').sub(/(:|_)+$/, ''))
+
+        suffixes = /(Conducer|Resource|Importer|Presenter|Conductor)\Z/o
+
+        name = self.name.to_s
+        name.sub!(suffixes, '') unless name.sub(suffixes, '').blank?
+        name.sub!(/(:|_)+$/, '')
+
+        model_name_for(name)
       end
 
       def collection_name
