@@ -257,7 +257,7 @@ module Dao
       values = options.delete(:values) || options.delete(:checked)
 
       unless options.has_key?(:checked)
-        checked = !!attributes.get(keys)
+        checked = Coerce.boolean(attributes.get(keys))
         options[:checked] = checked if checked
       end
 
@@ -413,7 +413,7 @@ module Dao
           end
 
           opts = {:value => value}
-          opts[:selected] = !!selected if selected
+          opts[:selected] = Coerce.boolean(selected) if selected
           option_(opts){ content }
         end
       }

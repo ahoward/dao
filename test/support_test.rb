@@ -32,7 +32,6 @@ Testing Dao::Conducer do
     )
 
     assert{ Dao.normalize_parameters(params) }
-    assert{ params[:dao] = :normalized }
 
     assert{ params[:foos].is_a?(Hash) }
     assert{ params[:foos][:k] == 'v' }

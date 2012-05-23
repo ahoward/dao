@@ -104,9 +104,11 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["rails", " >= 3.1"])
   
-    spec.add_dependency(*["map", " >= 5.8.0"])
+    spec.add_dependency(*["map", " >= 6.0.0"])
   
     spec.add_dependency(*["fattr", " >= 2.2"])
+  
+    spec.add_dependency(*["coerce", " >= 0.0.3"])
   
     spec.add_dependency(*["tagz", " >= 9.3"])
   

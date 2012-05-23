@@ -19,8 +19,9 @@
     def dependencies
       {
         'rails'         => [ 'rails'         , ' >= 3.1'   ] ,
-        'map'           => [ 'map'           , ' >= 5.8.0' ] ,
+        'map'           => [ 'map'           , ' >= 6.0.0' ] ,
         'fattr'         => [ 'fattr'         , ' >= 2.2'   ] ,
+        'coerce'        => [ 'coerce'        , ' >= 0.0.3' ] ,
         'tagz'          => [ 'tagz'          , ' >= 9.3'   ] ,
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] ,
         'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
