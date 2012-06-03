@@ -212,6 +212,14 @@ module Dao
         select{|message| not message.strip.empty?}
     end
 
+    def global
+      reject{|k, v| k != Global}
+    end
+
+    def local
+      reject{|k, v| k == Global}
+    end
+
   # html generation methods
   #
     def to_html(*args)
@@ -251,13 +259,16 @@ module Dao
         __
 
         dl_(:class => "list"){
+          __
           emap.each do |key, message|
             title = Array(key).join(" ").titleize
 
             type = Array(key) == Array(Global) ? "global" : "field"
 
             dt_(:class => "title #{ type }"){ title }
+            __
             dd_(:class => "message #{ type }"){ message }
+            __
           end
         }
         __
