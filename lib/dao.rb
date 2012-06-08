@@ -18,7 +18,7 @@
 
     def dependencies
       {
-        'rails'         => [ 'rails'         , ' ~> 3.1'   ] ,
+        'rails'         => [ 'rails'         , ' >= 3.1'   ] ,
         'map'           => [ 'map'           , ' >= 6.0.0' ] ,
         'fattr'         => [ 'fattr'         , ' >= 2.2'   ] ,
         'coerce'        => [ 'coerce'        , ' >= 0.0.3' ] ,
