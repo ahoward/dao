@@ -13,6 +13,10 @@ module Dao
       def collection_for(models, *args, &block)
         collection_class.load(models, *args, &block)
       end
+
+      def collection
+        collection_class
+      end
     end
 
     class Collection < ::Array
