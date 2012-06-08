@@ -99,7 +99,6 @@ module Dao
     end
 
     %w[
-      model_name
       attributes
       form
       params
@@ -118,10 +117,12 @@ module Dao
       models, args = args.partition{|arg| arg.respond_to?(:persisted?) }
       hashes, args = args.partition{|arg| arg.is_a?(Hash)}
 
-      @model_name = self.class.model_name.singular.sub(/_+$/, '')
-      @attributes = Attributes.for(self)
-      @form = Form.for(self)
       @params = Map.new
+
+      @attributes = Attributes.for(self)
+
+      @form = Form.for(self)
+      @form.name = self.class.model_name.singular.sub(/_+$/, '')
 
       @errors = validator.errors
       @status = validator.status
@@ -137,6 +138,10 @@ module Dao
       update_params(*hashes)
 
       @default_initialize = nil
+    end
+
+    def model_name
+      self.class.model_name
     end
 
     def set_models(*models)

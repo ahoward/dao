@@ -70,12 +70,12 @@ module Dao
     fattr(:name) do
       name =
         case
-          when @object.respond_to?(:model_name)
-            @object.model_name
+          when @object.respond_to?(:form_name)
+            @object.form_name
           when @object.respond_to?(:name)
             @object.name
-          when @object.instance_variable_defined?('@model_name')
-            @object.instance_variable_get('@model_name')
+          when @object.instance_variable_defined?('@form_name')
+            @object.instance_variable_get('@form_name')
           when @object.instance_variable_defined?('@name')
             @object.instance_variable_get('@name')
           else
