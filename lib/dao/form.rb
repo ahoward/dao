@@ -69,14 +69,17 @@ module Dao
 
     fattr(:name) do
       name =
-        catch(:name) do
-          if @object.respond_to?(:name)
-            throw :name, @object.name
-          end
-          if @object.instance_variable_defined?('@name')
-            throw :name, @object.instance_variable_get('@name')
-          end
-          'form'
+        case
+          when @object.respond_to?(:model_name)
+            @object.model_name
+          when @object.respond_to?(:name)
+            @object.name
+          when @object.instance_variable_defined?('@model_name')
+            @object.instance_variable_get('@model_name')
+          when @object.instance_variable_defined?('@name')
+            @object.instance_variable_get('@name')
+          else
+            :form
         end
 
       case name
