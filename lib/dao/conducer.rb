@@ -69,7 +69,15 @@ module Dao
 
   ## crud-y lifecycle ctors
   #
-    def Conducer.for(action, *args, &block)
+    def Conducer.for(*args, &block)
+      action =
+        case args.first
+          when Symbol, String
+            args.shift.to_s
+          else
+            controller.send(:action_name).to_s
+        end
+
       allocate.tap do |conducer|
         action = Action.new(action, conducer)
         Dao.call(conducer, :init, action, *args, &block)
