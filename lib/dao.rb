@@ -26,7 +26,7 @@
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] ,
         'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
         'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] ,
-        'rails_current' => [ 'rails_current' , ' >= 1.6'   ] ,
+        'rails_current' => [ 'rails_current' , ' >= 1.6.2' ] ,
         'rails_nav'     => [ 'rails_nav'     , ' >= 1.1.0' ] ,
         'rails_helper'  => [ 'rails_helper'  , ' >= 1.3.0' ]
       }
