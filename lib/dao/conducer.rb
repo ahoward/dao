@@ -67,22 +67,40 @@ module Dao
       end
     end
 
-  ## crud-y lifecycle ctors
+  # instance methods
   #
+    %w[
+      attributes
+      form
+      params
+      errors
+      status
+      models
+      model
+      conduces
+    ].each{|attr| fattr(attr)}
+
+  # ctors
+  #
+    def Conducer.new(*args, &block)
+      allocate.tap do |conducer|
+        args = Dao.call(conducer, :extract_context!, *args)
+        Dao.call(conducer, :before_initialize, *args, &block)
+        Dao.call(conducer, :initialize, *args, &block)
+        Dao.call(conducer, :after_initialize, *args, &block)
+      end
+    end
+
     def Conducer.for(*args, &block)
       action =
         case args.first
-          when Symbol, String
+          when Action, Symbol, String
             args.shift.to_s
           else
             controller.send(:action_name).to_s
         end
 
-      allocate.tap do |conducer|
-        action = Action.new(action, conducer)
-        Dao.call(conducer, :init, action, *args, &block)
-        Dao.call(conducer, :initialize, *args, &block)
-      end
+      conducer = new(Action.new(action), *args, &block)
     end
 
     def Conducer.call(*args, &block)
@@ -97,36 +115,24 @@ module Dao
       __
     end
 
-  ## ctor
-  #
-    def Conducer.new(*args, &block)
-      allocate.tap do |conducer|
-        Dao.call(conducer, :init, *args, &block)
-        Dao.call(conducer, :initialize, *args, &block)
-      end
-    end
-
-    %w[
-      attributes
-      form
-      params
-      errors
-      status
-      models
-      model
-      conduces
-    ].each{|attr| fattr(attr)}
-
-  ## init runs *before* initialize - aka inside allocate
-  #
-    def init(*args, &block)
+    def extract_context!(*args)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       actions, args = args.partition{|arg| arg.is_a?(Action)}
+
+      controller = controllers.shift || Dao.current_controller || Dao.mock_controller
+      action = actions.shift
+
+      set_controller(controller) if controller
+      set_action(action) if action
+
+      args
+    end
+
+    def before_initialize(*args, &block)
       models, args = args.partition{|arg| arg.respond_to?(:persisted?) }
-      hashes, args = args.partition{|arg| arg.is_a?(Hash)}
+      params, args = args.partition{|arg| arg.is_a?(Hash)}
 
       @params = Map.new
-
       @attributes = Attributes.for(self)
 
       @form = Form.for(self)
@@ -135,29 +141,36 @@ module Dao
       @errors = validator.errors
       @status = validator.status
 
-      set_controller(controllers.shift || Dao.current_controller || Dao.mock_controller)
-
-      set_action(actions.shift) unless actions.empty?
-
       set_models(models)
 
       set_mounts(self.class.mounted)
 
-      update_params(*hashes)
+      update_params(*params) unless params.empty?
 
-      @default_initialize = nil
+      @initialize_overridden = true
     end
 
-    def model_name
-      self.class.model_name
+    def initialize(*args, &block)
+      @initialize_overridden = false
+      update_models(models) unless models.empty?
     end
 
+    def after_initialize(*args, &block)
+      initialize_for_action(*args, &block)
+      update_attributes(params) unless params.empty?
+    end
+
+    def initialize_for_action(*args, &block)
+      @action.call(:initialize, *args, &block)
+    end
+
+  #
     def set_models(*models)
       @models =
         models.flatten.compact
 
       candidates =
-        @models.select{|model| model.class.model_name == self.class.model_name}
+        @models.select{|model| model.class.model_name == model_name}
 
       @model =
         case candidates.size == 1
@@ -174,24 +187,13 @@ module Dao
       end
     end
 
-    def update_params(*hashes)
-      hashes.flatten.compact.each do |hash|
-        @params.add(hash)
-      end
-    end
-
-  ## a sane initialize is provided for you.  you are free to override it
-  # *** without *** calling super
-  #
-    def initialize(*args, &block)
-      initialize_for_action(*args, &block)
-      update_models(models) unless models.empty?
-      update_attributes(params) unless params.empty?
-    end
-
-    def set_mounts(list)
-      list.each do |args, block|
-        mount(*args, &block)
+    def update_models(*models)
+      models.flatten.compact.each do |model|
+        if conduces?(model)
+          update_attributes(model.attributes)
+        else
+          update_attributes(model_key_for(model), model.attributes)
+        end
       end
     end
 
@@ -204,10 +206,7 @@ module Dao
       end.demodulize.underscore
     end
 
-    def initialize_for_action(*args, &block)
-      @action.call(:initialize, *args, &block)
-    end
-
+  #
     def conduces(*args)
       if args.empty?
         @model
@@ -228,16 +227,35 @@ module Dao
       conduces == model
     end
 
-    def update_models(*models)
-      models.flatten.compact.each do |model|
-        if conduces?(model)
-          update_attributes(model.attributes)
-        else
-          update_attributes(model_key_for(model), model.attributes)
-        end
+  #
+    def set_mounts(list)
+      list.each do |args, block|
+        mount(*args, &block)
       end
     end
 
+    def mount(object, *args, &block)
+      mounted = object.mount(self, *args, &block)
+    ensure
+      if mounted
+        Dao.ensure_interface!(mounted, :_set, :_key, :_value, :_clear)
+        self.mounted.push(mounted)
+      end
+    end
+
+    def mounted
+      @mounted ||= []
+    end
+
+    def self.mount(*args, &block)
+      mounted.push([args, block])
+    end
+
+    def self.mounted
+      @mounted ||= []
+    end
+
+  #
     def update_attributes(*args, &block)
       attributes =
         case
@@ -325,7 +343,14 @@ module Dao
       end
     end
 
-  ## id support 
+  #
+    def update_params(*hashes)
+      hashes.flatten.compact.each do |hash|
+        @params.add(hash)
+      end
+    end
+
+  # id support 
   #
     def id(*args)
       if args.blank?
@@ -357,19 +382,19 @@ module Dao
       object.respond_to?(:persisted?)
     end
 
-  ## mixin controller support
+  # mixin controller support
   #
     module_eval(&ControllerSupport)
 
-  ## mixin callback support
+  # mixin callback support
   #
     module_eval(&CallbackSupport)
 
-  ## mixin view support
+  # mixin view support
   #
     module_eval(&ViewSupport)
 
-  ##
+  # persistence
   #
     def save
       default_save
@@ -423,29 +448,8 @@ module Dao
       true
     end
 
-  ## misc
+  # misc
   #
-    def mount(object, *args, &block)
-      mounted = object.mount(self, *args, &block)
-    ensure
-      if mounted
-        Dao.ensure_interface!(mounted, :_set, :_key, :_value, :_clear)
-        self.mounted.push(mounted)
-      end
-    end
-
-    def mounted
-      @mounted ||= []
-    end
-
-    def self.mount(*args, &block)
-      mounted.push([args, block])
-    end
-
-    def self.mounted
-      @mounted ||= []
-    end
-
     def key_for(key)
       Dao.key_for(key)
     end

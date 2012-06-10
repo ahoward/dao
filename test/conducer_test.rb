@@ -142,6 +142,7 @@ Testing Dao::Conducer do
       params = {:key => :val}
 
       %w( new edit ).each do |action|
+$pry=true
         o = assert{ c.for(action, :a, :b, :c, params) }
         assert{ o.action == action }
         assert{ o.key == :val }
