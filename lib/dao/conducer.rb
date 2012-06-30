@@ -108,7 +108,7 @@ module Dao
     end
 
     %w( new create edit update destroy ).each do |action|
-      module_eval <<-__, __FILE__, __LINE__
+      class_eval <<-__, __FILE__, __LINE__
         def Conducer.for_#{ action }(*args, &block)
           Conducer.for(#{ action.inspect }, *args, &block)
         end
@@ -384,15 +384,15 @@ module Dao
 
   # mixin controller support
   #
-    module_eval(&ControllerSupport)
+    class_eval(&ControllerSupport)
 
   # mixin callback support
   #
-    module_eval(&CallbackSupport)
+    class_eval(&CallbackSupport)
 
   # mixin view support
   #
-    module_eval(&ViewSupport)
+    class_eval(&ViewSupport)
 
   # persistence
   #

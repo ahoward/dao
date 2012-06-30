@@ -27,6 +27,10 @@ if defined?(Rails)
       #initializer "dao.middleware" do |app|
         #app.middleware.use Dao::Middleware::ParamsParser
       #end
+       
+      config.after_initialize do
+        Dao::Conducer.install_routes!
+      end
 
     # yes yes, this should probably be somewhere else...
     #
