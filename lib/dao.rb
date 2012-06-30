@@ -27,7 +27,7 @@
         'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
         'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] ,
         'rails_current' => [ 'rails_current' , ' >= 1.7.0' ] ,
-        'rails_nav'     => [ 'rails_nav'     , ' >= 1.2.0' ] ,
+        'rails_nav'     => [ 'rails_nav'     , ' >= 1.3.0' ] ,
         'rails_helper'  => [ 'rails_helper'  , ' >= 1.3.0' ]
       }
     end
