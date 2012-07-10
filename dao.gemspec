@@ -118,9 +118,9 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["wrap", " >= 1.5.0"])
   
-    spec.add_dependency(*["rails_current", " >= 1.6.2"])
+    spec.add_dependency(*["rails_current", " >= 1.7.0"])
   
-    spec.add_dependency(*["rails_nav", " >= 1.1.0"])
+    spec.add_dependency(*["rails_nav", " >= 1.3.0"])
   
     spec.add_dependency(*["rails_helper", " >= 1.3.0"])
   
