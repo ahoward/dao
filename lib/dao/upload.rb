@@ -152,6 +152,13 @@ class Upload < ::Map
       end
     end
 
+    def path_for(arg)
+      [:original_path, :original_filename, :path, :filename, :pathname].
+        map{|msg| arg.send(msg).to_s if arg.respond_to?(msg)}.
+        compact.
+        first or raise("could not find path_for(#{ arg.inspect })")
+    end
+
     alias_method('mount', 'new')
   end
 
@@ -161,7 +168,7 @@ class Upload < ::Map
   attr_accessor :hidden_key
   attr_accessor :name
   attr_accessor :value
-  attr_accessor :path
+  attr_reader :path
   attr_accessor :dirname
   attr_accessor :basename
   attr_accessor :io
@@ -192,6 +199,8 @@ class Upload < ::Map
   end
 
   def _set(value)
+    return unless value
+
     value =
       case
         when value.is_a?(Hash)
@@ -216,6 +225,8 @@ class Upload < ::Map
     url = @value ? File.join(Upload.url, @value) : @placeholder.url
 
     update(:file => @io, :cache => @value, :url => url)
+
+    set_path(Upload.path_for(@io)) rescue nil
   end
 
   def _key
@@ -280,7 +291,7 @@ class Upload < ::Map
     copied = false
 
     Upload.rewind(io) do
-      src = io.path
+      src = Upload.path_for(io)
       dst = path
 
       strategies = [
@@ -305,14 +316,25 @@ class Upload < ::Map
   end
 
   def gcopen(path)
-    @path = path
-    @dirname, @basename = File.split(@path)
-    @value = File.join(File.basename(@dirname), @basename).strip
+    set_path(path)
     @io = open(@path, 'rb')
     IOs[object_id] = @io.fileno
     ObjectSpace.define_finalizer(self, Upload.method(:finalizer).to_proc)
     @io
   end
+
+  def set_path(path)
+    if path
+      @path = path.to_s.strip
+      @dirname, @basename = File.split(@path)
+      @value = File.join(File.basename(@dirname), @basename).strip
+      @path
+    else
+      @path, @dirname, @basename, @value = nil
+    end
+  end
+
+  alias_method('path=', 'set_path')
 
   def inspect
     {

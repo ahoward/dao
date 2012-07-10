@@ -18,10 +18,10 @@ module Dao
       def set_controller(controller)
         @controller = controller
       ensure
-        default_url_options[:protocol] = @controller.request.protocol
-        default_url_options[:host] = @controller.request.host
-        default_url_options[:port] = @controller.request.port
-        @action = Action.new(@controller.send(:action_name).to_s, self)
+        if defined?(default_url_options)
+          [:protocol, :host, :post].each{|attr| default_url_options[attr] = @controller.request.send(attr)}
+        end
+        @action = Action.new((@controller.send(:action_name) || :index).to_s, self)
       end
 
     ##

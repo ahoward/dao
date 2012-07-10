@@ -142,7 +142,6 @@ Testing Dao::Conducer do
       params = {:key => :val}
 
       %w( new edit ).each do |action|
-$pry=true
         o = assert{ c.for(action, :a, :b, :c, params) }
         assert{ o.action == action }
         assert{ o.key == :val }
@@ -461,6 +460,8 @@ $pry=true
 
   #
     testing 'that the default save uses the mounted _value and _clears it' do
+begin
+$pry=true
       conducer_class =
         new_conducer_class do
           mount Dao::Upload, :up, :placeholder => '/images/foo.jpg'
@@ -471,7 +472,7 @@ $pry=true
       up = Upload.new(path)
       comment = Comment.new
 
-      c = conducer_class.new( comment, :up => {:file => up} ) 
+      c = conducer_class.new( comment, :up => {:file => Upload.new(path)} ) 
 
       upload = assert{ c.get(:up) }
       assert{ upload.is_a?(Dao::Upload) }
@@ -486,6 +487,9 @@ $pry=true
       value_was_cleared = assert{ !test(?f, upload.path) }
 
       assert{ test(?s, path) }
+ensure
+$pry=false
+end
     end
   end
 
@@ -616,6 +620,10 @@ protected
 
     def initialize(path)
       super(IO.read(@path = path))
+    end
+
+    def dup
+      self.class.new(path)
     end
   end
 

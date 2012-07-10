@@ -116,6 +116,13 @@
     upload.rb
   ]
 
+
+  unless defined?(::UUIDTools::Config)
+    ::UUIDTools.module_eval do
+      Config = ::RbConfig # shuts up warnings...
+    end
+  end
+
 # protect against rails' too clever reloading
 #
 =begin

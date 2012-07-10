@@ -283,6 +283,7 @@ module Dao
 
       deepest_mounts_first.each do |mount|
         value = @attributes.get(mount._key)
+        next if(value.nil? or value.object_id == mount.object_id)
         mount._set(value) if mount.respond_to?(:_set)
         @attributes.set(mount._key => mount)
       end
