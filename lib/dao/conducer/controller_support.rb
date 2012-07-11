@@ -19,7 +19,7 @@ module Dao
         @controller = controller
       ensure
         if defined?(default_url_options)
-          [:protocol, :host, :post].each{|attr| default_url_options[attr] = @controller.request.send(attr)}
+          [:protocol, :host, :port].each{|attr| default_url_options[attr] = @controller.request.send(attr)}
         end
         @action = Action.new((@controller.send(:action_name) || :index).to_s, self)
       end
