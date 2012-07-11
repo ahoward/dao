@@ -24,6 +24,10 @@ module Dao
         @action = Action.new((@controller.send(:action_name) || :index).to_s, self)
       end
 
+      def request
+        @controller.send(:request) if @controller
+      end
+
     ##
     #
       class Action < ::String
