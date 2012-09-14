@@ -396,9 +396,18 @@ module Dao
         list.each do |pair|
           returned = block.call(pair)
 
+          opts = Map.new
+
           case returned
             when Array
               content, value, selected, *ignored = returned
+
+              if value.is_a?(Hash)
+                map = Map.for(value)
+                value = map.delete(:value)
+                selected = map.delete(:selected)
+                opts.update(map)
+              end
             when Hash
               content = returned[:content]
               value = returned[:value]
@@ -415,7 +424,7 @@ module Dao
             selected = value.to_s==selected_value.to_s
           end
 
-          opts = {:value => value}
+          opts[:value] = value
           opts[:selected] = Coerce.boolean(selected) if selected
           option_(opts){ content }
         end
