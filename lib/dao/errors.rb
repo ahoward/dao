@@ -269,7 +269,7 @@ module Dao
         __
 
         unless global_errors.empty?
-          ul_(:class => "global list"){
+          ol_(:class => "global list"){
           __
             global_errors.each do |message|
               li_(:class => "message"){ message }
