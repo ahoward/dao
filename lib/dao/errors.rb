@@ -241,37 +241,61 @@ module Dao
 
       at_least_one_error = false
 
-      emap = Map.new
+      global_errors = []
+      field_errors = Hash.new{|h,k| h[k] = []}
 
       errors.each do |e|
         e.full_messages.each do |key, message|
           at_least_one_error = true
-          emap[key] ||= message
+
+          type = Array(key) == Array(Global) ? "global" : "field"
+
+          case type
+            when 'global'
+              global_errors.push(message).uniq!
+
+            when 'field'
+              field_errors[key].push(message).uniq!
+          end
         end
       end
 
       return "" unless at_least_one_error
 
+
       div_(:class => "dao errors summary"){
         __
-
-        h3_(:class => "caption"){ "We're so sorry, but can you please fix the following errors?" }
+        h3_(:class => "caption"){ "Sorry, we encountered some errors:" }
         __
 
-        dl_(:class => "list"){
+        unless global_errors.empty?
+          ul_(:class => "global list"){
           __
-          emap.each do |key, message|
-            title = Array(key).join(" ").titleize
+            global_errors.each do |message|
+              li_(:class => "message"){ message }
+              __
+            end
+          }
+          __
+        end
 
-            type = Array(key) == Array(Global) ? "global" : "field"
+        unless field_errors.empty?
+          dl_(:class => "field list"){
+          __
+            field_errors.each do |key, messages|
+              title = Array(key).join(" ").titleize
 
-            dt_(:class => "title #{ type }"){ title }
-            __
-            dd_(:class => "message #{ type }"){ message }
-            __
-          end
-        }
-        __
+              dt_(:class => "title"){ title }
+              __
+
+              messages.each do |message|
+                dd_(:class => "message"){ message }
+                __
+              end
+            end
+          }
+          __
+        end
       }
     end
 
