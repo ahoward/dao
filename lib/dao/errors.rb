@@ -113,31 +113,21 @@ module Dao
     alias_method('add_to_base', 'add')
     alias_method('add_to_base!', 'add!')
 
-    def relay(other, options = {})
-      case
-        when other.respond_to?(:each)
-          other.each do |key, messages|
-            Array(messages).each do |message|
-              add(key, message, options = {})
-            end
-          end
-        when other.respond_to?(:each_pair)
-          other.each_pair do |key, messages|
-            Array(messages).each do |message|
-              add(key, message, options = {})
-            end
-          end
+    def relay(*args)
+      options = args.size > 1 ? Map.options_for!(args) : Map.new
 
-        when other.respond_to?(:each_slice)
-          Array(other).flatten.each_slice(2) do |key, messages|
-            Array(messages).each do |message|
-              add(key, message, options = {})
-            end
-          end
+      prefix = Array(options.delete(:prefix))
 
-        else
-          raise(ArgumentError, other.class.name)
+      args.flatten.compact.each do |source|
+        errors = source.respond_to?(:errors) ? source.errors : source
+
+        errors.each do |*argv|
+          msgs = Array(argv.pop)
+          key = prefix + Array(argv.pop)
+          msgs.each{|msg| add(Array(options[:key] || key), msg, options)}
+        end
       end
+
       self
     end
 

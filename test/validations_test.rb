@@ -25,19 +25,40 @@ Testing Dao::Validations do
   testing 'that errors can relay from other each-able sources' do
     errors = Dao::Errors.new
 
-    source =
+    messages = [
+      'foo is fucked',
+      'foo is fucked twice',
+    ]
+
+    model =
       assert do
-        c = Class.new Hash do
-          def self.human_attribute_name(*a) a.first.to_s end
+        model_class = Class.new(Hash) do
+          def self.human_attribute_name(*args)
+            args.first.to_s
+          end
+
+          def errors
+            @errors ||= ActiveModel::Errors.new(self)
+          end
         end
-        m = c.new 
-        e = ActiveModel::Errors.new(m)
-        e.add('foo', 'is fucked')
+        m = model_class.new
+        messages.each{|message| m.errors.add(:foo, message)}
+        m
       end
 
-    assert{ errors.relay(source) }
+    [model, model.errors].each do |source|
+      assert{ errors.relay(source) }
+      assert{ errors.on(:foo) == messages }
+      assert{ errors.clear }
 
-    assert{ errors.on(:foo) }
+      assert{ errors.relay(source, :key => :bar) }
+      assert{ errors.on(:bar) == messages }
+      assert{ errors.clear }
+
+      assert{ errors.relay(source, :prefix => [:a, :b, :c]) }
+      assert{ errors.on(:a, :b, :c, :foo) == messages }
+      assert{ errors.clear }
+    end
   end
 
 ## validations
