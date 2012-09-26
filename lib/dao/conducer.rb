@@ -156,8 +156,10 @@ module Dao
     end
 
     def after_initialize(*args, &block)
-      initialize_for_action(*args, &block)
-      update_attributes(params) unless params.empty?
+      unless @initialize_overridden
+        initialize_for_action(*args, &block)
+        update_attributes(params) unless params.empty?
+      end
     end
 
     def initialize_for_action(*args, &block)
