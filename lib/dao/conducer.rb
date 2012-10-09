@@ -226,7 +226,7 @@ module Dao
     end
 
     def conduces?(model)
-      conduces == model
+      conduces == model or self.class.conduces?(model)
     end
 
   #

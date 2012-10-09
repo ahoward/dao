@@ -190,6 +190,18 @@ module Dao
       end
     end
 
+    def flatten
+      hash = Hash.new
+
+      depth_first_each do |keys, value|
+        index = keys.pop
+        hash[keys] ||= []
+        hash[keys].push("#{ value }")
+      end
+
+      hash
+    end
+
     def each_full_message
       full_messages.each{|msg| yield msg}
     end
