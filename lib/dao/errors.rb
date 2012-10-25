@@ -232,11 +232,11 @@ module Dao
       if block
         define_method(:to_html, &block)
       else
-        default_errors_to_html(*args)
+        errors_to_html(*args)
       end
     end
 
-    def Errors.default_errors_to_html(*args)
+    def Errors.errors_to_html(*args)
       error = args.shift
       options = Map.options_for!(args)
       errors = [error, *args].flatten.compact
@@ -265,16 +265,16 @@ module Dao
       return "" unless at_least_one_error
 
 
-      div_(:class => "dao errors summary"){
+      div_(:class => errors_css[:container]){
         __
-        h3_(:class => "caption"){ "Sorry, we encountered some errors:" }
+        h3_(:class => errors_css[:heading]){ "Sorry, we encountered some errors:" }
         __
 
         unless global_errors.empty?
-          ol_(:class => "global list"){
+          ol_(:class => "global #{ errors_css[:list] }"){
           __
             global_errors.each do |message|
-              li_(:class => "message"){ message }
+              li_(:class => errors_css[:message]){ message }
               __
             end
           }
@@ -282,16 +282,16 @@ module Dao
         end
 
         unless field_errors.empty?
-          dl_(:class => "field list"){
+          dl_(:class => "field #{ errors_css[:list] }"){
           __
             field_errors.each do |key, messages|
               title = Array(key).join(" ").titleize
 
-              dt_(:class => "title"){ title }
+              dt_(:class => errors_css[:title]){ title }
               __
 
               messages.each do |message|
-                dd_(:class => "message"){ message }
+                dd_(:class => errors_css[:message]){ message }
                 __
               end
             end
@@ -299,6 +299,26 @@ module Dao
           __
         end
       }
+    end
+
+  # Errors.errors_css[:container] += " alert alert-error"
+  #
+    def Errors.errors_css
+      @errors_css ||= Map.new(
+        :container => "dao errors summary",
+
+        :heading   => "caption",
+
+        :list      => "list",
+
+        :message   => "message",
+
+        :title     => "title"
+      )
+    end
+
+    def Errors.default_errors_to_html(*args)
+      Errors.errors_to_html(*args)
     end
 
     def to_s(*args, &block)

@@ -30,10 +30,39 @@ Testing Dao::Conducer do
       assert{ c.models == [comment, post, user] }
       assert{ c.model == comment }
       assert{ c.model == c.conduces }
+    end
 
-      assert{ c.conduces(post) }
-      assert{ c.models == [post, comment, user] }
-      assert{ c.model == post }
+  #
+    testing 'that the conduced model can be declared at the class level' do
+      user = User.new
+      post = Post.new
+      comment = Comment.new
+      params = {}
+
+      args = [comment, post, user, params]
+
+      c = new_conducer(*args){ conduces User }
+
+      assert{ c.models == [comment, post, user] }
+      assert{ c.model == user }
+      assert{ c.model == c.conduces }
+    end
+
+  #
+    testing 'that the conduced model can be declared at the instance level' do
+      user = User.new
+      post = Post.new
+      comment = Comment.new
+      params = {}
+
+      args = [comment, post, user, params]
+
+      c = new_conducer(*args)
+
+      c.conduces(user)
+
+      assert{ c.models == [user, comment, post] }
+      assert{ c.model == user }
       assert{ c.model == c.conduces }
     end
   end
@@ -688,7 +717,7 @@ protected
     end
 
     def inspect(*args, &block)
-      "#{ self.class.name }( #{ attributes.inspect } )"
+      "#{ self.class.name }(#{ attributes.inspect.strip })"
     end
 
     def errors

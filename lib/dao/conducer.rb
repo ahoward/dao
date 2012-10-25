@@ -65,6 +65,23 @@ module Dao
             raise Error.new(*args, &block)
         end
       end
+
+      def conduces?(model)
+        model_class = model.is_a?(Class) ? model : model.class
+        model_class.model_name == (self.conduces || self).model_name
+      end
+
+      def conduces(*args)
+        unless args.blank?
+          @conduces = args.shift
+          raise(ArgumentError, @conduces.inspect) unless @conduces.respond_to?(:model_name)
+        end
+        @conduces ||= nil
+      end
+
+      def conduces=(model)
+        conduces(model)
+      end
     end
 
   # instance methods
@@ -172,11 +189,11 @@ module Dao
         models.flatten.compact
 
       candidates =
-        @models.select{|model| model.class.model_name == model_name}
+        @models.select{|model| conduces?(model)}
 
       @model =
-        case candidates.size == 1
-          when 1
+        case
+          when candidates.size == 1
             candidates.first
           else
             @models.first
@@ -226,7 +243,11 @@ module Dao
     end
 
     def conduces?(model)
-      conduces == model or self.class.conduces?(model)
+      if @model
+        @model == model
+      else
+        self.class.conduces?(model)
+      end
     end
 
   #
@@ -490,7 +511,7 @@ module Dao
     end
 
     def inspect
-      "#{ self.class.name }(#{ @attributes.inspect.chomp })"
+      "#{ self.class.name }(#{ @attributes.inspect.strip })"
     end
 
     def to_s
