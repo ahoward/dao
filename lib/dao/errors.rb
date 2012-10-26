@@ -324,5 +324,48 @@ module Dao
     def to_s(*args, &block)
       to_html(*args, &block)
     end
+
+    def Errors.to_hash(*args)
+      error = args.shift
+      options = Map.options_for!(args)
+      errors = [error, *args].flatten.compact
+
+      map = Map.new
+      map[:global] = []
+
+      errors.each do |e|
+        e.full_messages.each do |key, message|
+          at_least_one_error = true
+
+          type = Array(key) == Array(Global) ? "global" : "field"
+
+          case type
+            when 'global'
+              map[:global].push("#{ message }")
+
+            when 'field'
+              k = [:fields, *key]
+              unless map.has?(k)
+                map.set(k, [])
+              end
+              map.get(k).push("#{ message }")
+          end
+        end
+      end
+
+      map.to_hash
+    end
+
+    def to_hash
+      Errors.to_hash(self)
+    end
+
+    def Errors.errors_to_text(*args)
+      to_hash(*args).to_yaml
+    end
+
+    def to_text
+      Errors.errors_to_text(self)
+    end
   end
 end

@@ -6,11 +6,12 @@
   require 'fileutils'
   require 'cgi'
   require 'tmpdir'
+  require 'yaml'
 
 # dao libs
 #
   module Dao
-    Version = '4.5.0' unless defined?(Version)
+    Version = '4.6.0' unless defined?(Version)
 
     def version
       Dao::Version
