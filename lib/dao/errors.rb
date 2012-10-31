@@ -171,7 +171,9 @@ module Dao
         index = keys.pop
         key = keys
         value = value.to_s
+
         next if value.strip.empty?
+
         if key == Global
           global_messages.push([key, value])
         else
@@ -321,8 +323,59 @@ module Dao
       Errors.errors_to_html(*args)
     end
 
-    def to_s(*args, &block)
-      to_html(*args, &block)
+    def to_s(format = :html, *args, &block)
+      case format.to_s
+        when /html/
+          to_html(*args, &block)
+
+        when /text/
+          to_text(*args, &block)
+      end
+    end
+
+    class KeyPrefixer
+      attr_accessor :object
+      attr_accessor :prefix
+      attr_accessor :global
+
+      def initialize(object)
+        @object = object
+
+        @prefix =
+          if @object && @object.respond_to?(:model_name)
+            @object.model_name.underscore
+          else
+            nil
+          end
+
+        @global = Array(Global)
+      end
+
+      def prefix(key)
+        is_global_key = key == @global || Array(key) == @global
+
+        if @prefix
+          if is_global_key
+            @prefix
+          else
+            ["#{ @prefix }.#{ key[0] }", *key[1..-1]]
+          end
+        else
+          if is_global_key
+            'global'
+          else
+            key
+          end
+        end
+      end
+    end
+
+    def key_prefixer
+      @key_prefixer ||= KeyPrefixer.new(object)
+    end
+
+    def prefix_key(key)
+      key_prefixer.prefix(key)
     end
 
     def Errors.to_hash(*args)
@@ -331,25 +384,13 @@ module Dao
       errors = [error, *args].flatten.compact
 
       map = Map.new
-      map[:global] = []
 
       errors.each do |e|
         e.full_messages.each do |key, message|
-          at_least_one_error = true
+          k = e.key_prefixer.prefix(key)
 
-          type = Array(key) == Array(Global) ? "global" : "field"
-
-          case type
-            when 'global'
-              map[:global].push("#{ message }")
-
-            when 'field'
-              k = [:fields, *key]
-              unless map.has?(k)
-                map.set(k, [])
-              end
-              map.get(k).push("#{ message }")
-          end
+          map.set(k, []) unless map.has?(k)
+          map.get(k).push("#{ message }")
         end
       end
 
@@ -361,7 +402,13 @@ module Dao
     end
 
     def Errors.errors_to_text(*args)
-      to_hash(*args).to_yaml
+      hash = to_hash(*args)
+
+      if hash.empty?
+        nil
+      else
+        hash.to_yaml
+      end
     end
 
     def to_text

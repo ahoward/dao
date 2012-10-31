@@ -17,7 +17,9 @@ module Dao
 
       class << Validator
         def mixin(*args, &block)
-          new(*args, &block).tap{|validator| validator.mixin = true}
+          new(*args, &block).tap do |validator|
+            validator.mixin = true
+          end
         end
       end
 
@@ -57,6 +59,8 @@ module Dao
           @object.send(:extend, Dao::Validations)
           @object.validator = self
         end
+
+        @errors.object = @object
 
         #@object.extend(InstanceExec) unless @object.respond_to?(:instance_exec)
       end
