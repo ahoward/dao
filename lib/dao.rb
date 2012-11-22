@@ -23,7 +23,7 @@
         'map'           => [ 'map'           , ' >= 6.0.0' ] ,
         'fattr'         => [ 'fattr'         , ' >= 2.2'   ] ,
         'coerce'        => [ 'coerce'        , ' >= 0.0.3' ] ,
-        'tagz'          => [ 'tagz'          , ' >= 9.3'   ] ,
+        'tagz'          => [ 'tagz'          , ' >= 9.6'   ] ,
         'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] ,
         'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
         'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] ,

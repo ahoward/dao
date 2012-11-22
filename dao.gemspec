@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.4.5"
+  spec.version = "4.6.1"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -88,6 +88,7 @@ Gem::Specification::new do |spec|
  "test/conducer_test.rb",
  "test/data",
  "test/data/han-solo.jpg",
+ "test/errors_test.rb",
  "test/form_test.rb",
  "test/helper.rb",
  "test/leak.rb",
@@ -110,7 +111,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["coerce", " >= 0.0.3"])
   
-    spec.add_dependency(*["tagz", " >= 9.3"])
+    spec.add_dependency(*["tagz", " >= 9.6"])
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
