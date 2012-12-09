@@ -19,17 +19,17 @@
 
     def dependencies
       {
-        'rails'         => [ 'rails'         , ' >= 3.1'   ] ,
-        'map'           => [ 'map'           , ' >= 6.0.0' ] ,
-        'fattr'         => [ 'fattr'         , ' >= 2.2'   ] ,
-        'coerce'        => [ 'coerce'        , ' >= 0.0.3' ] ,
-        'tagz'          => [ 'tagz'          , ' >= 9.6'   ] ,
-        'multi_json'    => [ 'multi_json'    , ' >= 1.0.3' ] ,
-        'uuidtools'     => [ 'uuidtools'     , ' >= 2.1.2' ] ,
-        'wrap'          => [ 'wrap'          , ' >= 1.5.0' ] ,
-        'rails_current' => [ 'rails_current' , ' >= 1.7.0' ] ,
-        'rails_nav'     => [ 'rails_nav'     , ' >= 1.3.0' ] ,
-        'rails_helper'  => [ 'rails_helper'  , ' >= 1.3.0' ]
+        'rails'             => [ 'rails'             , ' >= 3.1'   ] ,
+        'map'               => [ 'map'               , ' >= 6.0.0' ] ,
+        'fattr'             => [ 'fattr'             , ' >= 2.2'   ] ,
+        'coerce'            => [ 'coerce'            , ' >= 0.0.3' ] ,
+        'tagz'              => [ 'tagz'              , ' >= 9.6'   ] ,
+        'multi_json'        => [ 'multi_json'        , ' >= 1.0.3' ] ,
+        'uuidtools'         => [ 'uuidtools'         , ' >= 2.1.2' ] ,
+        'wrap'              => [ 'wrap'              , ' >= 1.5.0' ] ,
+        'rails_current'     => [ 'rails_current'     , ' >= 1.7.0' ] ,
+        'rails_nav'         => [ 'rails_nav'         , ' >= 1.3.0' ] ,
+        'rails_errors2html' => [ 'rails_errors2html' , ' >= 1.3.0' ] ,
       }
     end
 
