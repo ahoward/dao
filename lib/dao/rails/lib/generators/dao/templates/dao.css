@@ -1,28 +1,18 @@
-/* dao errors */
+/* dao form errors */
 
-  .dao.errors {
-    font-weight: normal;
+  .errors-summary {
+    box-sizing: border-box;
     width: 100%;
-    border-bottom: 1px solid #ccc;
-    background-color: #ffe;
-    padding: 0.5em;
-  }
-
-  .dao.errors .caption {
-    font-weight: bold;
-    color: #333;
-    font-style: italic;
-    text-align: left;
-    margin-bottom: 0.5em;
-  }
-
-  .dao.errors .title {
-    padding-left: 1em;
+    height: auto;
     color: #666;
+    background-color: #fffff6;
+    padding: 1em;
+  }
+  .errors-caption {
+    font-weight: bold;
+  }
+  .errors-title {
+  }
+  .errors-message {
   }
 
-  .dao.errors .message {
-    font-style: italic;
-    font-weight: bold;
-    width: 100%;
-  }
