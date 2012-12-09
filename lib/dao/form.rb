@@ -213,14 +213,11 @@ module Dao
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
-      value =
-        if block.nil? and !options.has_key?(:value) 
-          value_for(attributes, keys)
-        else
-          block ? block.call(attributes.get(keys)) : options.delete(:value)
-        end
+      value = options.has_key?(:value) ? options.delete(:value) : value_for(attributes, keys)
 
-      button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
+      content = (block ? block.call : (options.delete(:content) || 'Submit'))
+
+      button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){ content }
     end
 
     def radio_button(*args, &block)
