@@ -63,7 +63,6 @@ module Dao
         valid?
         forcing_validity?
         errors
-        status
       ).each do |method|
         module_eval <<-__, __FILE__, __LINE__
           def #{ method }(*args, &block)

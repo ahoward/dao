@@ -228,7 +228,7 @@ module Dao
 
   # validations 
   #
-    include Validations
+    include Dao::Validations
 
   # delgate some methods to the context
   #
