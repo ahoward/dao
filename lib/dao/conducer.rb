@@ -91,7 +91,6 @@ module Dao
       form
       params
       errors
-      status
       models
       model
       conduces
@@ -156,7 +155,6 @@ module Dao
       @form.name = self.class.model_name.singular.sub(/_+$/, '')
 
       @errors = validator.errors
-      @status = validator.status
 
       set_models(models)
 
@@ -480,10 +478,6 @@ module Dao
 
     def errors
       validator.errors
-    end
-
-    def status
-      validator.status
     end
 
     def model_name
