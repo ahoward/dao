@@ -530,6 +530,7 @@ module Dao
 
     def options_for(*hashes)
       map = Map.new
+
       hashes.flatten.each do |h|
         case((data = h.delete(:data) || h.delete('data')))
           when Hash
@@ -542,6 +543,11 @@ module Dao
           map[attr_for(k)] = v unless v.nil?
         end
       end
+
+      %w( readonly disabled autofocus checked ).each do |attr|
+        map.delete(attr) unless Coerce.boolean(map[attr])
+      end
+
       map
     end
 
