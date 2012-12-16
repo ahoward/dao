@@ -5,7 +5,7 @@ module DaoHelper
 
     options = args.extract_options!.to_options!
 
-    options[:builder] = DaoFormBuilder
+    options[:builder] = Dao::Form::Builder
 
     if options[:post] or model.blank?
       options[:url] ||= (options.delete(:post) || request.fullpath)
@@ -23,47 +23,6 @@ module DaoHelper
     form_for(*args, &block)
   end
   alias_method(:dao_form, :dao_form_for)
-
-  class DaoFormBuilder
-    def initialize(object_name, object, view, options, block)
-    ##
-    #
-      @object_name = object_name
-      @object = object
-      @view = view
-      @options = options
-      @block = block
-
-    ##
-    #
-      html = @options[:html] || {}
-      html[:class] ||= 'dao'
-      unless html[:class] =~ /(\s|\A)dao(\Z|\s)/o
-        html[:class] << ' dao'
-      end
-
-    ##
-    #
-      @form = @object.form
-    end
-
-    def multipart?
-      true
-    end
-
-    %w( [] []= get set has has? ).each do |method|
-      class_eval <<-__
-        def #{ method }(*args, &block)
-          attributes.#{ method }(*args, &block)
-        end
-      __
-    end
-
-    def method_missing(method, *args, &block)
-      return super unless @form.respond_to?(method)
-      @form.send(method, *args, &block)
-    end
-  end
 
   def dao_form_attrs(*args)
     args.flatten!

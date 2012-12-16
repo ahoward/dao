@@ -488,6 +488,10 @@ module Dao
       @form
     end
 
+    def form_builder
+      Form::Builder
+    end
+
     def helper
       @helper ||= ::Helper.new
     end

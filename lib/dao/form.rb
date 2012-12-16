@@ -12,8 +12,43 @@ module Dao
   # builder stuff for compatibity with rails' form_for()
   #
     class Builder
-      def Builder.new(object_name, object, view, options, block)
-        form = Form.new(object)
+      def initialize(object_name, object, view, options, block)
+      ##
+      #
+        @object_name = object_name
+        @object = object
+        @view = view
+        @options = options
+        @block = block
+
+      ##
+      #
+        html = @options[:html] || {}
+        html[:class] ||= 'dao'
+        unless html[:class] =~ /(\s|\A)dao(\Z|\s)/o
+          html[:class] << ' dao'
+        end
+
+      ##
+      #
+        @form = @object.form
+      end
+
+      def multipart?
+        true
+      end
+
+      %w( [] []= get set has has? ).each do |method|
+        class_eval <<-__
+          def #{ method }(*args, &block)
+            attributes.#{ method }(*args, &block)
+          end
+        __
+      end
+
+      def method_missing(method, *args, &block)
+        return super unless @form.respond_to?(method)
+        @form.send(method, *args, &block)
       end
     end
 
