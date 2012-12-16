@@ -167,6 +167,10 @@ module Dao
 
   # html generation methods 
   #
+    def element(which, *args, &block)
+      send(which, *args, &block)
+    end
+
     def form(*args, &block)
       options = args.extract_options!.to_options! 
       keys = args.flatten
