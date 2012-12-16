@@ -196,10 +196,12 @@ module Dao
       keys = args.flatten
 
       content =
-        if block.nil?
-          keys.map{|key| key.to_s.titleize}.join(' ')
+        if block
+          block.call.to_s
         else
-          block ? block.call() : (options.delete(:content) || options.delete(:value))
+          options.delete(:content) ||
+          options.delete(:value) ||
+          keys.map{|key| key.to_s.titleize}.join(' ')
         end
 
       id = options.delete(:id) || id_for(keys + [:label])
