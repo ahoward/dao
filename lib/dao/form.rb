@@ -11,7 +11,7 @@ module Dao
 
   # builder stuff for compatibity with rails' form_for()
   #
-    class Builder < ::Form
+    class Builder < Form
       attr_accessor :object_name
       attr_accessor :view
       attr_accessor :options
