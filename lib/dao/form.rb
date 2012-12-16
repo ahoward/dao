@@ -47,7 +47,6 @@ module Dao
       end
 
       def method_missing(method, *args, &block)
-        return super unless @form.respond_to?(method)
         @form.send(method, *args, &block)
       end
     end
