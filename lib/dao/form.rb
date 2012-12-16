@@ -11,7 +11,12 @@ module Dao
 
   # builder stuff for compatibity with rails' form_for()
   #
-    class Builder
+    class Builder < ::Form
+      attr_accessor :object_name
+      attr_accessor :view
+      attr_accessor :options
+      attr_accessor :block
+
       def initialize(object_name, object, view, options, block)
       ##
       #
@@ -31,7 +36,7 @@ module Dao
 
       ##
       #
-        @form = @object.form
+        super(@object)
       end
 
       def multipart?
@@ -44,10 +49,6 @@ module Dao
             attributes.#{ method }(*args, &block)
           end
         __
-      end
-
-      def method_missing(method, *args, &block)
-        @form.send(method, *args, &block)
       end
     end
 
