@@ -11,44 +11,19 @@ module Dao
 
   # builder stuff for compatibity with rails' form_for()
   #
-    class Builder < Form
-      attr_accessor :object_name
-      attr_accessor :view
-      attr_accessor :options
-      attr_accessor :block
-
-      def initialize(object_name, object, view, options, block)
-      ##
-      #
-        @object_name = object_name
-        @object = object
-        @view = view
-        @options = options
-        @block = block
-
-      ##
-      #
-        html = @options[:html] || {}
-        html[:class] ||= 'dao'
-        unless html[:class] =~ /(\s|\A)dao(\Z|\s)/o
-          html[:class] << ' dao'
-        end
-
-      ##
-      #
-        super(@object)
-      end
-
-      def multipart?
-        true
-      end
-
-      %w( [] []= get set has has? ).each do |method|
-        class_eval <<-__
-          def #{ method }(*args, &block)
-            attributes.#{ method }(*args, &block)
+    module Builder
+      def Builder.new(object_name, object, view, options, block)
+        if object.respond_to?(:form)
+          html = options[:html] || {}
+          html[:class] ||= 'dao'
+          unless html[:class] =~ /(\s|\A)dao(\Z|\s)/o
+            html[:class] << ' dao'
           end
-        __
+
+          object.form
+        else
+          raise ArgumentError, object.class.name
+        end
       end
     end
 
@@ -163,6 +138,20 @@ module Dao
         else
           raise(ArgumentError.new("#{ status.inspect } (#{ status.class })"))
       end
+    end
+
+  # support for rails' forms...
+  #
+    def multipart?
+      true
+    end
+
+    %w( [] []= get set has has? ).each do |method|
+      class_eval <<-__
+        def #{ method }(*args, &block)
+          attributes.#{ method }(*args, &block)
+        end
+      __
     end
 
   # html generation methods 
