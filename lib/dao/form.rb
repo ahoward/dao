@@ -14,11 +14,13 @@ module Dao
     class Builder < Form
       def Builder.new(object_name, object, view, options, block)
         if object.respond_to?(:form)
+
           html = options[:html] || {}
           html[:class] ||= 'dao'
           unless html[:class] =~ /(\s|\A)dao(\Z|\s)/o
-            html[:class] << ' dao'
+            html[:class] << ' dao dao-form'
           end
+
           object.form
         else
           raise ArgumentError, object.class.name
