@@ -11,7 +11,7 @@ module Dao
 
   # builder stuff for compatibity with rails' form_for()
   #
-    module Builder
+    class Builder < Form
       def Builder.new(object_name, object, view, options, block)
         if object.respond_to?(:form)
           html = options[:html] || {}
@@ -19,7 +19,6 @@ module Dao
           unless html[:class] =~ /(\s|\A)dao(\Z|\s)/o
             html[:class] << ' dao'
           end
-
           object.form
         else
           raise ArgumentError, object.class.name
