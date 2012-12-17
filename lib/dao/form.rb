@@ -389,7 +389,7 @@ module Dao
         from = attributes.get(*key) if attributes.has?(*key)
       end
 
-      list = Array(from)
+      list = Array(from).map{|arg| arg.dup} # ensure dup'd
 
       case list.first
         when Hash, Array
