@@ -404,7 +404,7 @@ module Dao
         when nil, false
           nil
         when true
-          list.push(nil)
+          list.unshift(nil)
         else
           list.unshift(blank)
       end
