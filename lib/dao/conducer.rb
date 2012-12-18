@@ -100,7 +100,8 @@ module Dao
   #
     def Conducer.new(*args, &block)
       allocate.tap do |conducer|
-        args = Dao.call(conducer, :extract_context!, *args)
+        args = Dao.call(conducer, :process_arguments, *args)
+
         Dao.call(conducer, :before_initialize, *args, &block)
         Dao.call(conducer, :initialize, *args, &block)
         Dao.call(conducer, :after_initialize, *args, &block)
@@ -131,7 +132,7 @@ module Dao
       __
     end
 
-    def extract_context!(*args)
+    def process_arguments(*args)
       controllers, args = args.partition{|arg| arg.is_a?(ActionController::Base)}
       actions, args = args.partition{|arg| arg.is_a?(Action)}
 
@@ -141,7 +142,7 @@ module Dao
       set_controller(controller) if controller
       set_action(action) if action
 
-      args
+      args.map{|arg| arg.class == Hash ? Map.for(arg) : arg}
     end
 
     def before_initialize(*args, &block)
