@@ -376,9 +376,9 @@ module Dao
           when false
             blank = nil
           when nil, true
-            blank = ['', nil]
+            blank = ['', '']
           else
-            blank = [Array(blank).first, nil]
+            blank = [Array(blank).first, '']
         end
       end
 
@@ -391,7 +391,7 @@ module Dao
 
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
         if blank
-          option_{ blank.first || '' }
+          option_(:value => ''){ blank.first || '' }
         end
 
         unless list.empty?

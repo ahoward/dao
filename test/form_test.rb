@@ -49,7 +49,7 @@ Testing Dao::Form do
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option>42</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form_key"><option value="">42</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
       )
    end
 
@@ -58,7 +58,7 @@ Testing Dao::Form do
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option></option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form_key"><option value=""></option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
       )
    end
 
