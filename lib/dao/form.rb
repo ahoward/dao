@@ -121,26 +121,6 @@ module Dao
       end
     end
 
-    fattr(:status) do
-      status =
-        catch(:status) do
-          if @object.respond_to?(:status)
-            throw :status, @object.status
-          end
-          if @object.instance_variable_defined?('@status')
-            throw :status, @object.instance_variable_get('@status')
-          end
-          Status.new
-        end
-
-      case status
-        when Status
-          status
-        else
-          raise(ArgumentError.new("#{ status.inspect } (#{ status.class })"))
-      end
-    end
-
   # support for rails' forms...
   #
     fattr(:multipart){ true }
