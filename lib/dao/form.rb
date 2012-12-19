@@ -163,10 +163,8 @@ module Dao
       options = args.extract_options!.to_options! 
       keys = args.flatten
 
-      content =
-        if block
-          block.call.to_s
-        else
+      block ||=
+        proc do
           options.delete(:content) ||
           options.delete(:value) ||
           keys.map{|key| key.to_s.titleize}.join(' ')
@@ -177,7 +175,7 @@ module Dao
       error = error_for(keys, options.delete(:error))
       target = options.delete(:for) || id_for(keys)
 
-      label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error)){ content }
+      label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error), &block)
     end
 
     def input(*args, &block)
