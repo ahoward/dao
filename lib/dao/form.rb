@@ -346,6 +346,8 @@ module Dao
 
       name = options.delete(:name) || name_for(keys)
       from = options.delete(:from) || options.delete(:options) || options.delete(:values)
+
+      has_blank = options.has_key?(:blank) && options[:blank] != false
       blank = options.delete(:blank)
 
       selected =
@@ -378,13 +380,17 @@ module Dao
           list.map!{|element| [element, element]}
       end
 
-      case blank
-        when nil, false
-          nil
-        when true
-          list.unshift(nil)
-        else
-          list.unshift(blank)
+      if has_blank
+        case blank
+          when false
+            :nothing
+          when nil, true
+            list.unshift([nil, nil])
+          else
+            pair = Array(blank)
+            pair.push(blank) until pair.size == 2
+            list.unshift(pair)
+        end
       end
 
       selected_value =
@@ -553,7 +559,7 @@ module Dao
         end
       end
 
-      %w( readonly disabled autofocus checked ).each do |attr|
+      %w( readonly disabled autofocus checked multiple ).each do |attr|
         map.delete(attr) unless Coerce.boolean(map[attr])
       end
 
