@@ -345,7 +345,7 @@ module Dao
       keys = args.flatten
 
       name = options.delete(:name) || name_for(keys)
-      from = options.delete(:from) || options.delete(:options) || options.delete(:values)
+      values = options.delete(:values) || options.delete(:options) || options.delete(:from)
 
       has_blank = options.has_key?(:blank) && options[:blank] != false
       blank = options.delete(:blank)
@@ -361,13 +361,13 @@ module Dao
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
-      if from.nil?
+      if values.nil?
         key = keys.map{|key| "#{ key }"}
         key.last << "_options"
-        from = attributes.get(*key) if attributes.has?(*key)
+        values = attributes.get(*key) if attributes.has?(*key)
       end
 
-      list = Array(from).map{|arg| arg.dup} # ensure dup'd
+      list = Array(values).map{|arg| arg.dup} # ensure list is dup'd
 
       case list.first
         when Hash, Array
@@ -385,9 +385,7 @@ module Dao
           when nil, true
             list.unshift([nil, nil])
           else
-            pair = Array(blank)
-            pair.push(blank) until pair.size == 2
-            list.unshift(pair)
+            list.unshift(Array(blank).first, nil)
         end
       end
 
