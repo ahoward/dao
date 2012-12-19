@@ -361,8 +361,6 @@ module Dao
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
 
-      block ||= lambda{|pair| pair = Array(pair).flatten.compact; [pair.first, pair.last, selected=nil]}
-
       if from.nil?
         key = keys.map{|key| "#{ key }"}
         key.last << "_options"
@@ -406,7 +404,7 @@ module Dao
 
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
         list.each do |pair|
-          returned = block.call(pair)
+          returned = block ? block.call(pair) : pair 
 
           opts = Map.new
 
@@ -420,10 +418,12 @@ module Dao
                 selected = map.delete(:selected)
                 opts.update(map)
               end
+
             when Hash
               content = returned[:content]
               value = returned[:value]
               selected = returned[:selected]
+
             else
               content = returned
               value = returned
