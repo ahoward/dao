@@ -350,13 +350,6 @@ module Dao
       has_blank = options.has_key?(:blank) && options[:blank] != false
       blank = options.delete(:blank)
 
-      selected =
-        if options.has_key?(:selected)
-          options.delete(:selected)
-        else
-          value_for(attributes, keys)
-        end
-
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
@@ -367,7 +360,7 @@ module Dao
         values = attributes.get(*key) if attributes.has?(*key)
       end
 
-      list = Array(values).map{|arg| arg.dup} # ensure list is dup'd
+      list = Array(values).map{|value| value.dup rescue value} # ensure list is dup'd
 
       case list.first
         when Hash, Array
@@ -381,62 +374,63 @@ module Dao
       if has_blank
         case blank
           when false
-            :nothing
+            blank = nil
           when nil, true
-            list.unshift([nil, nil])
+            blank = ['', nil]
           else
-            list.unshift(Array(blank).first, nil)
+            blank = [Array(blank).first, nil]
         end
       end
 
       selected_value =
-        case selected
-          when Array
-            selected.first
-          when Hash
-            key = [:id, 'id', :value, 'value'].detect{|k| selected.has_key?(k)}
-            key ? selected[key] : selected
-          else
-            selected
+        if options.has_key?(:selected)
+          options.delete(:selected)
+        else
+          value_for(attributes, keys)
         end
 
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
-        list.each do |pair|
-          returned = block ? block.call(pair) : pair 
+        if blank
+          option_{ blank.first || '' }
+        end
 
-          opts = Map.new
+        unless list.empty?
+          list.each do |pair|
+            returned = block ? Dao.call(block, :call, pair.first, pair.last, selected_value) : pair 
 
-          case returned
-            when Array
-              content, value, selected, *ignored = returned
+            opts = Map.new
+            selected = nil
 
-              if value.is_a?(Hash)
-                map = Map.for(value)
-                value = map.delete(:value)
-                selected = map.delete(:selected)
-                opts.update(map)
-              end
+            case returned
+              when Array
+                content, value, selected, *ignored = returned
+                if value.is_a?(Hash)
+                  map = Map.for(value)
+                  value = map.delete(:value)
+                  selected = map.delete(:selected)
+                  opts.update(map)
+                end
 
-            when Hash
-              content = returned[:content]
-              value = returned[:value]
-              selected = returned[:selected]
+              when Hash
+                content = returned[:content]
+                value = returned[:value]
+                selected = returned[:selected]
 
-            else
-              content = returned
-              value = returned
-              selected = nil
+              else
+                content = returned
+                value = returned
+                selected = nil
+            end
+
+            if selected.nil?
+              selected = (value.to_s == selected_value.to_s)
+            end
+
+            opts[:value] = (value.nil? ? content : value)
+            opts[:selected] = Coerce.boolean(selected) if selected
+
+            option_(opts){ content }
           end
-
-          value ||= content
-
-          if selected.nil?
-            selected = value.to_s==selected_value.to_s
-          end
-
-          opts[:value] = value
-          opts[:selected] = Coerce.boolean(selected) if selected
-          option_(opts){ content }
         end
       }
     end
