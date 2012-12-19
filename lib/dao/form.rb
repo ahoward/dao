@@ -143,9 +143,7 @@ module Dao
 
   # support for rails' forms...
   #
-    def multipart?
-      true
-    end
+    fattr(:multipart){ true }
 
     %w( [] []= get set has has? ).each do |method|
       class_eval <<-__
