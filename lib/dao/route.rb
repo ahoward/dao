@@ -20,7 +20,7 @@ module Dao
       def pattern_for(route)
         route = Path.absolute_path_for(route.to_s)
         re = route.gsub(%r{/:[^/]+}, '/([^/]+)')
-        /#{ re }/ioux
+        /#{ re }/iux
       end
 
       def path_for(route, params = {})
