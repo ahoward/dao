@@ -59,7 +59,8 @@ module Dao
 
     def params_for(path)
       match = pattern.match(path).to_a
-      if match
+
+      unless match.empty?
         map = Map.new
         ignored = match.shift
         @keys.each_with_index do |key, index|
@@ -79,7 +80,7 @@ module Dao
       def match(name)
         each do |route|
           match = route.match(name)
-          return route if match
+          return route unless match.empty?
         end
         return nil
       end
