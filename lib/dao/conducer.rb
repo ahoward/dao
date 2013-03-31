@@ -517,4 +517,8 @@ module Dao
       inspect
     end
   end
+
+  Resource = Conducer
+  Presenter = Conducer
+  Conductor = Conducer
 end

@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.6.2"
+  spec.version = "4.6.4"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
