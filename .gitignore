@@ -6,4 +6,3 @@ db/
 test/db.yml
 TODO
 *.sw*
-pkg/

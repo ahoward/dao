@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "4.6.4"
+  spec.version = "5.0.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -33,7 +33,6 @@ Gem::Specification::new do |spec|
  "lib/dao/conducer/callback_support.rb",
  "lib/dao/conducer/collection.rb",
  "lib/dao/conducer/controller_support.rb",
- "lib/dao/conducer/nav_support.rb",
  "lib/dao/conducer/view_support.rb",
  "lib/dao/data.rb",
  "lib/dao/db.rb",
@@ -120,8 +119,6 @@ Gem::Specification::new do |spec|
     spec.add_dependency(*["wrap", " >= 1.5.0"])
   
     spec.add_dependency(*["rails_current", " >= 1.7.0"])
-  
-    spec.add_dependency(*["rails_nav", " >= 1.3.0"])
   
     spec.add_dependency(*["rails_errors2html", " >= 1.3.0"])
   
