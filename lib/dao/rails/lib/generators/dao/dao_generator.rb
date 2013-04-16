@@ -12,6 +12,9 @@ class DaoGenerator < Rails::Generators::NamedBase
       when /system/
         generate_system!
 
+      when /helper/
+        generate_helper!
+
       when /api/
         generate_system!
 
@@ -28,6 +31,10 @@ protected
   def generate_conducer!
     @conducer_name = ARGV.shift.sub(/_?conducer$/i, '') + '_conducer'
     template "conducer.rb", "app/conducers/#{ @conducer_name.underscore }.rb"
+  end
+
+  def generate_helper!
+    copy_file("dao_helper.rb", "app/helpers/dao_helper.rb")
   end
 
   def generate_system!
