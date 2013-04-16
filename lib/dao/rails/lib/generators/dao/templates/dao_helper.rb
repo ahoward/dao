@@ -60,12 +60,7 @@ module DaoHelper
     options = args.extract_options!.to_options!.dup
 
     options[:class] =
-      [args, options[:class]].
-        join(' ').
-        scan(%r/[^\s]+/).
-        push(' dao ').
-        uniq.
-        join(' ')
+      [args, options.delete(:class)].join(' ').scan(%r/[^\s]+/).push(' dao ').uniq.join(' ')
 
     options[:enctype] ||= "multipart/form-data"
 
