@@ -393,8 +393,8 @@ module Dao
 
       selected_values = {}
 
-      Array(select_value).flatten.each do |v|
-        selected_values[v.to_s] = true
+      Array(selected_value).flatten.compact.each do |val|
+        selected_values[val.to_s] = true
       end
 
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
