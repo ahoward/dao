@@ -358,6 +358,10 @@ module Dao
         values = attributes.get(*key) if attributes.has?(*key)
       end
 
+      if options[:multiple]
+        name += '[]'
+      end
+
       list = Array(values).map{|value| value.dup rescue value} # ensure list is dup'd
 
       case list.first
@@ -386,6 +390,12 @@ module Dao
         else
           value_for(attributes, keys)
         end
+
+      selected_values = {}
+
+      Array(select_value).flatten.each do |v|
+        selected_values[v.to_s] = true
+      end
 
       select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
         if blank
@@ -423,7 +433,7 @@ module Dao
             end
 
             if selected.nil?
-              selected = (value.to_s == selected_value.to_s)
+              selected = selected_values.has_key?(value.to_s)
             end
 
             opts[:value] = (value.nil? ? content : value)
