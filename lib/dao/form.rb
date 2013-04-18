@@ -388,7 +388,7 @@ module Dao
         if options.has_key?(:selected)
           options.delete(:selected)
         else
-          value_for(attributes, keys)
+          attributes.get(keys)
         end
 
       selected_values = {}
