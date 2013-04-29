@@ -39,29 +39,36 @@ module Dao
 
   # instance methods
   #
-    def cases
-      @cases ||= []
+    def aliases
+      @aliases ||= []
+    end
+
+    def Mode.alias(a, b)
+      a, b = Mode.for(a), Mode.for(b)
+      a.aliases.push(b) unless a.aliases.include?(b)
+      b.aliases.push(a) unless b.aliases.include?(a)
+      (a.aliases + b.aliases).uniq
     end
 
     def case_of?(other)
-      self == other or other.cases.include?(self)
+      a, b = self, Mode.for(other)
+      a == b or a.aliases.include?(b) or b.aliases.include?(a)
     end
 
     def ===(other)
       case_of?(other)
     end
 
-    Read = %w( options get head )
-    Write = %w( post put delete trace connect )
-    Http = Read + Write
-    Http.each do |verb|
-      Mode.add(verb)
-    end
+  # setup mode singletons and their aliases
+  #
+    HTTP = ( READ = %w[ get options head ] ) + ( WRITE = %w[ post put delete trace connect ] )
 
     Mode.add(:read)
-    Read.each{|m| Mode.read.cases.push(Mode.send(m))}
-
     Mode.add(:write)
-    Write.each{|m| Mode.write.cases.push(Mode.send(m))}
+
+    HTTP.each{|verb| Mode.add(verb)}
+
+    Mode.alias(:read, :get)
+    Mode.alias(:write, :post)
   end
 end

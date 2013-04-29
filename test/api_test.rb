@@ -48,88 +48,102 @@ Testing Dao do
   end
 
   testing 'that an api can be called with different modes' do
-    api_class =
-      assert{
-        Dao.api do
-          call(:foo) do
-            data.modes = []
-
-            Dao::Mode.list.each do |mode|
-              send(mode){ data.modes.push(mode) }
-            end
-          end
-        end
-      }
-    api = assert{ api_class.new }
-
     Dao::Mode.list.each do |mode|
-      result = api.mode(mode).call(:foo)
-      assert{ result.data.modes.include?(mode) }
-    end
-  end
-
-  testing 'that options/head/get are considered read modes' do
-    read_mode = assert{ Dao::Mode.read }
-
-    api_class =
-      assert{
-        Dao.api do
-          call(:foo) do
-            data.update :modes => []
-            read { data.modes.push(read_mode) }
-          end
-        end
-      }
-    api = assert{ api_class.new }
-
-    Dao::Mode::Read.each do |mode|
-      result = assert{ api.mode(mode).call(:foo) }
-      assert{ result.data.modes == [read_mode] }
-    end
-  end
-
-  testing 'that post/put/delete/trace/connect are considered write modes' do
-    write_mode = assert{ Dao::Mode.write }
-
-    api_class =
-      assert{
-        Dao.api do
-          call(:foo) do
-            data.update :modes => []
-            write { data.modes.push(write_mode) }
-          end
-        end
-      }
-    api = assert{ api_class.new }
-
-    Dao::Mode::Write.each do |mode|
-      result = assert{ api.mode(mode).call(:foo) }
-      assert{ result.data.modes == [write_mode] }
-    end
-  end
-
-  testing 'that the first, most specific, mode block encountered fires first' do
-    api_class =
-      assert{
-        Dao.api do
-          call(:foo) do
-            data.update :modes => []
-            Dao::Mode::Read.each do |mode|
-              send(mode){ data.modes.push(mode) }
+      api_class =
+        assert{
+          Dao.api do
+            call(:foo) do
+              send(mode){ data.update(:mode => mode) }
             end
-            read { data.modes.push(Dao::Mode.read) }
+          end
+        }
+      api = assert{ api_class.new }
+
+      assert{ api.mode(mode).call(:foo).data[:mode] == mode }
+    end
+  end
+
+  testing 'that read==get' do
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo) do
+            read { data.update :answer => 42 }
+          end
+
+          call(:bar) do
+            get { data.update :answer => 42.0 }
           end
         end
       }
     api = assert{ api_class.new }
 
-    read = Dao::Mode.read
-    result = assert{ api.mode(read).call(:foo) }
-    assert{ result.data.modes == [read] }
+    assert{ api.read.call(:foo).data.answer == 42 }
+    assert{ api.get.call(:foo).data.answer == 42 }
 
-    Dao::Mode::Read.each do |mode|
-      result = assert{ api.mode(mode).call(:foo) }
-      assert{ result.data.modes == [mode] }
+    assert{ api.read.call(:bar).data.answer == 42.0 }
+    assert{ api.get.call(:bar).data.answer == 42.0 }
+  end
+
+  testing 'that write==post' do
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo) do
+            write { data.update :answer => 42 }
+          end
+
+          call(:bar) do
+            post { data.update :answer => 42.0 }
+          end
+        end
+      }
+    api = assert{ api_class.new }
+
+    assert{ api.write.call(:foo).data.answer == 42 }
+    assert{ api.post.call(:foo).data.answer == 42 }
+
+    assert{ api.write.call(:bar).data.answer == 42.0 }
+    assert{ api.post.call(:bar).data.answer == 42.0 }
+  end
+
+  testing 'that aliases are re-defined in scope' do
+    api_class =
+      assert{
+        Dao.api do
+          call(:foo) do
+            data.update :a => mode
+            read { data.update :b => mode }
+            write { data.update :b => mode }
+          end
+
+          call(:bar) do
+            data.update :a => mode
+            get { data.update :b => mode }
+            post { data.update :b => mode }
+          end
+        end
+      }
+    api = assert{ api_class.new }
+
+
+    [:foo, :bar].each do |call|
+      result = assert{ api.read.call(call) }
+      assert{ result.data[:a] = Dao::Mode.read }
+      assert{ result.data[:b] = Dao::Mode.read }
+
+      result = assert{ api.get.call(call) }
+      assert{ result.data[:a] = Dao::Mode.read }
+      assert{ result.data[:b] = Dao::Mode.get }
+
+
+      result = assert{ api.write.call(call) }
+      assert{ result.data[:a] = Dao::Mode.write }
+      assert{ result.data[:b] = Dao::Mode.write }
+
+      result = assert{ api.post.call(call) }
+      assert{ result.data[:a] = Dao::Mode.write }
+      assert{ result.data[:b] = Dao::Mode.post }
     end
   end
 
