@@ -91,7 +91,7 @@ Testing Dao::Form do
 
   #
     block = proc do |content, value, selected_value|
-      is_selected = value.to_s == selected_value
+      is_selected = value.to_s == selected_value.to_s
       [content, value, is_selected]
     end
 
