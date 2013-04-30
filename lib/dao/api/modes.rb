@@ -47,6 +47,10 @@ module Dao
       end
     end
 
+    def on(mode, *args, &block)
+      send(mode.to_s.downcase, *args, &block)
+    end
+
     def mode=(mode)
       @mode = Mode.for(mode)
     end

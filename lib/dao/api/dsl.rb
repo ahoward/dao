@@ -36,16 +36,15 @@ module Dao
         @dsl ||= DSL.new(api=self)
         @dsl.evaluate(&block)
       end
+      alias_method('configure', 'evaluate')
     end
   end
 
   def Dao.api(&block)
     if block
-      api = Class.new(Api)
-      api.evaluate(&block)
-      api
+      Class.new(Api).tap{|api| api.evaluate(&block)}
     else
-      Api
+      Class.new(Api)
     end
   end
 end
