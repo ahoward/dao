@@ -332,7 +332,7 @@ module Dao
         if block.nil? and !options.has_key?(:value) 
           value_for(attributes, keys)
         else
-          block ? block.call(attributes.get(keys)) : options.delete(:value)
+          html_safe(block ? block.call(attributes.get(keys)) : options.delete(:value))
         end
 
       textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value.to_s }
@@ -513,6 +513,11 @@ module Dao
           else
             value
         end
+      html_safe(value)
+    end
+
+    def html_safe(value)
+      value ||= ''
       value.respond_to?(:html_safe) ? value : CGI.escapeHTML(value)
     end
 
