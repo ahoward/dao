@@ -3,14 +3,27 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "5.1.1"
+  spec.version = "5.1.2"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
 
   spec.files =
-["README",
+["Gemfile",
+ "Gemfile.lock",
+ "README",
  "Rakefile",
+ "bin",
+ "bin/erubis",
+ "bin/rackup",
+ "bin/rails",
+ "bin/rake",
+ "bin/rdoc",
+ "bin/ri",
+ "bin/sprockets",
+ "bin/thor",
+ "bin/tilt",
+ "bin/tt",
  "dao.gemspec",
  "lib",
  "lib/dao",
@@ -95,7 +108,7 @@ Gem::Specification::new do |spec|
  "test/testing.rb",
  "test/validations_test.rb"]
 
-  spec.executables = []
+  spec.executables = ["erubis", "rackup", "rails", "rake", "rdoc", "ri", "sprockets", "thor", "tilt", "tt"]
   
   spec.require_path = "lib"
 
@@ -110,7 +123,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["coerce", " >= 0.0.3"])
   
-    spec.add_dependency(*["tagz", " >= 9.6"])
+    spec.add_dependency(*["tagz", " >= 9.8"])
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
