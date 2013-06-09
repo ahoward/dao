@@ -33,10 +33,12 @@ module Dao
                 end
               end
             end
+            alias_method(:#{ mode.upcase }, :#{ mode })
 
             def #{ mode }?(&block)
               mode?(#{ mode.inspect }, &block)
             end
+            alias_method(:#{ mode.upcase }?, :#{ mode }?)
           __
 
           modes.push(mode)

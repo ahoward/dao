@@ -513,7 +513,7 @@ module Dao
           else
             value
         end
-      value.respond_to?(:html_safe) ? value : Tagz.escapeHTML(value)
+      value.respond_to?(:html_safe) ? value : CGI.escapeHTML(value)
     end
 
     def Form.prefix_for(name)
