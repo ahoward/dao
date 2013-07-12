@@ -11,7 +11,7 @@
 # dao libs
 #
   module Dao
-    Version = '5.1.2' unless defined?(Version)
+    Version = '5.2.0' unless defined?(Version)
 
     def version
       Dao::Version

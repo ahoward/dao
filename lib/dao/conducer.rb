@@ -496,6 +496,10 @@ module Dao
       @helper ||= ::Helper.new
     end
 
+    def h(*args)
+      CGI.escapeHTML(args.join(' '))
+    end
+
     def raise!(*args, &block)
       self.class.raise!(*args, &block)
     end

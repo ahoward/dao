@@ -38,7 +38,7 @@ module Dao
 
         suffixes = /(Conducer|Resource|Importer|Presenter|Conductor|Cell)\Z/o
 
-        name = self.name.to_s
+        name = self.name.split('::').last.to_s
         name.sub!(suffixes, '') unless name.sub(suffixes, '').blank?
         name.sub!(/(:|_)+$/, '')
 
