@@ -67,26 +67,21 @@ module Dao
 
       def extract_attributes!(object = @object)
         attributes =
-          catch(:attributes) do
-            if object.respond_to?(:attributes)
-              throw :attributes, object.attributes
-            end
-            if object.instance_variable_defined?('@attributes')
-              throw :attributes, object.instance_variable_get('@attributes')
-            end
-            if object.is_a?(Map)
-              throw :attributes, object
-            end
-            if object.respond_to?(:to_map)
-              throw :attributes, Map.new(object.to_map)
-            end
-            if object.is_a?(Hash)
-              throw :attributes, Map.new(object)
-            end
-            if object.respond_to?(:to_hash)
-              throw :attributes, Map.new(object.to_hash)
-            end
-            raise ArgumentError.new("found no attributes on #{ object.inspect }(#{ object.class.name })")
+          case
+            when object.respond_to?(:attributes)
+              object.attributes
+            when object.instance_variable_defined?('@attributes')
+              object.instance_variable_get('@attributes')
+            when object.is_a?(Map)
+              object
+            when object.respond_to?(:to_map)
+              Map.new(object.to_map)
+            when object.is_a?(Hash)
+              Map.new(object)
+            when object.respond_to?(:to_hash)
+              Map.new(object.to_hash)
+            else
+              raise ArgumentError.new("found no attributes on #{ object.inspect }(#{ object.class.name })")
           end
 
         @attributes =

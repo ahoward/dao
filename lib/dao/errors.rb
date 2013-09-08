@@ -262,7 +262,7 @@ module Dao
 
         @prefix =
           if @object && @object.respond_to?(:model_name)
-            @object.model_name.underscore
+            @object.model_name.to_s.underscore
           else
             nil
           end

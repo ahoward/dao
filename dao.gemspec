@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "5.2.0"
+  spec.version = "5.2.1"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -112,7 +112,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["coerce", " >= 0.0.3"])
   
-    spec.add_dependency(*["tagz", " >= 9.8"])
+    spec.add_dependency(*["tagz", " >= 9.9.1"])
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   
