@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "5.2.1"
+  spec.version = "5.3.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "description: dao kicks the ass"
@@ -45,6 +45,7 @@ Gem::Specification::new do |spec|
  "lib/dao/extractor.rb",
  "lib/dao/form.rb",
  "lib/dao/instance_exec.rb",
+ "lib/dao/messages.rb",
  "lib/dao/mode.rb",
  "lib/dao/mongo_mapper.rb",
  "lib/dao/name.rb",
@@ -120,7 +121,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["wrap", " >= 1.5.0"])
   
-    spec.add_dependency(*["rails_current", " >= 1.7.0"])
+    spec.add_dependency(*["rails_current", " >= 1.8.0"])
   
     spec.add_dependency(*["rails_errors2html", " >= 1.3.0"])
   
