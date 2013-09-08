@@ -115,6 +115,25 @@ module Dao
       end
     end
 
+    fattr(:messages) do
+      messages =
+        case
+          when @object.respond_to?(:messages)
+            @object.messages
+          when @object.instance_variable_defined?('@messages')
+            @object.instance_variable_get('@messages')
+          else
+            Messages.new
+        end
+
+      case messages
+        when Messages
+          messages
+        else
+          raise(ArgumentError.new("#{ messages.inspect } (#{ messages.class })"))
+      end
+    end
+
   # support for rails' forms...
   #
     fattr(:multipart){ true }

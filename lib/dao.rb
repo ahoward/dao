@@ -94,6 +94,7 @@
     status.rb
     path_map.rb
     errors.rb
+    messages.rb
     form.rb
     validations.rb
     data.rb
