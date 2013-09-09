@@ -27,10 +27,14 @@ module Dao
       if block
         define_method(:to_html, &block)
       else
-        ul_(:class => 'dao dao-form-messages'){
+        div_(:class => "dao dao-messages"){
           Messages.each(*args) do |message|
             slug = Slug.for(message.type)
-            li_(:class => "dao dao-form-message dao-form-message-#{ slug }"){
+
+            div_(:class => "dao dao-message #{ slug } message"){
+              a_(:href => "#", :class => "close", :data_dismiss => "#{ slug }", :onClick => "javascript:$(this).closest('div').remove();false;"){
+                Tagz.html_safe('&times;')
+              }
               message
             }
           end
