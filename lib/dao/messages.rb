@@ -32,7 +32,7 @@ module Dao
             slug = Slug.for(message.type)
 
             div_(:class => "dao dao-message alert alert-block alert-#{ slug }"){
-              tagz << ' ' << message
+              tagz << message << ' '
 
               a_(:href => "#", :class => "close", :data_dismiss => "alert", :onClick => "javascript:$(this).closest('div').remove();false;"){
                 Tagz.html_safe('&times;')
