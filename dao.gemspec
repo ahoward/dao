@@ -113,7 +113,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["coerce", " >= 0.0.3"])
   
-    spec.add_dependency(*["tagz", " >= 9.9.1"])
+    spec.add_dependency(*["tagz", " >= 9.9.2"])
   
     spec.add_dependency(*["multi_json", " >= 1.0.3"])
   

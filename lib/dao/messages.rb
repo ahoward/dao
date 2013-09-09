@@ -35,6 +35,7 @@ module Dao
               a_(:href => "#", :class => "close", :data_dismiss => "alert", :onClick => "javascript:$(this).closest('div').remove();false;"){
                 Tagz.html_safe('&times;')
               }
+
               message
             }
           end
