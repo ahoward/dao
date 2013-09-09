@@ -27,19 +27,25 @@ module Dao
       if block
         define_method(:to_html, &block)
       else
-        div_(:class => "dao dao-messages"){
-          Messages.each(*args) do |message|
-            slug = Slug.for(message.type)
+        at_least_one = false
 
-            div_(:class => "dao dao-message alert alert-block alert-#{ slug }"){
-              tagz << message << ' '
+        html =
+          div_(:class => "dao dao-messages"){
+            Messages.each(*args) do |message|
+              at_least_one = true
+              slug = Slug.for(message.type)
 
-              a_(:href => "#", :class => "close", :data_dismiss => "alert", :onClick => "javascript:$(this).closest('div').remove();false;"){
-                Tagz.html_safe('&times;')
+              div_(:class => "dao dao-message alert alert-block alert-#{ slug }"){
+                tagz << message << ' '
+
+                a_(:href => "#", :class => "close", :data_dismiss => "alert", :onClick => "javascript:$(this).closest('div').remove();false;"){
+                  Tagz.html_safe('&times;')
+                }
               }
-            }
-          end
-        }
+            end
+          }
+
+        at_least_one ? html : ''
       end
     end
 
