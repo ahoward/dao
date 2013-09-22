@@ -24,10 +24,12 @@ module Dao
         return send('model_name=', args.first.to_s) unless args.empty?
         @model_name ||= default_model_name
       end
+      alias_method('resource_name', 'model_name')
 
       def model_name=(model_name)
         @model_name = model_name_for(model_name)
       end
+      alias_method('resource_name=', 'model_name=')
 
       def model_name_for(model_name)
         ActiveModel::Name.new(Map[:name, model_name])

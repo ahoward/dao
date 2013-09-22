@@ -524,4 +524,5 @@ module Dao
   Resource = Conducer
   Presenter = Conducer
   Conductor = Conducer
+  Model = Conducer
 end
