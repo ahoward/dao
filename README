@@ -128,21 +128,21 @@ SYNOPSIS
     "
       - https://sites.google.com/site/unclebobconsultingllc/active-record-vs-objects
 
-  and a clear solution (again, uncle bob -- emphasis added)
+  and a clear solution (again, uncle bob)
 
     "
       I am not recommending against the use of ActiveRecord. I think the
-      pattern is very useful. **What I am advocating is a separation between the
-      application and ActiveRecord.**
+      pattern is very useful. What I am advocating is a separation between the
+      application and ActiveRecord.
 
       ActiveRecord belongs in the layer that separates the database from the
       application. It makes a very convenient halfway-house between the hard
       data structures of database tables, and the behavior exposing objects in
       the application.
 
-      **Applications should be designed and structured around objects, not data
+      Applications should be designed and structured around objects, not data
       structures. Those objects should expose business behaviors, and hide any
-      vestige of the database.**
+      vestige of the database.
     "
       - https://sites.google.com/site/unclebobconsultingllc/active-record-vs-objects
 
