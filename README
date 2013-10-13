@@ -38,25 +38,83 @@ SYNOPSIS
     "
 
       In computer software, a data access object (DAO) is an object that
-      provides an abstract interface to some type of database or persistence
-      mechanism, providing some specific operations without exposing details
-      of the database.  It provides a mapping from application calls to the
-      persistence layer. This isolation separates the concerns of what data
-      accesses the application needs, in terms of domain-specific objects and
-      data types (the public interface of the DAO), and how these needs can be
-      satisfied with a specific DBMS, database schema, etc. (the
-      implementation of the DAO).
+      provides an abstract interface to some type of database or other
+      persistence mechanism. By mapping application calls to the persistence
+      layer, DAOs provide some specific data operations without exposing
+      details of the database. This isolation supports the single
+      responsibility principle. It separates what data accesses the
+      application needs, in terms of domain-specific objects and data types
+      (the public interface of the DAO), from how these needs can be satisfied
+      with a specific DBMS, database schema, etc. (the implementation of the
+      DAO).
 
-    " 
+    "
       - http://en.wikipedia.org/wiki/Data_access_object
+
+  and this to say about the single responsibility principle
+
+    "
+
+      In object-oriented programming, the single responsibility principle
+      states that every class should have a single responsibility, and that
+      responsibility should be entirely encapsulated by the class. All its
+      services should be narrowly aligned with that responsibility.
+
+      Responsibility [is defined] as a reason to change, and [single
+      responsibility means] that a class or module should have one, and only
+      one, reason to change. As an example, consider a module that compiles and
+      prints a report. Such a module can be changed for two reasons. First,
+      the content of the report can change. Second, the format of the report
+      can change. These two things change for very different causes; one
+      substantive, and one cosmetic. The single responsibility principle says
+      that these two aspects of the problem are really two separate
+      responsibilities, and should therefore be in separate classes or
+      modules. It would be a bad design to couple two things that change for
+      different reasons at different times.
+
+    "
+
+      - http://en.wikipedia.org/wiki/Single_responsibility_principle
+
+  even though rails is the sweet, its ActiveRecord class violates (or, at
+  least, encourages a programmer to violate) the single responsibility
+  principle. uncle bob sums it up this way
+
+    "
+
+      The problem I have with ActiveRecord is that it creates confusion about
+      these two very different styles of programming. A database table is a
+      data structure. It has exposed data and no behavior. But an ActiveRecord
+      appears to be an object. It has “hidden” data, and exposed behavior. I
+      put the word “hidden” in quotes because the data is, in fact, not
+      hidden. Almost all ActiveRecord derivatives export the database columns
+      through accessors and mutators. Indeed, the Active Record is meant to be
+      used like a data structure.
+
+      On the other hand, many people put business rule methods in their
+      ActiveRecord classes; which makes them appear to be objects. This leads
+      to a dilemma. On which side of the line does the Active Record really
+      fall? Is it an object? Or is it a data structure?
+
+    "
+
+      - http://programmers.stackexchange.com/questions/119352/does-the-activerecord-pattern-follow-encourage-the-solid-design-principles?answertab=oldest#tab-top
 
   and
 
     "
-      Models are not data access objects...
+
+      Jim Weirich, at the end of his SOLID Ruby Talk at the 2009 Ruby
+      Conference, asks the audience: "ActiveRecord objects implement a domain
+      concept and a persistence concept. Does this violate the SRP (Single
+      Responsibility Principle)?" The audience agrees that it does violate the
+      SRP. Jim asks if this bothers them. Many members of the audience say
+      yes. Why? It makes testing harder. It makes the persistence object a lot
+      heavier.
+
     "
 
-      - http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller
+      - http://programmers.stackexchange.com/questions/119352/does-the-activerecord-pattern-follow-encourage-the-solid-design-principles#comment293734_119352
 
 DESCRITPION
 
@@ -134,7 +192,7 @@ DESCRITPION
       - forms and interfaces that involve dozens of models are as easy to deal
         with as simple ones.
 
-      - code can be optimized at the interface
+      - code can be optimized at the interface.
 
 READING
   http://blog.plataformatec.com.br/2012/03/barebone-models-to-use-with-actionpack-in-rails-4-0/
