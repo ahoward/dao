@@ -279,7 +279,7 @@ module Dao
       id = options.delete(:id) || id_for(keys)
       klass = class_for(keys, options.delete(:class))
       error = error_for(keys, options.delete(:error))
-      values = options.delete(:values) || options.delete(:checked)
+      values = options.delete(:values)
 
       unless options.has_key?(:checked)
         checked = Coerce.boolean(attributes.get(keys))
