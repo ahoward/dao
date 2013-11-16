@@ -215,10 +215,14 @@ module Dao
 
     def submit(*args, &block)
       options = args.extract_options!.to_options! 
+      keys = args.flatten
+
+      keys.push(:submit) if keys.empty?
+      name = options.delete(:name) || name_for(keys)
 
       content = block ? block.call : (args.first || 'Submit')
 
-      options[:name] ||= :submit
+      options[:name] ||= name
       options[:type] ||= :submit
       options[:value] ||= content
 
