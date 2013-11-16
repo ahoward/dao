@@ -488,10 +488,6 @@ module Dao
       @form
     end
 
-    def messages
-      form.messages
-    end
-
     def form_builder
       Form::Builder
     end
