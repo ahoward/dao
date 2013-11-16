@@ -90,6 +90,7 @@ module Dao
       form
       params
       errors
+      messages
       models
       model
       conduces
@@ -150,6 +151,7 @@ module Dao
 
       @params = Map.new
       @attributes = Attributes.for(self)
+      @messages = Messages.for(self)
 
       @form = Form.for(self)
       @form.name = self.class.model_name.singular.sub(/_+$/, '')

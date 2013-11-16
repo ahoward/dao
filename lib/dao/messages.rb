@@ -23,6 +23,10 @@ module Dao
       @object = args.shift
     end
 
+    def Messages.for(object)
+      new(object)
+    end
+
     def Messages.to_html(*args, &block)
       if block
         define_method(:to_html, &block)
