@@ -12,6 +12,19 @@ Testing Dao::Form do
     assert{ new_named_form(:foo).name_for(:a, :b) == 'dao[foo][a.b]' }
   end
 
+  testing 'scope_for' do
+    form = new_form() 
+
+    assert{
+      assert{ form.name_for(:bar) == 'dao[form][bar]' }
+      form.scope_for(:foo) do
+        assert{ form.name_for(:bar) == 'dao[form][foo.bar]' }
+      end
+      assert{ form.name_for(:bar) == 'dao[form][bar]' }
+      true
+    }
+  end
+
   testing 'Form#select' do
   #
     form = new_form() 

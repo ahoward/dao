@@ -569,11 +569,31 @@ module Dao
     end
 
     def key_for(*keys)
-      Form.key_for(name, *keys)
+      Form.key_for(name, *scope, *keys)
     end
 
     def name_for(*keys)
-      Form.name_for(name, *keys)
+      Form.name_for(name, *scope, *keys)
+    end
+
+    def scope_for(*keys, &block)
+      scope(*keys, &block)
+    end
+
+    def scope(*keys, &block)
+      @scope ||= []
+
+      if block.nil?
+        @scope
+      else
+        scope = @scope
+        @scope = Coerce.list_of_strings(*keys)
+        begin
+          block.call
+        ensure
+          @scope = scope
+        end
+      end
     end
 
     def options_for(*hashes)
