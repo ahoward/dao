@@ -15,14 +15,16 @@ Testing Dao::Form do
   testing 'scope_for' do
     form = new_form() 
 
-    assert{
-      assert{ form.name_for(:bar) == 'dao[form][bar]' }
+    assert do
       form.scope_for(:foo) do
-        assert{ form.name_for(:bar) == 'dao[form][foo.bar]' }
+        html = form.input(:bar)
+
+        scmp(
+          html,
+          '<input type="text" name="dao[form][foo.bar]" value="" class="dao" id="form_foo-bar"/>'
+        )
       end
-      assert{ form.name_for(:bar) == 'dao[form][bar]' }
-      true
-    }
+    end
   end
 
   testing 'Form#select' do

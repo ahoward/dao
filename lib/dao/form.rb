@@ -154,7 +154,7 @@ module Dao
 
     def form(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       action = options.delete(:action) || './'
       method = options.delete(:method) || 'post'
@@ -174,7 +174,7 @@ module Dao
 
     def label(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       block ||=
         proc do
@@ -193,7 +193,7 @@ module Dao
 
     def input(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       type = options.delete(:type) || :text
       name = options.delete(:name) || name_for(keys)
@@ -215,7 +215,7 @@ module Dao
 
     def submit(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       keys.push(:submit) if keys.empty?
       name = options.delete(:name) || name_for(keys)
@@ -231,7 +231,7 @@ module Dao
 
     def button(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       type = options.delete(:type) || :button
       name = options.delete(:name) || name_for(keys)
@@ -251,7 +251,7 @@ module Dao
 
     def radio_button(*args, &block)
       options = args.extract_options!.to_options!
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       type = options.delete(:type) || :radio
       name = options.delete(:name) || name_for(keys)
@@ -276,7 +276,7 @@ module Dao
 
     def checkbox(*args, &block)
       options = args.extract_options!.to_options!
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       type = options.delete(:type) || :checkbox
       name = options.delete(:name) || name_for(keys)
@@ -343,7 +343,7 @@ module Dao
 
     def textarea(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       name = options.delete(:name) || name_for(keys)
       id = options.delete(:id) || id_for(keys)
@@ -364,7 +364,7 @@ module Dao
 
     def select(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       name = options.delete(:name) || name_for(keys)
       values = options.delete(:values) || options.delete(:options) || options.delete(:from)
@@ -471,7 +471,7 @@ module Dao
 
     def upload(*args, &block)
       options = args.extract_options!.to_options! 
-      keys = args.flatten
+      keys = scoped_keys_for(args)
 
       cache_key = keys + [:cache]
       file_key = keys + [:file]
@@ -497,27 +497,19 @@ module Dao
   # html generation support methods
   #
     def id_for(keys)
-      keys = scoped_key_for(keys)
-
       id = [name, keys.join('-')].compact.join('_')
       slug_for(id)
     end
 
     def errors_on(keys)
-      keys = scoped_key_for(keys)
-
       errors.get(keys)
     end
 
     def errors_on?(*keys)
-      keys = scoped_key_for(keys)
-
       !errors_on(keys).blank?
     end
 
     def class_for(keys, klass = nil)
-      keys = scoped_key_for(keys)
-
       klass = 
         if errors_on?(keys)
           [klass, 'dao', 'errors'].compact.join(' ')
@@ -528,8 +520,6 @@ module Dao
     end
 
     def error_for(keys, klass = nil)
-      keys = scoped_key_for(keys)
-
       if errors_on?(keys)
         title = Array(keys).join(' ').titleize
         messages = Array(errors.get(keys)).join(', ')
@@ -538,8 +528,6 @@ module Dao
     end
 
     def value_for(map, keys)
-      keys = scoped_key_for(keys)
-
       return nil unless map.has?(keys)
 
       value = map.get(keys)
@@ -581,14 +569,10 @@ module Dao
     end
 
     def key_for(*keys)
-      keys = scoped_key_for(keys)
-
       Form.key_for(name, *keys)
     end
 
     def name_for(*keys)
-      keys = scoped_key_for(keys)
-
       Form.name_for(name, *keys)
     end
 
@@ -612,7 +596,7 @@ module Dao
       end
     end
 
-    def scoped_key_for(*keys)
+    def scoped_keys_for(*keys)
       [scope, keys].flatten.compact
     end
 
