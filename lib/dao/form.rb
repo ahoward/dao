@@ -497,19 +497,27 @@ module Dao
   # html generation support methods
   #
     def id_for(keys)
+      keys = scoped_key_for(keys)
+
       id = [name, keys.join('-')].compact.join('_')
       slug_for(id)
     end
 
     def errors_on(keys)
+      keys = scoped_key_for(keys)
+
       errors.get(keys)
     end
 
     def errors_on?(*keys)
+      keys = scoped_key_for(keys)
+
       !errors_on(keys).blank?
     end
 
     def class_for(keys, klass = nil)
+      keys = scoped_key_for(keys)
+
       klass = 
         if errors_on?(keys)
           [klass, 'dao', 'errors'].compact.join(' ')
@@ -520,6 +528,8 @@ module Dao
     end
 
     def error_for(keys, klass = nil)
+      keys = scoped_key_for(keys)
+
       if errors_on?(keys)
         title = Array(keys).join(' ').titleize
         messages = Array(errors.get(keys)).join(', ')
@@ -528,6 +538,8 @@ module Dao
     end
 
     def value_for(map, keys)
+      keys = scoped_key_for(keys)
+
       return nil unless map.has?(keys)
 
       value = map.get(keys)
@@ -569,11 +581,15 @@ module Dao
     end
 
     def key_for(*keys)
-      Form.key_for(name, *scope, *keys)
+      keys = scoped_key_for(keys)
+
+      Form.key_for(name, *keys)
     end
 
     def name_for(*keys)
-      Form.name_for(name, *scope, *keys)
+      keys = scoped_key_for(keys)
+
+      Form.name_for(name, *keys)
     end
 
     def scope_for(*keys, &block)
@@ -594,6 +610,10 @@ module Dao
           @scope = scope
         end
       end
+    end
+
+    def scoped_key_for(*keys)
+      [scope, keys].flatten.compact
     end
 
     def options_for(*hashes)
