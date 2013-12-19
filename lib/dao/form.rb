@@ -39,9 +39,13 @@ module Dao
   # instance methods
   #
     attr_accessor :object
+    attr_accessor :unscoped
+    attr_accessor :scope
 
     def initialize(*args)
       @object = args.shift
+      @unscoped = Map.new
+      @scope = []
     end
 
     fattr(:attributes) do
@@ -63,14 +67,15 @@ module Dao
             Map.new
         end
 
-      case attributes
-        when Map
-          attributes
-        when Hash
-          Map.new(attributes)
-        else
-          raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
-      end
+      @unscoped[:attributes] =
+        case attributes
+          when Map
+            attributes
+          when Hash
+            Map.new(attributes)
+          else
+            raise(ArgumentError.new("#{ attributes.inspect } (#{ attributes.class })"))
+        end
     end
 
     fattr(:name) do
@@ -107,12 +112,13 @@ module Dao
             Errors.new
         end
 
-      case errors
-        when Errors
-          errors
-        else
-          raise(ArgumentError.new("#{ errors.inspect } (#{ errors.class })"))
-      end
+      @unscoped[:errors] =
+        case errors
+          when Errors
+            errors
+          else
+            raise(ArgumentError.new("#{ errors.inspect } (#{ errors.class })"))
+        end
     end
 
     fattr(:messages) do
@@ -148,351 +154,354 @@ module Dao
 
   # html generation methods 
   #
-    def element(which, *args, &block)
-      send(which, *args, &block)
-    end
+    module Elements
+      def element(which, *args, &block)
+        send(which, *args, &block)
+      end
 
-    def form(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
+      def form(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
 
-      action = options.delete(:action) || './'
-      method = options.delete(:method) || 'post'
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
+        action = options.delete(:action) || './'
+        method = options.delete(:method) || 'post'
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
 
-      content =
-        if block.nil? and !options.has_key?(:content)
-          ''
-        else
-          block ? block.call(form=self) : options.delete(:content)
-        end
-
-      form_(options_for(options, :action => action, :method => method, :class => klass, :id => id, :data_error => error)){ content }
-    end
-
-    def label(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
-
-      block ||=
-        proc do
-          options.delete(:content) ||
-          options.delete(:value) ||
-          keys.map{|key| key.to_s.titleize}.join(' ')
-        end
-
-      id = options.delete(:id) || id_for(keys + [:label])
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-      target = options.delete(:for) || id_for(keys)
-
-      label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error), &block)
-    end
-
-    def input(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
-
-      type = options.delete(:type) || :text
-      name = options.delete(:name) || name_for(keys)
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-
-      value =
-        if block.nil? and !options.has_key?(:value) 
-          value_for(attributes, keys)
-        else
-          block ? block.call(attributes.get(keys)) : options.delete(:value)
-        end
-
-      value = escape_html(value)
-
-      input_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
-    end
-
-    def submit(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
-
-      keys.push(:submit) if keys.empty?
-      name = options.delete(:name) || name_for(keys)
-
-      content = block ? block.call : (args.first || 'Submit')
-
-      options[:name] ||= name
-      options[:type] ||= :submit
-      options[:value] ||= content
-
-      input_(options_for(options)){}
-    end
-
-    def button(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
-
-      type = options.delete(:type) || :button
-      name = options.delete(:name) || name_for(keys)
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-
-      value = options.has_key?(:value) ? options.delete(:value) : value_for(attributes, keys)
-
-      content = (block ? block.call : (options.delete(:content) || 'Submit'))
-
-      value = escape_html(value)
-      content = escape_html(content)
-
-      button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){ content }
-    end
-
-    def radio_button(*args, &block)
-      options = args.extract_options!.to_options!
-      keys = scoped_keys_for(args)
-
-      type = options.delete(:type) || :radio
-      name = options.delete(:name) || name_for(keys)
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-
-      unless options.has_key?(:checked)
-        checked =
-          if options.has_key?(:value) and attributes.has?(keys)
-            a = attributes.get(keys)
-            b = options[:value]
-            a==b or a.to_s==b.to_s
+        content =
+          if block.nil? and !options.has_key?(:content)
+            ''
           else
-            false
+            block ? block.call(form=self) : options.delete(:content)
           end
-        options[:checked] = checked if checked
+
+        form_(options_for(options, :action => action, :method => method, :class => klass, :id => id, :data_error => error)){ content }
       end
 
-      input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
-    end
+      def label(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
 
-    def checkbox(*args, &block)
-      options = args.extract_options!.to_options!
-      keys = scoped_keys_for(args)
+        block ||=
+          proc do
+            options.delete(:content) ||
+            options.delete(:value) ||
+            keys.map{|key| key.to_s.titleize}.join(' ')
+          end
 
-      type = options.delete(:type) || :checkbox
-      name = options.delete(:name) || name_for(keys)
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-      values = options.delete(:values)
+        id = options.delete(:id) || id_for(keys + [:label])
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+        target = options.delete(:for) || id_for(keys)
 
-      unless options.has_key?(:checked)
-        checked = Coerce.boolean(attributes.get(keys))
-        options[:checked] = checked if checked
+        label_(options_for(options, :for => target, :class => klass, :id => id, :data_error => error), &block)
       end
 
-      value_for =
-        case values
-          when false, nil
-            {true => '1', false => '0'}
-          when Hash
-            h = {}
-            values.map{|k, v| h[ k =~ /t|1|on|yes/ ? true : false ] = v}
-            h
+      def input(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
+
+        type = options.delete(:type) || :text
+        name = options.delete(:name) || name_for(keys)
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+
+        value =
+          if block.nil? and !options.has_key?(:value) 
+            value_for(attributes, keys)
           else
-            t, f, *ignored = Array(values).flatten.compact
-            {true => t, false => f}
+            block ? block.call(attributes.get(keys)) : options.delete(:value)
+          end
+
+        value = escape_html(value)
+
+        input_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
+      end
+
+      def submit(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
+
+        keys.push(:submit) if keys.empty?
+        name = options.delete(:name) || name_for(keys)
+
+        content = block ? block.call : (args.first || 'Submit')
+
+        options[:name] ||= name
+        options[:type] ||= :submit
+        options[:value] ||= content
+
+        input_(options_for(options)){}
+      end
+
+      def button(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
+
+        type = options.delete(:type) || :button
+        name = options.delete(:name) || name_for(keys)
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+
+        value = options.has_key?(:value) ? options.delete(:value) : value_for(attributes, keys)
+
+        content = (block ? block.call : (options.delete(:content) || 'Submit'))
+
+        value = escape_html(value)
+        content = escape_html(content)
+
+        button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){ content }
+      end
+
+      def radio_button(*args, &block)
+        options = args.extract_options!.to_options!
+        keys = scope(args)
+
+        type = options.delete(:type) || :radio
+        name = options.delete(:name) || name_for(keys)
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+
+        unless options.has_key?(:checked)
+          checked =
+            if options.has_key?(:value) and attributes.has?(keys)
+              a = attributes.get(keys)
+              b = options[:value]
+              a==b or a.to_s==b.to_s
+            else
+              false
+            end
+          options[:checked] = checked if checked
         end
-      value_for[true] ||= '1'
-      value_for[false] ||= '0'
 
-      hidden_options =
-        options.dup.tap{|o| o.delete(:checked)}
+        input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
+      end
 
-      tagz{
-        input_(options_for(hidden_options, :type => :hidden, :name => name, :value => value_for[false])){}
+      def checkbox(*args, &block)
+        options = args.extract_options!.to_options!
+        keys = scope(args)
 
-        __
+        type = options.delete(:type) || :checkbox
+        name = options.delete(:name) || name_for(keys)
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+        values = options.delete(:values)
 
-        input_(
-          options_for(
-            options,
-            :type => :checkbox,
-            :name => name,
-            :value => value_for[true],
-            :class => klass,
-            :id => id,
-            :data_error => error
-          )
-        ){}
-      }
-    end
-
-    def hidden(*args, &block)
-      options = args.extract_options!.to_options!
-      options[:type] = :hidden
-      args.push(options)
-      input(*args, &block)
-    end
-
-    def reset(*args)
-      options = args.extract_options!.to_options! 
-      options[:type] = :reset
-      args.push(options)
-      button(*args)
-    end
-
-    def textarea(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
-
-      name = options.delete(:name) || name_for(keys)
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-
-      value =
-        if block.nil? and !options.has_key?(:value) 
-          value_for(attributes, keys)
-        else
-          block ? block.call(attributes.get(keys)) : options.delete(:value)
+        unless options.has_key?(:checked)
+          checked = Coerce.boolean(attributes.get(keys))
+          options[:checked] = checked if checked
         end
 
-      value = escape_html(value)
+        value_for =
+          case values
+            when false, nil
+              {true => '1', false => '0'}
+            when Hash
+              h = {}
+              values.map{|k, v| h[ k =~ /t|1|on|yes/ ? true : false ] = v}
+              h
+            else
+              t, f, *ignored = Array(values).flatten.compact
+              {true => t, false => f}
+          end
+        value_for[true] ||= '1'
+        value_for[false] ||= '0'
 
-      textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value }
-    end
+        hidden_options =
+          options.dup.tap{|o| o.delete(:checked)}
 
-    def select(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
+        tagz{
+          input_(options_for(hidden_options, :type => :hidden, :name => name, :value => value_for[false])){}
 
-      name = options.delete(:name) || name_for(keys)
-      values = options.delete(:values) || options.delete(:options) || options.delete(:from)
+          __
 
-      has_blank = options.has_key?(:blank) && options[:blank] != false
-      blank = options.delete(:blank)
-
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-
-      if values.nil?
-        key = keys.map{|key| "#{ key }"}
-        key.last << "_options"
-        values = attributes.get(*key) if attributes.has?(*key)
+          input_(
+            options_for(
+              options,
+              :type => :checkbox,
+              :name => name,
+              :value => value_for[true],
+              :class => klass,
+              :id => id,
+              :data_error => error
+            )
+          ){}
+        }
       end
 
-      if options[:multiple]
-        name += '[]'
+      def hidden(*args, &block)
+        options = args.extract_options!.to_options!
+        options[:type] = :hidden
+        args.push(options)
+        input(*args, &block)
       end
 
-      list = Array(values).map{|value| value.dup rescue value} # ensure list is dup'd
-
-      case list.first
-        when Hash, Array
-          nil
-        else
-          list.flatten!
-          list.compact!
-          list.map!{|element| [element, element]}
+      def reset(*args)
+        options = args.extract_options!.to_options! 
+        options[:type] = :reset
+        args.push(options)
+        button(*args)
       end
 
-      if has_blank
-        case blank
-          when false
-            blank = nil
-          when nil, true
-            blank = [nil, nil]
+      def textarea(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
+
+        name = options.delete(:name) || name_for(keys)
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+
+        value =
+          if block.nil? and !options.has_key?(:value) 
+            value_for(attributes, keys)
           else
-            blank = [Array(blank).first, '']
-        end
+            block ? block.call(attributes.get(keys)) : options.delete(:value)
+          end
+
+        value = escape_html(value)
+
+        textarea_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){ value }
       end
 
-      selected_value =
-        if options.has_key?(:selected)
-          options.delete(:selected)
-        else
-          attributes.get(keys)
+      def select(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
+
+        name = options.delete(:name) || name_for(keys)
+        values = options.delete(:values) || options.delete(:options) || options.delete(:from)
+
+        has_blank = options.has_key?(:blank) && options[:blank] != false
+        blank = options.delete(:blank)
+
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+
+        if values.nil?
+          key = keys.map{|key| "#{ key }"}
+          key.last << "_options"
+          values = attributes.get(*key) if attributes.has?(*key)
         end
 
-      selected_values = {}
-
-      Array(selected_value).flatten.compact.each do |val|
-        selected_values[val.to_s] = true
-      end
-
-      select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
-        if blank
-          content = blank.first || ''
-          value = blank.last
-          value.nil? ? option_(){ content } : option_(:value => value){ content }
+        if options[:multiple]
+          name += '[]'
         end
 
-        unless list.empty?
-          list.each do |pair|
-            returned = block ? Dao.call(block, :call, pair.first, pair.last, selected_value) : pair 
+        list = Array(values).map{|value| value.dup rescue value} # ensure list is dup'd
 
-            opts = Map.new
-            selected = nil
+        case list.first
+          when Hash, Array
+            nil
+          else
+            list.flatten!
+            list.compact!
+            list.map!{|element| [element, element]}
+        end
 
-            case returned
-              when Array
-                content, value, selected, *ignored = returned
-                if value.is_a?(Hash)
-                  map = Map.for(value)
-                  value = map.delete(:value)
-                  selected = map.delete(:selected)
-                  opts.update(map)
-                end
-
-              when Hash
-                content = returned[:content]
-                value = returned[:value]
-                selected = returned[:selected]
-
-              else
-                content = returned
-                value = returned
-                selected = nil
-            end
-
-            if selected.nil?
-              selected = selected_values.has_key?(value.to_s)
-            end
-
-            opts[:value] = (value.nil? ? content : value)
-            opts[:selected] = Coerce.boolean(selected) if selected
-
-            option_(opts){ content }
+        if has_blank
+          case blank
+            when false
+              blank = nil
+            when nil, true
+              blank = [nil, nil]
+            else
+              blank = [Array(blank).first, '']
           end
         end
-      }
+
+        selected_value =
+          if options.has_key?(:selected)
+            options.delete(:selected)
+          else
+            attributes.get(keys)
+          end
+
+        selected_values = {}
+
+        Array(selected_value).flatten.compact.each do |val|
+          selected_values[val.to_s] = true
+        end
+
+        select_(options_for(options, :name => name, :class => klass, :id => id, :data_error => error)){
+          if blank
+            content = blank.first || ''
+            value = blank.last
+            value.nil? ? option_(){ content } : option_(:value => value){ content }
+          end
+
+          unless list.empty?
+            list.each do |pair|
+              returned = block ? Dao.call(block, :call, pair.first, pair.last, selected_value) : pair 
+
+              opts = Map.new
+              selected = nil
+
+              case returned
+                when Array
+                  content, value, selected, *ignored = returned
+                  if value.is_a?(Hash)
+                    map = Map.for(value)
+                    value = map.delete(:value)
+                    selected = map.delete(:selected)
+                    opts.update(map)
+                  end
+
+                when Hash
+                  content = returned[:content]
+                  value = returned[:value]
+                  selected = returned[:selected]
+
+                else
+                  content = returned
+                  value = returned
+                  selected = nil
+              end
+
+              if selected.nil?
+                selected = selected_values.has_key?(value.to_s)
+              end
+
+              opts[:value] = (value.nil? ? content : value)
+              opts[:selected] = Coerce.boolean(selected) if selected
+
+              option_(opts){ content }
+            end
+          end
+        }
+      end
+
+      def upload(*args, &block)
+        options = args.extract_options!.to_options! 
+        keys = scope(args)
+
+        cache_key = keys + [:cache]
+        file_key = keys + [:file]
+
+        cache_name = options.delete(:cache_name) || name_for(cache_key)
+        file_name = options.delete(:file_name) || options.delete(:name) || name_for(file_key)
+
+        id = options.delete(:id) || id_for(keys)
+        klass = class_for(keys, options.delete(:class))
+        error = error_for(keys, options.delete(:error))
+
+        cache_value = attributes.get(cache_key)
+
+        tagz{
+          input_(:name => cache_name, :value => cache_value, :type => :hidden){ }
+
+          __
+
+          input_(options_for(options, :name => file_name, :class => klass, :id => id, :data_error => error, :type => :file)){ }
+        }
+      end
     end
-
-    def upload(*args, &block)
-      options = args.extract_options!.to_options! 
-      keys = scoped_keys_for(args)
-
-      cache_key = keys + [:cache]
-      file_key = keys + [:file]
-
-      cache_name = options.delete(:cache_name) || name_for(cache_key)
-      file_name = options.delete(:file_name) || options.delete(:name) || name_for(file_key)
-
-      id = options.delete(:id) || id_for(keys)
-      klass = class_for(keys, options.delete(:class))
-      error = error_for(keys, options.delete(:error))
-
-      cache_value = attributes.get(cache_key)
-
-      tagz{
-        input_(:name => cache_name, :value => cache_value, :type => :hidden){ }
-
-        __
-
-        input_(options_for(options, :name => file_name, :class => klass, :id => id, :data_error => error, :type => :file)){ }
-      }
-    end
+    include Elements
 
   # html generation support methods
   #
@@ -576,29 +585,37 @@ module Dao
       Form.name_for(name, *keys)
     end
 
-    def scope_for(*keys, &block)
-      scope(*keys, &block)
-    end
-
     def scope(*keys, &block)
-      @scope ||= []
-
       if block.nil?
-        @scope
-      else
-        scope = @scope
-        @scope = Coerce.list_of_strings(*keys)
-        begin
-          block.call
-        ensure
-          @scope = scope
-        end
+        return [@scope, *keys].flatten.compact
+      end
+
+      #attributes = self.attributes
+      #errors = self.errors
+
+      scope = @scope
+      @scope = Coerce.list_of_strings(keys)
+
+      #@attributes = Map.for(attributes.get(*@scope))
+      #@errors = Errors.new.tap{|e| e.update(errors.get(*@scope))}
+
+#p '@scope' => @scope
+#p '@errors' => @errors
+#p '@attributes' => @attributes
+#p 'errors' => errors
+#p 'attributes' => attributes
+#puts
+#abort
+      begin
+        argv = block.arity == 0 ? [@scope] : []
+        block.call(*argv)
+      ensure
+        @scope = scope
+        #@attributes = attributes
+        #@errors = errors
       end
     end
-
-    def scoped_keys_for(*keys)
-      [scope, keys].flatten.compact
-    end
+    alias_method(:scope_for, :scope)
 
     def options_for(*hashes)
       map = Map.new

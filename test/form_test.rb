@@ -16,14 +16,29 @@ Testing Dao::Form do
     form = new_form() 
 
     assert do
+      html = form.input(:bar)
+      scmp(
+        html,
+        '<input type="text" name="dao[form][bar]" value="" class="dao" id="form_bar"/>'
+      )
+    end
+
+    assert do
       form.scope_for(:foo) do
         html = form.input(:bar)
-
         scmp(
           html,
           '<input type="text" name="dao[form][foo.bar]" value="" class="dao" id="form_foo-bar"/>'
         )
       end
+    end
+
+    assert do
+      html = form.input(:bar)
+      scmp(
+        html,
+        '<input type="text" name="dao[form][bar]" value="" class="dao" id="form_bar"/>'
+      )
     end
   end
 
