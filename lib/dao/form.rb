@@ -215,8 +215,6 @@ module Dao
             block ? block.call(attributes.get(keys)) : options.delete(:value)
           end
 
-        value = escape_html(value)
-
         input_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){}
       end
 
@@ -250,7 +248,6 @@ module Dao
 
         content = (block ? block.call : (options.delete(:content) || 'Submit'))
 
-        value = escape_html(value)
         content = escape_html(content)
 
         button_(options_for(options, :type => type, :name => name, :value => value, :class => klass, :id => id, :data_error => error)){ content }
@@ -549,7 +546,7 @@ module Dao
             value
         end
 
-      escape_html(value)
+      value.to_s
     end
 
     def escape_html(string)

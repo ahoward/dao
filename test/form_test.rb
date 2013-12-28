@@ -19,7 +19,7 @@ Testing Dao::Form do
       html = form.input(:bar)
       scmp(
         html,
-        '<input type="text" name="dao[form][bar]" value="" class="dao" id="form_bar"/>'
+        '<input type="text" name="dao[form][bar]" class="dao" id="form_bar"/>'
       )
     end
 
@@ -28,7 +28,7 @@ Testing Dao::Form do
         html = form.input(:bar)
         scmp(
           html,
-          '<input type="text" name="dao[form][foo.bar]" value="" class="dao" id="form_foo-bar"/>'
+          '<input type="text" name="dao[form][foo.bar]" class="dao" id="form_foo-bar"/>'
         )
       end
     end
@@ -37,7 +37,7 @@ Testing Dao::Form do
       html = form.input(:bar)
       scmp(
         html,
-        '<input type="text" name="dao[form][bar]" value="" class="dao" id="form_bar"/>'
+        '<input type="text" name="dao[form][bar]" class="dao" id="form_bar"/>'
       )
     end
   end
