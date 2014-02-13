@@ -6,7 +6,7 @@ Gem::Specification::new do |spec|
   spec.version = "5.3.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
-  spec.description = "description: dao kicks the ass"
+  spec.description = "sa-weet data access object library for rails.  top secret."
 
   spec.files =
 ["Gemfile",
