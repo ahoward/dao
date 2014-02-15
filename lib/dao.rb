@@ -11,7 +11,7 @@
 # dao libs
 #
   module Dao
-    Version = '5.3.1' unless defined?(Version)
+    Version = '5.3.2' unless defined?(Version)
 
     def version
       Dao::Version
@@ -30,6 +30,10 @@
         'rails_current'     => [ 'rails_current'     , ' >= 1.8.0' ] ,
         'rails_errors2html' => [ 'rails_errors2html' , ' >= 1.3.0' ] ,
       }
+    end
+
+    def description
+      "presenter, conducer, api, and better form objects for you rails' pleasure"
     end
 
     def libdir(*args, &block)

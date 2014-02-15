@@ -3,16 +3,18 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "5.3.0"
+  spec.version = "5.3.2"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
-  spec.description = "description: dao kicks the ass"
+  spec.description = "presenter, conducer, api, and better form objects for you rails' pleasure"
+  spec.license = "same as ruby's"
 
   spec.files =
 ["Gemfile",
  "Gemfile.lock",
  "README",
  "Rakefile",
+ "a.rb",
  "dao.gemspec",
  "lib",
  "lib/dao",
@@ -104,27 +106,8 @@ Gem::Specification::new do |spec|
 
   spec.test_files = nil
 
-  
-    spec.add_dependency(*["rails", " >= 3.1"])
-  
-    spec.add_dependency(*["map", " >= 6.0.0"])
-  
-    spec.add_dependency(*["fattr", " >= 2.2"])
-  
-    spec.add_dependency(*["coerce", " >= 0.0.3"])
-  
-    spec.add_dependency(*["tagz", " >= 9.9.2"])
-  
-    spec.add_dependency(*["multi_json", " >= 1.0.3"])
-  
-    spec.add_dependency(*["uuidtools", " >= 2.1.2"])
-  
-    spec.add_dependency(*["wrap", " >= 1.5.0"])
-  
-    spec.add_dependency(*["rails_current", " >= 1.8.0"])
-  
-    spec.add_dependency(*["rails_errors2html", " >= 1.3.0"])
-  
+### spec.add_dependency 'lib', '>= version'
+#### spec.add_dependency 'map'
 
   spec.extensions.push(*[])
 
