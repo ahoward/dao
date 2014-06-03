@@ -14,7 +14,6 @@ Gem::Specification::new do |spec|
  "Gemfile.lock",
  "README",
  "Rakefile",
- "a.rb",
  "dao.gemspec",
  "lib",
  "lib/dao",

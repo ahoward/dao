@@ -387,6 +387,7 @@ module Dao
         end
 
         if options[:multiple]
+          name = name.to_s
           name += '[]'
         end
 
