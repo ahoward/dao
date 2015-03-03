@@ -3,14 +3,15 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "5.3.3"
+  spec.version = "5.4.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "presenter, conducer, api, and better form objects for you rails' pleasure"
   spec.license = "same as ruby's"
 
   spec.files =
-["Gemfile",
+["10.patch",
+ "Gemfile",
  "Gemfile.lock",
  "README",
  "Rakefile",

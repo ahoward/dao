@@ -659,5 +659,9 @@ module Dao
       string = string.titleize if string.respond_to?(:titleize)
       string
     end
+
+    def capture(*args, &block)
+      tagz(*args, &block)
+    end
   end
 end
