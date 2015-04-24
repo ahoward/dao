@@ -470,6 +470,8 @@ module Dao
 
               option_(opts){ content }
             end
+          else
+            ' '
           end
         }
       end

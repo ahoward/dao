@@ -3,15 +3,14 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "5.4.0"
+  spec.version = "5.5.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "presenter, conducer, api, and better form objects for you rails' pleasure"
   spec.license = "same as ruby's"
 
   spec.files =
-["10.patch",
- "Gemfile",
+["Gemfile",
  "Gemfile.lock",
  "README",
  "Rakefile",
@@ -107,7 +106,7 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", " >= 3.1"])
+    spec.add_dependency(*["rails", " ~> 3.1"])
   
     spec.add_dependency(*["map", " >= 6.0.0"])
   
