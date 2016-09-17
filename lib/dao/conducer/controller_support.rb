@@ -28,6 +28,11 @@ module Dao
         @controller.send(:request) if @controller
       end
 
+      def request_method
+        method = request.try(:method)
+        method ? method.to_s.to_sym.upcase : nil
+      end
+
     ##
     #
       class Action < ::String

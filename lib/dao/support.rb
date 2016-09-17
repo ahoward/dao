@@ -120,6 +120,9 @@ module Dao
 
         paths_and_values.each do |path, value|
           keys = keys_for(path)
+          if map.has?(keys)
+            inc_keys!(keys)
+          end
           map.set(keys => value)
         end
 
@@ -141,8 +144,23 @@ module Dao
       digity ? stringy ? String(digits) : Integer(digits) : key
     end
   end
-
   alias_method(:key_for, :keys_for)
+
+  def inc_keys!(keys)
+    last_number_index = nil
+
+    keys.each_with_index do |k, i|
+      if k.is_a?(Number)
+        last_number_index = i
+      end
+    end
+
+    if last_number_index
+      keys[last_number_index] = keys[last_number_index] + 1
+    end
+
+    keys
+  end
 
   def render_json(object, options = {})
     options = options.to_options!

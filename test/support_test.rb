@@ -33,6 +33,8 @@ Testing Dao::Conducer do
 
     assert{ Dao.normalize_parameters(params) }
 
+#require 'pry'
+#binding.pry
     assert{ params[:foos].is_a?(Hash) }
     assert{ params[:foos][:k] == 'v' }
     assert{ params[:foos][:array] == %w( 0 1 ) }

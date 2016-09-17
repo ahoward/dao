@@ -52,7 +52,7 @@ Testing Dao::Form do
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"/>'
+        '<select name="dao[form][key]" class="dao" id="form_key"> </select>'
       )
     end
 
