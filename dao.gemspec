@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "5.5.1"
+  spec.version = "5.5.2"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "presenter, conducer, api, and better form objects for you rails' pleasure"
@@ -14,7 +14,6 @@ Gem::Specification::new do |spec|
  "Gemfile.lock",
  "README",
  "Rakefile",
- "a.rb",
  "dao.gemspec",
  "lib",
  "lib/dao",
@@ -86,8 +85,6 @@ Gem::Specification::new do |spec|
  "lib/dao/validations/common.rb",
  "lib/dao/validations/instance.rb",
  "lib/dao/validations/validator.rb",
- "notes",
- "notes/ara.txt",
  "test",
  "test/active_model_conducer_lint_test.rb",
  "test/api_test.rb",
