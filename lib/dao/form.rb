@@ -275,7 +275,13 @@ module Dao
           options[:checked] = checked if checked
         end
 
-        input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
+        tagz{
+          input_(options_for(:type => :hidden, :name => name, :value => '')){}
+
+          __
+
+          input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
+        }
       end
 
       def checkbox(*args, &block)
