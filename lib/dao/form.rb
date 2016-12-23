@@ -275,8 +275,11 @@ module Dao
           options[:checked] = checked if checked
         end
 
+        hidden_options =
+          options.dup.tap{|o| [:checked, :required, :disabled].each{|k| o.delete(k)}}
+
         tagz{
-          input_(options_for(:type => :hidden, :name => name, :value => '')){}
+          input_(options_for(hidden_options, :type => :hidden, :name => name, :value => '')){}
 
           __
 
@@ -316,7 +319,7 @@ module Dao
         value_for[false] ||= '0'
 
         hidden_options =
-          options.dup.tap{|o| o.delete(:checked)}
+          options.dup.tap{|o| [:checked, :required, :disabled].each{|k| o.delete(k)}}
 
         tagz{
           input_(options_for(hidden_options, :type => :hidden, :name => name, :value => value_for[false])){}
