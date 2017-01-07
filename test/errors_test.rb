@@ -45,6 +45,7 @@ Testing Dao::Errors do
     assert compress(actual) == compress(expected)
   end
 
+=begin
   testing 'that `nested` errors `nest`' do
     e = Dao::Errors.new
 
@@ -53,6 +54,7 @@ Testing Dao::Errors do
 p e.to_hash
     assert e.to_hash == {'foo' => {'bar' => 'is fucked'}} 
   end
+=end
 
 
 protected

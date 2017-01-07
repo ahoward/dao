@@ -125,14 +125,13 @@ module Dao
           msgs = Array(argv.pop)
 
           # ref: support for key-style of https://github.com/glooko/mongoid-embedded-errors
-          key = Array(argv.pop).flatten.compact.join('.')
-          key = key.to_s.split('.') 
-          key.map!{|k| k =~ /\[(\d+)\]/ ? $1 : k}
+          #key = Array(argv.pop).flatten.compact.join('.')
+          #key = key.to_s.split('.') 
+          #key.map!{|k| k =~ /\[(\d+)\]/ ? $1 : k}
+          #key = prefix + key
+           
+          key = prefix + Array(argv.pop)
 
-          key = prefix + key
-
-          #key = prefix + Array(argv.pop)
-          #
           msgs.each{|msg| add(Array(options[:key] || key), msg, options)}
         end
       end

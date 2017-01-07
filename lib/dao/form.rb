@@ -275,16 +275,7 @@ module Dao
           options[:checked] = checked if checked
         end
 
-        hidden_options =
-          options.dup.tap{|o| [:checked, :required, :disabled].each{|k| o.delete(k)}}
-
-        tagz{
-          input_(options_for(hidden_options, :type => :hidden, :name => name, :value => '')){}
-
-          __
-
-          input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
-        }
+        input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
       end
 
       def checkbox(*args, &block)
