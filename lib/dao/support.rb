@@ -150,7 +150,7 @@ module Dao
     last_number_index = nil
 
     keys.each_with_index do |k, i|
-      if k.is_a?(Number)
+      if k.is_a?(Numeric)
         last_number_index = i
       end
     end
