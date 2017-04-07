@@ -11,7 +11,7 @@
 # dao libs
 #
   module Dao
-    Version = '5.6.1' unless defined?(Version)
+    Version = '6.0.0' unless defined?(Version)
 
     def version
       Dao::Version
@@ -19,7 +19,7 @@
 
     def dependencies
       {
-        'rails'             => [ 'rails'             , ' ~> 3.1'   ] ,
+        'rails'             => [ 'rails'             , ' ~> 5.1.0.rc1'] ,
         'map'               => [ 'map'               , ' >= 6.0.0' ] ,
         'fattr'             => [ 'fattr'             , ' >= 2.2'   ] ,
         'coerce'            => [ 'coerce'            , ' >= 0.0.3' ] ,
