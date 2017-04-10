@@ -61,7 +61,7 @@ end
 
 
 task :gemspec do
-  ignore_extensions = ['git', 'svn', 'tmp', /sw./, 'bak', 'gem']
+  ignore_extensions = ['git', 'svn', 'tmp','public', /sw./, 'bak', 'gem']
   ignore_directories = ['pkg', 'notes']
   ignore_files = ['test/log', 'a.rb']
 
