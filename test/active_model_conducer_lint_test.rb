@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-class LintTest < ActiveModel::TestCase
+class LintTest < ActiveSupport::TestCase
   include ActiveModel::Lint::Tests
 
   class LintConducer < Dao::Conducer; end
