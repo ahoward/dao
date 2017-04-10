@@ -1,5 +1,6 @@
 # -*- encoding : utf-8 -*-
-require 'test/unit'
+gem "minitest"
+require "minitest/autorun"
 
 testdir = File.expand_path(File.dirname(__FILE__))
 rootdir = File.dirname(testdir)
@@ -36,7 +37,7 @@ class Testing
 end
 
 def Testing(*args, &block)
-  Class.new(::Test::Unit::TestCase) do
+  Class.new(::MiniTest::Test) do
 
   ## class methods
   #
@@ -133,7 +134,7 @@ def Testing(*args, &block)
       if block
         label = "assert(#{ args.join(' ') })"
         result = nil
-        assert_nothing_raised{ result = block.call }
+        result = block.call
         __assert__(result, label)
         result
       else

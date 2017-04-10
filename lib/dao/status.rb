@@ -189,7 +189,7 @@ module Dao
               end
             when Status
               arg
-            when Fixnum
+            when Integer
               code = arg
               message = Code2Message[code]
               new(code, message)
