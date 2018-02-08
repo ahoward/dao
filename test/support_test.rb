@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+require 'testing'
 Testing Dao::Conducer do
   testing 'that dao has a root' do
     assert{ Dao.respond_to?(:root) }
@@ -45,12 +46,3 @@ Testing Dao::Conducer do
     assert{ params[:bars]['42'] == 'foobar' }
   end
 end
-
-
-BEGIN {
-  testdir = File.dirname(File.expand_path(__FILE__))
-  rootdir = File.dirname(testdir)
-  libdir = File.join(rootdir, 'lib')
-  require File.join(libdir, 'dao')
-  require File.join(testdir, 'testing')
-}

@@ -1,16 +1,7 @@
 # -*- encoding : utf-8 -*-
 gem "minitest"
 require "minitest/autorun"
-
-testdir = File.expand_path(File.dirname(__FILE__))
-rootdir = File.dirname(testdir)
-libdir = File.join(rootdir, 'lib')
-
-STDOUT.sync = true
-
-$:.unshift(testdir) unless $:.include?(testdir)
-$:.unshift(libdir) unless $:.include?(libdir)
-$:.unshift(rootdir) unless $:.include?(rootdir)
+require "dao"
 
 class Testing
   class Slug < ::String
@@ -22,7 +13,7 @@ class Testing
       new(words.join('-').downcase)
     end
   end
-  
+
   class Context
     attr_accessor :name
 
@@ -183,15 +174,4 @@ def Testing(*args, &block)
 
     self
   end
-end
-
-
-if $0 == __FILE__
-
-  Testing 'Testing' do
-    testing('foo'){ assert true }
-    test{ assert true }
-    p instance_methods.grep(/test/)
-  end
-
 end

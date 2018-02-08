@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+require 'testing'
 Testing Dao::Validations do
 ## status
 #
@@ -310,14 +311,3 @@ Testing Dao::Validations do
     assert{ !v.errors.on(:users, 1, :roles, 0, :missing).blank? }
   end
 end
-
-
-BEGIN {
-  testdir = File.dirname(File.expand_path(__FILE__))
-  rootdir = File.dirname(testdir)
-  libdir = File.join(rootdir, 'lib')
-
-  require File.join(libdir, 'dao')
-  require File.join(testdir, 'testing')
-  require File.join(testdir, 'helper')
-}

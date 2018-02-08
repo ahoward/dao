@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+require 'testing'
 Testing Dao::Errors do
 
   testing 'that conducer-less error objects scopes keys in a generic fashion' do
@@ -80,12 +81,3 @@ protected
   end
   alias_method :new_conducer, :new_foo_conducer
 end
-
-BEGIN {
-  testdir = File.dirname(File.expand_path(__FILE__))
-  rootdir = File.dirname(testdir)
-  libdir = File.join(rootdir, 'lib')
-  require File.join(libdir, 'dao')
-  require File.join(testdir, 'testing')
-  require 'stringio'
-}

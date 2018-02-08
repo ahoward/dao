@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-
+require 'testing'
 
 Testing Dao::Conducer do
 ##
@@ -758,13 +758,3 @@ protected
   class Comment < Model
   end
 end
-
-
-BEGIN {
-  testdir = File.dirname(File.expand_path(__FILE__))
-  rootdir = File.dirname(testdir)
-  libdir = File.join(rootdir, 'lib')
-  require File.join(libdir, 'dao')
-  require File.join(testdir, 'testing')
-  require 'stringio'
-}

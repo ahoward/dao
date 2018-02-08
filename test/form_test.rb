@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+require 'testing'
 Testing Dao::Form do
   testing '.new' do
     form = new_form() 
@@ -182,15 +183,3 @@ protected
     assert{ Dao::Form.new(object) }
   end
 end
-
-
-
-BEGIN {
-  testdir = File.dirname(File.expand_path(__FILE__))
-  rootdir = File.dirname(testdir)
-  libdir = File.join(rootdir, 'lib')
-
-  require File.join(libdir, 'dao')
-  require File.join(testdir, 'testing')
-  require File.join(testdir, 'helper')
-}
