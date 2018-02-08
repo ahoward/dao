@@ -10,26 +10,24 @@
 
 # dao libs
 #
+
+  require "map"
+  require "fattr"
+  require "coerce"
+  require "tagz"
+  require "multi_json"
+  require "uuidtools"
+  require "wrap"
+  require "rails_current"
+  require "rails_current"
+  require "rails_errors2html"
+
+
   module Dao
     Version = '6.0.0' unless defined?(Version)
 
     def version
       Dao::Version
-    end
-
-    def dependencies
-      {
-        'rails'             => [ 'rails'             , ' ~> 5.1.0.rc1'] ,
-        'map'               => [ 'map'               , ' >= 6.0.0' ] ,
-        'fattr'             => [ 'fattr'             , ' >= 2.2'   ] ,
-        'coerce'            => [ 'coerce'            , ' >= 0.0.3' ] ,
-        'tagz'              => [ 'tagz'              , ' >= 9.9.2' ] ,
-        'multi_json'        => [ 'multi_json'        , ' >= 1.0.3' ] ,
-        'uuidtools'         => [ 'uuidtools'         , ' >= 2.1.2' ] ,
-        'wrap'              => [ 'wrap'              , ' >= 1.5.0' ] ,
-        'rails_current'     => [ 'rails_current'     , ' >= 1.8.0' ] ,
-        'rails_errors2html' => [ 'rails_errors2html' , ' >= 1.3.0' ] ,
-      }
     end
 
     def description
@@ -56,21 +54,6 @@
     end
 
     extend(Dao)
-  end
-
-# gems
-#
-  begin
-    require 'rubygems'
-  rescue LoadError
-    nil
-  end
-
-  if defined?(gem)
-    Dao.dependencies.each do |lib, dependency|
-      gem(*dependency)
-      require(lib)
-    end
   end
 
   %w[
@@ -127,16 +110,3 @@
       Config = ::RbConfig # shuts up warnings...
     end
   end
-
-# protect against rails' too clever reloading
-#
-=begin
-  if defined?(Rails)
-    unless defined?(unloadable)
-      require 'active_support'
-      require 'active_support/dependencies'
-    end
-    unloadable(Dao)
-  end
-  BEGIN{ Object.send(:remove_const, :Dao) if defined?(Dao) }
-=end
