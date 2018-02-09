@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
-require 'testing'
-class LintTest < ActiveSupport::TestCase
+require 'test_helper'
+class LintTest < Dao::TestCase
   include ActiveModel::Lint::Tests
 
   class LintConducer < Dao::Conducer; end

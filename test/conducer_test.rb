@@ -1,12 +1,12 @@
 # -*- encoding : utf-8 -*-
-require 'testing'
+require 'test_helper'
 
-Testing Dao::Conducer do
+class Dao::ConducerTest < Dao::TestCase
 ##
 #
   context :teh_ctor do
   #
-    testing 'conducers have a POLS .new method' do
+    test 'conducers have a POLS .new method' do
       [
         {:key => :val, :array => [0,1,2]},
         {}
@@ -17,7 +17,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'models passed to .new are automatically tracked' do
+    test 'models passed to .new are automatically tracked' do
       user = User.new
       post = Post.new
       comment = Comment.new
@@ -33,7 +33,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that the conduced model can be declared at the class level' do
+    test 'that the conduced model can be declared at the class level' do
       user = User.new
       post = Post.new
       comment = Comment.new
@@ -49,7 +49,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that the conduced model can be declared at the instance level' do
+    test 'that the conduced model can be declared at the instance level' do
       user = User.new
       post = Post.new
       comment = Comment.new
@@ -71,7 +71,7 @@ Testing Dao::Conducer do
 #
   context :teh_default_initialize do
   #
-    testing 'that the last mode determines the lifecycle state when a models are passed in' do
+    test 'that the last mode determines the lifecycle state when a models are passed in' do
       user = User.new
       post = Post.new
       comment = Comment.new
@@ -92,7 +92,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that passed in models/params are sanely ker-sploded onto the attributes' do
+    test 'that passed in models/params are sanely ker-sploded onto the attributes' do
       user    = User.new :k => 1
       post    = Post.new :k => 2
       comment = Comment.new :k => 3, :x => 4
@@ -119,7 +119,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that .new specialises based on current action' do
+    test 'that .new specialises based on current action' do
       conducer_class =
         new_conducer_class do
           def initialize_for_new
@@ -145,7 +145,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that conducers can build a highly specialized .new method based on action' do
+    test 'that conducers can build a highly specialized .new method based on action' do
       c =
         new_conducer_class do
           def initialize(a, b, c, params)
@@ -181,7 +181,7 @@ Testing Dao::Conducer do
   end
 
  #
-    testing 'that conducers *fold* in attributes' do
+    test 'that conducers *fold* in attributes' do
       c = new_conducer
 
       assert{ c.update_attributes :key => {:a => :b} }
@@ -193,7 +193,7 @@ Testing Dao::Conducer do
 #
   context :teh_default_save do
   #
-    testing 'is sane and based solely on the last model' do
+    test 'is sane and based solely on the last model' do
       user = User.new
       post = Post.new
       comment = Comment.new
@@ -211,7 +211,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'halts when the conducer is invalid with errors' do
+    test 'halts when the conducer is invalid with errors' do
       conducer_class =
         new_conducer_class do
           validates_presence_of(:foo)
@@ -225,7 +225,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'halts when the model is invalid and relays errors' do
+    test 'halts when the model is invalid and relays errors' do
       post = Post.new
       post.errors[:foo] = 'is fucked'
       c = new_conducer(post)
@@ -234,7 +234,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'raises a validation error on #save!' do
+    test 'raises a validation error on #save!' do
       post = Post.new
       post.errors[:foo] = 'is fucked'
       c = new_conducer(post)
@@ -251,7 +251,7 @@ Testing Dao::Conducer do
 #
   context :validations do  
   #
-    testing 'that simple validations/errors work' do
+    test 'that simple validations/errors work' do
       c =
         assert{
           new_foo_conducer_class do
@@ -276,7 +276,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that validations are evaluated in the context of the object' do
+    test 'that validations are evaluated in the context of the object' do
       c =
         assert{
           new_foo_conducer_class do
@@ -296,7 +296,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that validates_each werks at the class and instance level' do
+    test 'that validates_each werks at the class and instance level' do
       conducer_class =
         new_conducer_class do
           validates_each :a do |item|
@@ -335,7 +335,7 @@ Testing Dao::Conducer do
 #
   context :forms do
   #
-    testing 'that basic form helpers work' do
+    test 'that basic form helpers work' do
       c =
         assert{
           new_foo_conducer_class do
@@ -357,12 +357,12 @@ Testing Dao::Conducer do
 #
   context :class_methods do
   #
-    testing 'that base classes can be constructed and named' do
+    test 'that base classes can be constructed and named' do
       new_foo_conducer_class()
     end
 
   #
-    testing '.new' do
+    test '.new' do
       c = assert{ new_foo_conducer_class }
       controller = assert{ Dao.mock_controller }
 
@@ -386,7 +386,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing '.model_name' do
+    test '.model_name' do
       c = assert{ new_foo_conducer_class }
       assert{ c.model_name }
       o = assert{ c.new } 
@@ -397,7 +397,7 @@ Testing Dao::Conducer do
 ##
 #
   context :instance_methods do
-    testing '#id' do
+    test '#id' do
       [:_id, :id].each do |id_key|
         o = assert{ new_foo_conducer() }
         assert{ o.id.nil? }
@@ -410,20 +410,20 @@ Testing Dao::Conducer do
       end
     end
 
-    testing '#to_param' do
+    test '#to_param' do
       o = assert{ new_foo_conducer() }
       assert{ o.to_param.nil? }
       o.id = 42
       assert{ o.to_param }
     end
 
-    testing '#errors' do
+    test '#errors' do
       o = assert{ new_foo_conducer() }
       assert{ o.errors.respond_to?(:[]) }
     end
 
 =begin
-    testing 'that conducers can register handlers for setting deeply nested attributes' do
+    test 'that conducers can register handlers for setting deeply nested attributes' do
       c =
         new_conducer_class do
           def _update_attributes(attributes = {})
@@ -454,7 +454,7 @@ Testing Dao::Conducer do
 #
   context :teh_mount do
   #
-    testing 'that mounted objects can be declared at the class level' do
+    test 'that mounted objects can be declared at the class level' do
       conducer_class =
         new_conducer_class do
           mount Dao::Upload, :a, :b, :placeholder => '/images/foo.jpg'
@@ -470,7 +470,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that mounted objects replace their location in attributes' do
+    test 'that mounted objects replace their location in attributes' do
       conducer_class =
         new_conducer_class do
           mount Dao::Upload, :a, :b, :placeholder => '/images/foo.jpg'
@@ -488,7 +488,7 @@ Testing Dao::Conducer do
     end
 
   #
-    testing 'that the default save uses the mounted _value and _clears it' do
+    test 'that the default save uses the mounted _value and _clears it' do
 begin
 $pry=true
       conducer_class =
@@ -525,7 +525,7 @@ end
 ##
 #
   context :collections do
-    testing 'can be created from page-y blessed arrays' do
+    test 'can be created from page-y blessed arrays' do
       paginated = Paginated[Post.new, Post.new, Post.new]
       paginated.limit = 42
       paginated.offset = 42.0
@@ -551,7 +551,7 @@ end
 ##
 #
   context :callbacks do
-    testing 'can be added lazily in an ad-hoc fashion' do
+    test 'can be added lazily in an ad-hoc fashion' do
       callbacks = []
 
       conducer_class =
@@ -602,7 +602,7 @@ protected
   end
   alias_method :new_conducer, :new_foo_conducer
 
-  prepare do
+  def setup
     $db = Dao::Db.new(:path => 'test/db.yml')
     Dao::Db.instance = $db
     collection = $db['foos']
@@ -613,7 +613,7 @@ protected
     end
   end
 
-  cleanup do
+  def teardown
     $db = Dao::Db.new(:path => 'test/db.yml')
     $db.rm_f
   end

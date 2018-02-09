@@ -1,9 +1,9 @@
 # -*- encoding : utf-8 -*-
-require 'testing'
-Testing Dao::Validations do
+require 'test_helper'
+class DaoValidationsTest < ::Dao::TestCase
 ## status
 #
-  testing 'Status.for' do
+  test 'Status.for' do
     assert{ Dao::Status.for(:unauthorized).code == 401 }
     assert{ Dao::Status.for(:UNAUTHORIZED).code == 401 }
     assert{ Dao::Status.for('unauthorized').code == 401 }
@@ -14,7 +14,7 @@ Testing Dao::Validations do
     assert{ Dao::Status.for(:no_content).code == 204 }
   end
 
-  testing 'status equality operator' do
+  test 'status equality operator' do
     s = Dao::Status.for(401)
     assert{ s == :unauthorized }
     assert{ s == 401 }
@@ -23,7 +23,7 @@ Testing Dao::Validations do
 
 ## errors
 #
-  testing 'that errors can relay from other each-able sources' do
+  test 'that errors can relay from other each-able sources' do
     errors = Dao::Errors.new
 
     messages = [
@@ -64,14 +64,14 @@ Testing Dao::Validations do
 
 ## validations
 #
-  testing 'that simple validations work' do
+  test 'that simple validations work' do
     params = Dao::Params.new
     assert{ params.validates(:password){|password| password=='haxor'} }
     params.set(:password, 'haxor')
     assert{ params.valid? }
   end
 
-  testing 'that validations have some syntax sugar' do
+  test 'that validations have some syntax sugar' do
     return :pending
 
     assert{
@@ -93,7 +93,7 @@ Testing Dao::Validations do
     }
   end
 
-  testing 'that validations use instance_exec - as god intended' do
+  test 'that validations use instance_exec - as god intended' do
     return :pending
 
     a, b = nil
@@ -114,7 +114,7 @@ Testing Dao::Validations do
     assert{ b == 2 }
   end
 
-  testing 'simple validates_confirmation_of' do
+  test 'simple validates_confirmation_of' do
     return :pending
 
     api_class =
@@ -138,7 +138,7 @@ Testing Dao::Validations do
 
 ## validating
 #
-  testing 'that validations clear only that which they know about' do
+  test 'that validations clear only that which they know about' do
     params = Dao::Params.new
     errors = params.errors
 
@@ -174,7 +174,7 @@ Testing Dao::Validations do
 
 ## stand alone validations
 #
-  testing 'that validations can be used standalone' do
+  test 'that validations can be used standalone' do
     attributes = {
       :email => 'ara@dojo4.com',
       :password => 'pa$$w0rd'
@@ -192,7 +192,7 @@ Testing Dao::Validations do
 
 ## prefixed validations
 #
-  testing 'nested validations' do
+  test 'nested validations' do
   #
     attributes = {
       :list => [

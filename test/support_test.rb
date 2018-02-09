@@ -1,21 +1,22 @@
 # -*- encoding : utf-8 -*-
-require 'testing'
-Testing Dao::Conducer do
-  testing 'that dao has a root' do
+require 'test_helper'
+
+class Dao::ModuleTest < Dao::TestCase 
+  test 'that dao has a root' do
     assert{ Dao.respond_to?(:root) }
     assert{ Dao.root }
   end
 
-  testing 'that dao can build a mock controller' do
+  test 'that dao can build a mock controller' do
     controller = assert{ Dao.mock_controller }
     assert{ controller.url_for '/' }
   end
 
-  testing 'that dao can mark the current_controller' do
+  test 'that dao can mark the current_controller' do
     assert{ Dao.current_controller = Dao.mock_controller }
   end
 
-  testing 'that dao can pre-process parameters' do
+  test 'that dao can pre-process parameters' do
     params = Map.new( 
       'dao' => {
         'foos' => {

@@ -1,37 +1,80 @@
 # -*- encoding : utf-8 -*-
 gem "minitest"
 require "minitest/autorun"
+require "minitest/reporters"
+
+require 'rake_rerun_reporter'
+reporter_options = { color: true, slow_count: 5, verbose: false, rerun_prefix: "bundle exec" }
+Minitest::Reporters.use! [Minitest::Reporters::RakeRerunReporter.new(reporter_options)]
+
 require "dao"
+require "util"
 
-class Testing
-  class Slug < ::String
-    def Slug.for(*args)
-      string = args.flatten.compact.join('-')
-      words = string.to_s.scan(%r/\w+/)
-      words.map!{|word| word.gsub %r/[^0-9a-zA-Z_-]/, ''}
-      words.delete_if{|word| word.nil? or word.strip.empty?}
-      new(words.join('-').downcase)
+class Dao::TestCase < ActiveSupport::TestCase
+  class << self
+    def context(*args, &block)
+      return contexts.last if(args.empty? and block.nil?)
+      block.call
     end
   end
 
-  class Context
-    attr_accessor :name
 
-    def initialize(name, *args)
-      @name = name
+  Missing = Object.new.freeze
+
+  alias_method('__assert__', 'assert')
+
+  def missing
+    Dao::TestCast::Missing
+  end
+
+  def assert(*args, &block)
+    if args.size == 1 and args.first.is_a?(Hash)
+      options = args.first
+      expected = getopt(:expected, options){ missing }
+      actual = getopt(:actual, options){ missing }
+      if expected == missing and actual == missing
+        actual, expected, *_ = options.to_a.flatten
+      end
+      expected = expected.call() if expected.respond_to?(:call)
+      actual = actual.call() if actual.respond_to?(:call)
+      assert_equal(expected, actual)
     end
 
-    def to_s
-      Slug.for(name)
+    if block
+      label = "assert(#{ args.join(' ') })"
+      result = nil
+      result = block.call
+      __assert__(result, label)
+      result
+    else
+      result = args.shift
+      label = "assert(#{ args.join(' ') })"
+      __assert__(result, label)
+      result
     end
   end
+
+  def getopt(opt, hash, options = nil, &block)
+    [opt.to_s, opt.to_s.to_sym].each do |key|
+      return hash[key] if hash.has_key?(key)
+    end
+    default =
+      if block
+        block.call
+      else
+        options.is_a?(Hash) ? options[:default] : nil
+      end
+    return default
+  end
+
 end
 
+__END__
 def Testing(*args, &block)
   Class.new(::MiniTest::Test) do
 
-  ## class methods
-  #
+    ## class methods
+    #
     class << self
       def contexts
         @contexts ||= []
@@ -96,8 +139,8 @@ def Testing(*args, &block)
       end
     end
 
-  ## configure the subclass!
-  #
+    ## configure the subclass!
+    #
     const_set(:Testno, '0')
     slug = slug_for(*args).gsub(%r/-/,'_')
     name = ['TESTING', '%03d' % const_get(:Testno), slug].delete_if{|part| part.empty?}.join('_')
@@ -105,8 +148,8 @@ def Testing(*args, &block)
     const_set(:Name, name)
     const_set(:Missing, Object.new.freeze)
 
-  ## instance methods
-  #
+    ## instance methods
+    #
     alias_method('__assert__', 'assert')
 
     def assert(*args, &block)
@@ -115,7 +158,7 @@ def Testing(*args, &block)
         expected = getopt(:expected, options){ missing }
         actual = getopt(:actual, options){ missing }
         if expected == missing and actual == missing
-          actual, expected, *ignored = options.to_a.flatten
+          actual, expected, *_ = options.to_a.flatten
         end
         expected = expected.call() if expected.respond_to?(:call)
         actual = actual.call() if actual.respond_to?(:call)
@@ -160,8 +203,8 @@ def Testing(*args, &block)
       exception
     end
 
-  ##
-  #
+    ##
+    #
     module_eval(&block)
 
     self.setup()

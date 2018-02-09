@@ -1,8 +1,8 @@
 # -*- encoding : utf-8 -*-
-require 'testing'
-Testing Dao::Errors do
+require 'test_helper'
+class DaoErrorsTest < Dao::TestCase
 
-  testing 'that conducer-less error objects scopes keys in a generic fashion' do
+  test 'that conducer-less error objects scopes keys in a generic fashion' do
     e = Dao::Errors.new
 
     e.add 'is fucked'
@@ -20,7 +20,7 @@ Testing Dao::Errors do
     assert compress(actual) == compress(expected)
   end
 
-  testing 'that conducer-based error objects scope keys in a model_name based fashion' do
+  test 'that conducer-based error objects scope keys in a model_name based fashion' do
     c = new_foo_conducer
 
     e = c.errors 
@@ -30,7 +30,7 @@ Testing Dao::Errors do
     e.add :first_name, 'is fucked'
     e.add :last_name, 'is fucked'
 
-    actual = e.to_text 
+    actual = e.to_text
 
     expected = <<-__
       ---
@@ -47,7 +47,7 @@ Testing Dao::Errors do
   end
 
 =begin
-  testing 'that `nested` errors `nest`' do
+  test 'that `nested` errors `nest`' do
     e = Dao::Errors.new
 
     e.relay 'foo.bar' => 'is fucked'

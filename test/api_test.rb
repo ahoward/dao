@@ -1,19 +1,18 @@
 # -*- encoding : utf-8 -*-
-require 'testing'
+require 'test_helper'
 
-Testing Dao do
+class DaoTest < ::Dao::TestCase
 ## api
 #
-  testing 'that an api class for your application can be built using a simple dsl' do
+  test 'that an api class for your application can be built using a simple dsl' do
     assert{
-      api_class =
-        Dao.api do
-          ### dsl
-        end
+      Dao.api do
+        ### dsl
+      end
     }
   end
 
-  testing 'that apis can have callable endpoints added to them which accept params and return results' do
+  test 'that apis can have callable endpoints added to them which accept params and return results' do
     captured = []
 
     api_class =
@@ -29,7 +28,7 @@ Testing Dao do
     assert{ result.is_a?(Hash) }
   end
 
-  testing 'that endpoints are automatically called according to arity' do
+  test 'that endpoints are automatically called according to arity' do
     api = assert{ Class.new(Dao.api) }
     assert{ api.class_eval{ endpoint(:zero){|| result.update :args => [] } } }
     assert{ api.class_eval{ endpoint(:one){|a| result.update :args => [a]} } }
@@ -40,14 +39,14 @@ Testing Dao do
     assert{ api.new.call(:two).args.size == 2 }
   end
 
-  testing 'that endpoints have an auto-vivifying params/result' do
+  test 'that endpoints have an auto-vivifying params/result' do
     api = assert{ Class.new(Dao.api) }
     assert{ api.class_eval{ endpoint(:foo){ params; result; } } }
     result = assert{ api.new.call(:foo) }
     assert{ result.path.to_s =~ /foo/ }
   end
 
-  testing 'that an api can be called with different modes' do
+  test 'that an api can be called with different modes' do
     Dao::Mode.list.each do |mode|
       api_class =
         assert{
@@ -63,7 +62,7 @@ Testing Dao do
     end
   end
 
-  testing 'that read==get' do
+  test 'that read==get' do
     api_class =
       assert{
         Dao.api do
@@ -85,7 +84,7 @@ Testing Dao do
     assert{ api.get.call(:bar).data.answer == 42.0 }
   end
 
-  testing 'that write==post' do
+  test 'that write==post' do
     api_class =
       assert{
         Dao.api do
@@ -107,7 +106,7 @@ Testing Dao do
     assert{ api.post.call(:bar).data.answer == 42.0 }
   end
 
-  testing 'that aliases are re-defined in scope' do
+  test 'that aliases are re-defined in scope' do
     api_class =
       assert{
         Dao.api do
@@ -149,7 +148,7 @@ Testing Dao do
 
 ## context
 #
-  testing 'that calls have a shortcut to status' do
+  test 'that calls have a shortcut to status' do
     api_class =
       assert{
         Dao.api do
@@ -163,7 +162,7 @@ Testing Dao do
 
 ## results
 #
-  testing 'that results can be created' do
+  test 'that results can be created' do
     result = assert{ Dao::Result.new }
     assert{ result.path }
     assert{ result.status }
@@ -172,14 +171,14 @@ Testing Dao do
     assert{ result.data }
   end
 
-  testing 'that results can be created with a path' do
+  test 'that results can be created with a path' do
     result = assert{ Dao::Result.new('/api/foo/bar') }
     assert{ result.path == '/api/foo/bar' }
   end
 
 ## paths
 #
-  testing 'that simple paths can be contstructed/compiled' do
+  test 'that simple paths can be contstructed/compiled' do
     path = assert{ Dao::Path.for('./api/../foo/bar')  }
     assert{ path =~ %r|^/| }
     assert{ path !~ %r|[.]| }
@@ -190,7 +189,7 @@ Testing Dao do
 
 ## routes
 #
-  testing 'that an api has a list of routes' do
+  test 'that an api has a list of routes' do
     api_class =
       assert{
         Dao.api do
@@ -199,7 +198,7 @@ Testing Dao do
     assert{ api_class.routes.is_a?(Array) }
   end
 
-  testing 'that routed endpoints call be declared' do
+  test 'that routed endpoints call be declared' do
     api_class =
       assert{
         Dao.api do
@@ -208,10 +207,10 @@ Testing Dao do
           end
         end
       }
-    api = api_class.new
+    api_class.new
   end
 
-  testing 'that routed methods can be called with embedded params' do
+  test 'that routed methods can be called with embedded params' do
     api_class =
       assert{
         Dao.api do
@@ -236,7 +235,7 @@ Testing Dao do
 
 ## doc
 #
-  testing 'that apis can be documented via the api' do
+  test 'that apis can be documented via the api' do
     api_class =
       assert {
         Dao.api {
@@ -253,7 +252,7 @@ Testing Dao do
 
 # aliases
 #
-  testing 'that apis can alias methods' do
+  test 'that apis can alias methods' do
     api_class =
       assert {
         Dao.api {
@@ -274,7 +273,7 @@ protected
 
   def api(&block)
     api_class = assert{ Dao.api(&block) }
-    api = assert{ api_class.new }
+    assert{ api_class.new }
   end
 end
 
