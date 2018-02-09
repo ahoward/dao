@@ -364,9 +364,9 @@ module Dao
         options = Map.options_for!(args)
         list = args + Array(options.delete(:keys)) + Array(options.delete(:or))
 
-        list.each do |args|
+        list.each do |_args|
           candidates = list.dup
-          candidates.delete(args)
+          candidates.delete(_args)
 
           message = options[:message] || "(or #{ candidates.map{|candidate| Array(candidate).join('.')}.join(', ') } ) is blank or missing"
           allow_nil = options[:allow_nil]
@@ -424,7 +424,7 @@ module Dao
 
               m
             end
-          validates(*args, &block)
+          validates(*_args, &block)
         end
       end
 
@@ -432,9 +432,9 @@ module Dao
         options = Map.options_for!(args)
         list = args + Array(options.delete(:keys)) + Array(options.delete(:or))
 
-        list.each do |args|
+        list.each do |_args|
           candidates = list.dup
-          candidates.delete(args)
+          candidates.delete(_args)
 
           message = options[:message] || "(and #{ candidates.map{|candidate| Array(candidate).join('.')}.join(', ') } ) is blank or missing"
           allow_nil = options[:allow_nil]
@@ -492,7 +492,7 @@ module Dao
 
               m
             end
-          validates(*args, &block)
+          validates(*_args, &block)
         end
       end
 

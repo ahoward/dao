@@ -8,3 +8,4 @@ TODO
 *.sw*
 .gem/
 public/
+.byebug_history

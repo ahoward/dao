@@ -181,7 +181,6 @@ module Dao
           arg = args.shift
           case arg
             when Result
-              result = arg
               if arg.errors.nil? or arg.errors.empty? or arg.valid?
                 new(200)
               else
@@ -276,7 +275,7 @@ module Dao
     end
 
     Groups.each do |code, group|
-      module_eval <<-__, __FILE__, __LINE__ -1
+      module_eval(<<-__, __FILE__, __LINE__ - 1)
         def Status.#{ group }
           @status_group_#{ group } ||= Status.for(#{ code })
         end
@@ -316,7 +315,7 @@ module Dao
     end
 
     def clone
-      clone = Status.for(code)
+      Status.for(code)
     end
 
     def to_json(*args, &block)

@@ -117,7 +117,7 @@ module Dao
             controller.send(:action_name).to_s
         end
 
-      conducer = new(Action.new(action), *args, &block)
+      new(Action.new(action), *args, &block)
     end
 
     def Conducer.call(*args, &block)
@@ -243,7 +243,7 @@ module Dao
     end
 
     def conduces?(model)
-      if @model
+      if defined?(@model)
         @model == model
       else
         self.class.conduces?(model)
@@ -348,8 +348,8 @@ module Dao
     def method_missing(method, *args, &block)
       re = /^([^=!?]+)([=!?])?$/imox
 
-      matched, key, suffix = re.match(method.to_s).to_a
-      
+      _, key, suffix = re.match(method.to_s).to_a
+
       case suffix
         when '='
           set(key, args.first)
