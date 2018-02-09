@@ -38,7 +38,6 @@ task :develop => "develop:default"
 begin
   require 'rake/testtask'
   Rake::TestTask.new( :test ) do |t|
-    t.ruby_opts    = %w[ -rubygems ]
     t.libs         = %w[ lib spec test ]
     t.pattern      = "{test,spec}/**/{test_*,*_spec,*_test}.rb"
   end
@@ -48,25 +47,6 @@ begin
   task :default => :test
 rescue LoadError
   This.task_warning( 'test' )
-end
-
-#------------------------------------------------------------------------------
-# RDoc - standard rdoc rake task, although we must make sure to use a more
-#        recent version of rdoc since it is the one that has 'tomdoc' markup
-#------------------------------------------------------------------------------
-begin
-  gem 'rdoc' # otherwise we get the wrong task from stdlib
-  require 'rdoc/task'
-  RDoc::Task.new do |t|
-    t.markup   = 'tomdoc'
-    t.rdoc_dir = 'doc'
-    t.main     = 'README.md'
-    t.title    = "#{This.name} #{This.version}"
-    t.rdoc_files.include( FileList['*.{rdoc,md,txt}'], FileList['ext/**/*.c'],
-                          FileList['lib/**/*.rb'] )
-  end
-rescue StandardError, LoadError
-  This.task_warning( 'rdoc' )
 end
 
 #------------------------------------------------------------------------------
