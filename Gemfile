@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 ruby "2.2.9"
 
 gem "map",               "~> 6.0"
-gem "rails",             "~> 5.1.0"
+gem "rails",             "~> 5.1.4"
 gem "fattr",             "~> 2.2"
 gem "coerce",            ">= 0.0.3"
 gem "tagz",              "~> 9.9"
