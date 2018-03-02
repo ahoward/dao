@@ -188,7 +188,7 @@ module Dao
 
     begin
       MultiJson.dump(object, options)
-    rescue Object => e
+    rescue Object => _
       YAML.load( object.to_yaml ).to_json
     end
   end

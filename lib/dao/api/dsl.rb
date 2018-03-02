@@ -33,7 +33,7 @@ module Dao
 
     class << Api
       def evaluate(&block)
-        @dsl ||= DSL.new(api=self)
+        @dsl ||= DSL.new(self)
         @dsl.evaluate(&block)
       end
       alias_method('configure', 'evaluate')

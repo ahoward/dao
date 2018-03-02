@@ -106,7 +106,6 @@ module Dao
         collection = (y[collection.to_s] ||= {})
         id = next_id_for(collection, data)
         collection[id] = data
-        record = collection[id]
         id
       end
     end

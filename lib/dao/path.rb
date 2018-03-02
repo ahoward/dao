@@ -21,7 +21,7 @@ module Dao
         path.squeeze!('/')
         path.sub!(%r|^/|, '')
         path.sub!(%r|/$|, '')
-        paths = path.split('/')
+        path.split('/')
       end
 
       def absolute_path_for(arg, *args)

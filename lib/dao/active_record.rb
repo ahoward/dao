@@ -12,10 +12,10 @@ if defined?(ActiveRecord)
     class Base
       def Base.to_dao(*args)
         if args.first.is_a?(Base)
-          record_to_dao(record = args.shift, *args)
+          record_to_dao(args.shift, *args)
         else
           @to_dao ||= (
-            names = column_names ### + reflect_on_all_associations.map(&:name)
+            column_names ### + reflect_on_all_associations.map(&:name)
           )
           @to_dao = Array(args) unless args.empty?
           @to_dao
@@ -101,10 +101,10 @@ if defined?(ActiveRecord)
           end
 
           if attr.is_a?(Hash)
-            attr.each do |related, argv|
-              v = record.send(related)
-              value = v.respond_to?(:to_dao) ? v.to_dao(*argv) : v
-              map[related] = value
+            attr.each do |rel, _argv|
+              v = record.send(rel)
+              value = v.respond_to?(:to_dao) ? v.to_dao(*_argv) : v
+              map[rel] = value
             end
             next
           end

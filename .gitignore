@@ -6,3 +6,6 @@ db/
 test/db.yml
 TODO
 *.sw*
+.gem/
+public/
+.byebug_history

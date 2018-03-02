@@ -173,7 +173,6 @@ class Upload < ::Map
   attr_accessor :basename
   attr_accessor :io
   attr_accessor :tmpdir
-  attr_accessor :placeholder
 
   IOs = {}
 

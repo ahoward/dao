@@ -101,7 +101,7 @@ module Dao
         block = args.pop if args.last.respond_to?(:call)
         block ||= NotBlank
         callback = Callback.new(options, &block)
-        options = Map.options_for!(args)
+        Map.options_for!(args)
         key = key_for(args)
         validations = stack.validations.last || self.validations
         validations[key] ||= Callback::Chain.new
@@ -112,7 +112,7 @@ module Dao
 
       def validates_each(*args, &block)
         options = Map.options_for!(args)
-        key = key_for(args)
+        key_for(args)
 
         args.push(options)
 
@@ -299,7 +299,7 @@ module Dao
         if forcing_validity?
           true
         else
-          options = Map.options_for!(args)
+          Map.options_for!(args)
           run_validations
           errors.empty? and status.ok?
         end

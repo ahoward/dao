@@ -40,7 +40,6 @@ module Dao
   #
     attr_accessor :object
     attr_accessor :unscoped
-    attr_accessor :scope
 
     def initialize(*args)
       @object = args.shift
@@ -173,7 +172,7 @@ module Dao
           if block.nil? and !options.has_key?(:content)
             ''
           else
-            block ? block.call(form=self) : options.delete(:content)
+            block ? block.call(self) : options.delete(:content)
           end
 
         form_(options_for(options, :action => action, :method => method, :class => klass, :id => id, :data_error => error)){ content }
@@ -275,7 +274,7 @@ module Dao
           options[:checked] = checked if checked
         end
 
-        input_(options_for(options, :type => :radio, :name => name, :class => klass, :id => id, :data_error => error)){}
+        input_(options_for(options, :type => type, :name => name, :class => klass, :id => id, :data_error => error)){}
       end
 
       def checkbox(*args, &block)
@@ -303,7 +302,7 @@ module Dao
               values.map{|k, v| h[ k =~ /t|1|on|yes/ ? true : false ] = v}
               h
             else
-              t, f, *ignored = Array(values).flatten.compact
+              t, f, *_ = Array(values).flatten.compact
               {true => t, false => f}
           end
         value_for[true] ||= '1'
@@ -320,7 +319,7 @@ module Dao
           input_(
             options_for(
               options,
-              :type => :checkbox,
+              :type => type,
               :name => name,
               :value => value_for[true],
               :class => klass,
@@ -367,7 +366,7 @@ module Dao
       end
 
       def select(*args, &block)
-        options = args.extract_options!.to_options! 
+        options = args.extract_options!.to_options!
         keys = scope(args)
 
         name = options.delete(:name) || name_for(keys)
@@ -381,7 +380,7 @@ module Dao
         error = error_for(keys, options.delete(:error))
 
         if values.nil?
-          key = keys.map{|key| "#{ key }"}
+          key = keys.map{|k| "#{k}"}
           key.last << "_options"
           values = attributes.get(*key) if attributes.has?(*key)
         end
@@ -442,7 +441,7 @@ module Dao
 
               case returned
                 when Array
-                  content, value, selected, *ignored = returned
+                  content, value, selected, *_ = returned
                   if value.is_a?(Hash)
                     map = Map.for(value)
                     value = map.delete(:value)

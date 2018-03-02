@@ -1,18 +1,19 @@
 # -*- encoding : utf-8 -*-
-Testing Dao::Form do
-  testing '.new' do
+require 'test_helper'
+class DaoFormTest < ::Dao::TestCase
+  test '.new' do
     form = new_form() 
     form = new_named_form() 
   end
 
-  testing 'name_for' do
+  test 'name_for' do
     assert{ Dao::Form.name_for(:foo, :a, :b) == 'dao[foo][a.b]' }
     assert{ new_form.name_for(:a, :b) == 'dao[form][a.b]' }
     assert{ new_named_form.name_for(:a, :b) == 'dao[name][a.b]' }
     assert{ new_named_form(:foo).name_for(:a, :b) == 'dao[foo][a.b]' }
   end
 
-  testing 'scope_for' do
+  test 'scope_for' do
     form = new_form() 
 
     assert do
@@ -42,7 +43,7 @@ Testing Dao::Form do
     end
   end
 
-  testing 'Form#select' do
+  test 'Form#select' do
   #
     form = new_form() 
     form.attributes.set :key => 42 
@@ -182,15 +183,3 @@ protected
     assert{ Dao::Form.new(object) }
   end
 end
-
-
-
-BEGIN {
-  testdir = File.dirname(File.expand_path(__FILE__))
-  rootdir = File.dirname(testdir)
-  libdir = File.join(rootdir, 'lib')
-
-  require File.join(libdir, 'dao')
-  require File.join(testdir, 'testing')
-  require File.join(testdir, 'helper')
-}

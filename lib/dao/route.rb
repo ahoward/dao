@@ -54,7 +54,7 @@ module Dao
     end
 
     def match(path)
-      match = pattern.match(path).to_a
+      pattern.match(path).to_a
     end
 
     def params_for(path)
@@ -62,7 +62,7 @@ module Dao
 
       unless match.empty?
         map = Map.new
-        ignored = match.shift
+        _ = match.shift
         @keys.each_with_index do |key, index|
           map[key] = match[index]
         end

@@ -57,10 +57,6 @@ module Dao
       Messages.to_html(self)
     end
 
-    def to_s(*args)
-      to_html(*args)
-    end
-
     def Messages.to_text(*args)
       to_text = []
       Messages.each(*args) do |message|

@@ -233,6 +233,7 @@ module Dao
   # delgate some methods to the context
   #
     Context.attrs.each do |method|
+      next if %w[ status status! data data! index endpoints respond_to? parameter parameter! ].include?(method.to_s)
       module_eval <<-__, __FILE__, __LINE__
         def #{ method }(*args)
           context.send(#{ method.inspect }, *args)

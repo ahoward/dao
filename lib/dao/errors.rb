@@ -106,7 +106,6 @@ module Dao
       list.clear if clear
       list.push(message)
       list.uniq!
-      list
       self
     end
     alias_method('add!', 'add')
@@ -176,7 +175,7 @@ module Dao
       full_messages = []
 
       depth_first_each do |keys, value|
-        index = keys.pop
+        _ = keys.pop
         key = keys
         value = value.to_s
 
@@ -194,7 +193,7 @@ module Dao
 
     def each_message
       depth_first_each do |keys, message|
-        index = keys.pop
+        _ = keys.pop
         message = message.to_s.strip
         yield(keys, message)
       end
@@ -204,7 +203,7 @@ module Dao
       hash = Hash.new
 
       depth_first_each do |keys, value|
-        index = keys.pop
+        _ = keys.pop
         hash[keys] ||= []
         hash[keys].push("#{ value }")
       end
@@ -219,9 +218,8 @@ module Dao
     alias_method('each_full', 'each_full_message')
 
     def messages
-      messages =
-        (self[Global]||[]).map{|message| message}.
-        select{|message| not message.strip.empty?}
+      (self[Global] || []).map{|message| message}
+                          .select{|message| not message.strip.empty?}
     end
 
     def global
@@ -235,7 +233,7 @@ module Dao
   # html generation methods
   #
     def to_html(*args)
-      Errors.to_html(errors=self, *args)
+      Errors.to_html(self, *args)
     end
 
     def Errors.to_html(*args, &block)
@@ -262,7 +260,6 @@ module Dao
 
     class KeyPrefixer
       attr_accessor :object
-      attr_accessor :prefix
       attr_accessor :global
 
       def initialize(object)
@@ -307,7 +304,7 @@ module Dao
 
     def Errors.to_hash(*args)
       error = args.shift
-      options = Map.options_for!(args)
+      Map.options_for!(args)
       errors = [error, *args].flatten.compact
 
       map = Map.new
