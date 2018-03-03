@@ -24,46 +24,21 @@
 
 
   module Dao
-    Version = '6.0.0' unless defined?(Version)
-
-    def version
-      Dao::Version
-    end
-
-    def description
-      "presenter, conducer, api, and better form objects for you rails' pleasure"
-    end
-
-    def libdir(*args, &block)
-      @libdir ||= File.expand_path(__FILE__).sub(/\.rb$/,'')
-      args.empty? ? @libdir : File.join(@libdir, *args)
-    ensure
-      if block
-        begin
-          $LOAD_PATH.unshift(@libdir)
-          block.call()
-        ensure
-          $LOAD_PATH.shift()
-        end
-      end
-    end
-
-    def load(*libs)
-      libs = libs.join(' ').scan(/[^\s+]+/)
-      Dao.libdir{ libs.each{|lib| Kernel.load(lib) } }
-    end
-
-    extend(Dao)
+    require_relative 'dao/_lib.rb'
   end
 
   %w[
     action_controller
-    active_resource
     active_support
   ].each do |framework|
     begin
       require "#{ framework }/railtie"
     rescue LoadError
+      begin
+        require "#{ framework }"
+      rescue LoadError
+        raise
+      end
     end
   end
 

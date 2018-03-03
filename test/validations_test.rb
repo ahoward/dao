@@ -72,8 +72,6 @@ class DaoValidationsTest < ::Dao::TestCase
   end
 
   test 'that validations have some syntax sugar' do
-    return :pending
-
     assert{
       api_class =
         Dao.api do
@@ -94,8 +92,6 @@ class DaoValidationsTest < ::Dao::TestCase
   end
 
   test 'that validations use instance_exec - as god intended' do
-    return :pending
-
     a, b = nil
 
     api_class =

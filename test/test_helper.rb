@@ -1,11 +1,11 @@
 # -*- encoding : utf-8 -*-
 gem "minitest"
-require "minitest/autorun"
-require "minitest/reporters"
+#require "minitest/autorun"
+#require "minitest/reporters"
 
-require 'rake_rerun_reporter'
-reporter_options = { color: true, slow_count: 5, verbose: false, rerun_prefix: "bundle exec" }
-Minitest::Reporters.use! [Minitest::Reporters::RakeRerunReporter.new(reporter_options)]
+#require 'rake_rerun_reporter'
+#reporter_options = { color: true, slow_count: 5, verbose: false, rerun_prefix: "bundle exec" }
+#Minitest::Reporters.use! [Minitest::Reporters::RakeRerunReporter.new(reporter_options)]
 
 require "dao"
 require "util"
@@ -24,7 +24,7 @@ class Dao::TestCase < ActiveSupport::TestCase
   alias_method('__assert__', 'assert')
 
   def missing
-    Dao::TestCast::Missing
+    Dao::TestCase::Missing
   end
 
   def assert(*args, &block)
