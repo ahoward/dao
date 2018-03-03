@@ -9,6 +9,7 @@ gem "minitest"
 
 require "dao"
 require "util"
+require 'byebug'
 
 class Dao::TestCase < ActiveSupport::TestCase
   class << self
