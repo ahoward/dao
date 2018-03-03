@@ -9,6 +9,7 @@ Minitest::Reporters.use! [Minitest::Reporters::RakeRerunReporter.new(reporter_op
 
 require "dao"
 require "util"
+require 'byebug'
 
 class Dao::TestCase < ActiveSupport::TestCase
   class << self

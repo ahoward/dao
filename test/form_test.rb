@@ -20,7 +20,7 @@ class DaoFormTest < ::Dao::TestCase
       html = form.input(:bar)
       scmp(
         html,
-        '<input type="text" name="dao[form][bar]" class="dao" id="form_bar"/>'
+        '<input type="text" name="dao[form][bar]" class="dao" id="form--bar"/>'
       )
     end
 
@@ -29,7 +29,7 @@ class DaoFormTest < ::Dao::TestCase
         html = form.input(:bar)
         scmp(
           html,
-          '<input type="text" name="dao[form][foo.bar]" class="dao" id="form_foo-bar"/>'
+          '<input type="text" name="dao[form][foo.bar]" class="dao" id="form--foo-bar"/>'
         )
       end
     end
@@ -38,7 +38,7 @@ class DaoFormTest < ::Dao::TestCase
       html = form.input(:bar)
       scmp(
         html,
-        '<input type="text" name="dao[form][bar]" class="dao" id="form_bar"/>'
+        '<input type="text" name="dao[form][bar]" class="dao" id="form--bar"/>'
       )
     end
   end
@@ -53,7 +53,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"> </select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"> </select>'
       )
     end
 
@@ -62,7 +62,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
       )
    end
 
@@ -71,7 +71,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="1">A</option><option value="2">B</option><option value="3">C</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="1">A</option><option value="2">B</option><option value="3">C</option></select>'
       )
    end
 
@@ -80,7 +80,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option></option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option></option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
       )
    end
 
@@ -89,7 +89,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option></option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option></option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
       )
    end
 
@@ -98,7 +98,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="">42</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="">42</option><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
       )
    end
 
@@ -107,7 +107,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="a">a</option><option value="b">b</option><option value="c">c</option></select>'
       )
    end
 
@@ -116,7 +116,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="a">a</option><option value="b" selected>b</option><option value="c">c</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="a">a</option><option value="b" selected>b</option><option value="c">c</option></select>'
       )
     end
 
@@ -131,7 +131,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="41">41</option><option value="42" selected>42</option><option value="43">43</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="41">41</option><option value="42" selected>42</option><option value="43">43</option></select>'
       )
     end
 
@@ -146,7 +146,7 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="41">41</option><option value="42" selected>42</option><option value="43">43</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="41">41</option><option value="42" selected>42</option><option value="43">43</option></select>'
       )
     end
 
@@ -161,14 +161,15 @@ class DaoFormTest < ::Dao::TestCase
     assert do
       scmp(
         html,
-        '<select name="dao[form][key]" class="dao" id="form_key"><option value="41">41</option><option value="42" selected>42</option><option value="43">43</option></select>'
+        '<select name="dao[form][key]" class="dao" id="form--key"><option value="41">41</option><option value="42" selected>42</option><option value="43">43</option></select>'
       )
     end
   end
 
 protected
   def new_form
-    assert{ Dao::Form.new }
+    #assert{ Dao::Form.new }
+    Dao::Form.new
   end
 
   def new_named_form(name = 'name')
