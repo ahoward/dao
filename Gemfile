@@ -9,8 +9,7 @@ gem "tagz",              "~> 9.9"
 gem "multi_json",        ">= 1.0.3"
 gem "uuidtools",         ">= 2.1.2"
 gem "wrap",              ">= 1.5.0"
-#gem "rails_current",     ">= 2.0.0"
-gem "rails_current", :git => "https://github.com/ahoward/rails_current.git", :branch => "rails-5"
+gem "rails_current",     ">= 2.0.0"
 
 gem "rails_errors2html", ">= 1.3.0"
 
