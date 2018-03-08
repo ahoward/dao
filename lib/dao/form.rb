@@ -12,7 +12,7 @@ module Dao
   # builder stuff for compatibity with rails' form_for()
   #
     class Builder < Form
-      def Builder.new(object_name, object, view, options, block)
+      def Builder.new(object_name, object, view, options, block=:rails_3_4_5)
         if object.respond_to?(:form)
 
           html = options[:html] || {}

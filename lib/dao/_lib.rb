@@ -1,11 +1,11 @@
 module Dao
   Version = '6.0.0' unless defined?(Version)
 
-  def Dao.version
+  def version
     Dao::Version
   end
 
-  def Dao.dependencies
+  def dependencies
     {
       'rails'             => [ 'rails'             , ' ~> 3.1'   ] ,
       'map'               => [ 'map'               , ' >= 6.0.0' ] ,
@@ -20,11 +20,11 @@ module Dao
     }
   end
 
-  def Dao.description
+  def description
     "presenter, conducer, api, and better form objects for you rails' pleasure"
   end
 
-  def Dao.libdir(*args, &block)
+  def libdir(*args, &block)
     @libdir ||= File.dirname(File.expand_path(__FILE__).sub(/\.rb$/,''))
     args.empty? ? @libdir : File.join(@libdir, *args)
   ensure
@@ -38,8 +38,10 @@ module Dao
     end
   end
 
-  def Dao.load(*libs)
+  def load(*libs)
     libs = libs.join(' ').scan(/[^\s+]+/)
     Dao.libdir{ libs.each{|lib| Kernel.load(lib) } }
   end
+
+  extend Dao
 end

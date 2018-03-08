@@ -22,10 +22,7 @@
   require "rails_current"
   require "rails_errors2html"
 
-
-  module Dao
-    require_relative 'dao/_lib.rb'
-  end
+  require_relative 'dao/_lib.rb'
 
   %w[
     action_controller
