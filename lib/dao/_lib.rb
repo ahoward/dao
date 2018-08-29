@@ -1,5 +1,5 @@
 module Dao
-  Version = '7.0.0' unless defined?(Version)
+  Version = '6.1.0' unless defined?(Version)
 
   def version
     Dao::Version
@@ -16,16 +16,8 @@ module Dao
       'uuidtools'         => [ 'uuidtools'         , ' ~> 2.1' ] ,
       'wrap'              => [ 'wrap'              , ' ~> 1.5' ] ,
       'rails_current'     => [ 'rails_current'     , ' ~> 2.0' ] ,
-      #'rails_errors2html' => [ 'rails_errors2html' , ' ~> 1.3' ] ,
     }
   end
-
-    #add_runtime_dependency 'tagz', '~> 9.9', '>= 9.9.2'
-    #add_runtime_dependency 'multi_json', '~> 1.0', '>= 1.0.3'
-    #add_runtime_dependency 'uuidtools', '~> 2.1', '>= 2.1.2'
-    #add_runtime_dependency 'wrap', '~> 1.5', '>= 1.5.0'
-    #add_runtime_dependency 'rails_current', '~> 1.8', '>= 1.8.0'
-    #add_runtime_dependency 'rails_errors2html', '~> 1.3', '>= 1.3.0'
 
   def description
     "presenter, conducer, api, and better form objects for you rails' pleasure"

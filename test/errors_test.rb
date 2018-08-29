@@ -2,6 +2,20 @@
 require_relative 'test_helper'
 class DaoErrorsTest < Dao::TestCase
 
+  test 'that errors have #to_html' do
+    e = Dao::Errors.new
+
+    e.add 'is fucked'
+    e.add 'foo is fucked'
+
+    actual = e.to_html
+
+    expected = <<-__
+    __
+
+    assert compress(actual) == compress(expected)
+  end
+
   test 'that conducer-less error objects scopes keys in a generic fashion' do
     e = Dao::Errors.new
 

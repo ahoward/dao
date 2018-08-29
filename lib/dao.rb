@@ -51,11 +51,11 @@
     support.rb
     slug.rb
     stdext.rb
-    errors2html.rb
 
     name.rb
     status.rb
     path_map.rb
+    errors2html.rb
     errors.rb
     messages.rb
     form.rb

@@ -246,7 +246,7 @@ module Dao
     end
 
     def Errors.errors_to_html(*args)
-      ::Errors2Html.to_html(*args)
+      Errors2Html.to_html(*args)
     end
 
     def to_s(format = :html, *args, &block)

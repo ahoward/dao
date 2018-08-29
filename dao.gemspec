@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "6.0.0"
+  spec.version = "7.0.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "presenter, conducer, api, and better form objects for you rails' pleasure"
@@ -41,6 +41,7 @@ Gem::Specification::new do |spec|
  "lib/dao/endpoint.rb",
  "lib/dao/engine.rb",
  "lib/dao/errors.rb",
+ "lib/dao/errors2html.rb",
  "lib/dao/exceptions.rb",
  "lib/dao/extractor.rb",
  "lib/dao/form.rb",
@@ -84,7 +85,6 @@ Gem::Specification::new do |spec|
  "lib/dao/validations/common.rb",
  "lib/dao/validations/instance.rb",
  "lib/dao/validations/validator.rb",
- "lib/rails_errors2html.rb",
  "tasks",
  "tasks/default.rake",
  "tasks/this.rb",
@@ -127,8 +127,6 @@ Gem::Specification::new do |spec|
     spec.add_dependency(*["wrap", " ~> 1.5"])
   
     spec.add_dependency(*["rails_current", " ~> 2.0"])
-  
-    spec.add_dependency(*["rails_errors2html", " ~> 1.3"])
   
 
   spec.extensions.push(*[])
