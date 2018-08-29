@@ -109,7 +109,7 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", " ~> 5.2"])
+    spec.add_dependency(*["rails", " ~> 5"])
   
     spec.add_dependency(*["map", " ~> 6.0"])
   
