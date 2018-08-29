@@ -112,6 +112,7 @@ module Dao
     alias_method('add_to_base', 'add')
     alias_method('add_to_base!', 'add!')
 
+# FIXME - this should accept an errors object
     def relay(*args)
       options = args.size > 1 ? Map.options_for!(args) : Map.new
 

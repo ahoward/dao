@@ -4,7 +4,7 @@ This.email = "ara.t.howard@gmail.com"
 This.homepage = "https://github.com/ahoward/#{ This.lib }"
 
 task :license do
-  open('LICENSE', 'w'){|fd| fd.puts "Ruby"}
+  open('LICENSE', 'w'){|fd| fd.puts "same as ruby's"}
 end
 
 task :default do
@@ -32,7 +32,7 @@ def run_tests!(which = nil)
 
   test_rbs.each_with_index do |test_rb, index|
     testno = index + 1
-    command = "#{ This.ruby } -w -I ./lib -I ./test/ -I ./test/lib #{ test_rb }"
+    command = "#{ This.ruby } -w -I ./lib -I ./test/lib #{ test_rb }"
 
     puts
     say(div, :color => :cyan, :bold => true)
@@ -93,7 +93,7 @@ task :gemspec do
   test_files  = "test/#{ lib }.rb" if File.file?("test/#{ lib }.rb")
   summary     = object.respond_to?(:summary) ? object.summary : "summary: #{ lib } kicks the ass"
   description = object.respond_to?(:description) ? object.description : "description: #{ lib } kicks the ass"
-  license     = object.respond_to?(:license) ? object.license : "Ruby"
+  license     = object.respond_to?(:license) ? object.license : "same as ruby's"
 
   if This.extensions.nil?
     This.extensions = []
@@ -261,29 +261,28 @@ BEGIN {
 #
   This = OpenStruct.new
 
-  This.file   = File.expand_path(__FILE__)
-  This.dir    = File.dirname(This.file)
+  This.file = File.expand_path(__FILE__)
+  This.dir = File.dirname(This.file)
   This.pkgdir = File.join(This.dir, 'pkg')
 
-  This.lib    = File.basename(Dir.pwd)
-  This._lib    = "#{ This.dir }/lib/#{ This.lib }/_lib.rb" 
-
-# load meta lib info
+# grok lib
 #
-  a = Object.constants.dup
-  require This._lib
-  b = Object.constants.dup
-  added = b - a
-  const = added.first
-
-  if added.size > 1
-    STDERR.puts "WARNING: defined multiple constants #{ added.inspect } in #{ _lib }, using #{ const } !!!"
+  lib = ENV['LIB']
+  unless lib
+    lib = File.basename(Dir.pwd).sub(/[-].*$/, '')
   end
+  This.lib = lib
 
-  This.const   = const
-  This.object  = Object.const_get(This.const)
-  This.name    = This.object.name
-  This.version = This.object.send(:version)
+# grok version
+#
+  version = ENV['VERSION']
+  unless version
+    require "./lib/#{ This.lib }"
+    This.name = lib.capitalize
+    This.object = eval(This.name)
+    version = This.object.send(:version)
+  end
+  This.version = version
 
 # see if dependencies are export by the module
 #
@@ -298,12 +297,12 @@ BEGIN {
 
 # discover full path to this ruby executable
 #
-  c                 = RbConfig::CONFIG
-  bindir            = c["bindir"] || c['BINDIR']
+  c = Config::CONFIG
+  bindir = c["bindir"] || c['BINDIR']
   ruby_install_name = c['ruby_install_name'] || c['RUBY_INSTALL_NAME'] || 'ruby'
-  ruby_ext          = c['EXEEXT'] || ''
-  ruby              = File.join(bindir, (ruby_install_name + ruby_ext))
-  This.ruby         = ruby
+  ruby_ext = c['EXEEXT'] || ''
+  ruby = File.join(bindir, (ruby_install_name + ruby_ext))
+  This.ruby = ruby
 
 # some utils
 #
