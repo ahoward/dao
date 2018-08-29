@@ -20,13 +20,15 @@
   require "wrap"
   require "rails_current"
   require "rails_current"
-  require "rails_errors2html"
 
+#
   require_relative 'dao/_lib.rb'
 
+#
   %w[
     action_controller
     active_support
+    active_model
   ].each do |framework|
     begin
       require "#{ framework }/railtie"
@@ -40,6 +42,7 @@
   end
 
 
+#
   Dao.load %w[
     blankslate.rb
     instance_exec.rb
@@ -48,6 +51,7 @@
     support.rb
     slug.rb
     stdext.rb
+    errors2html.rb
 
     name.rb
     status.rb

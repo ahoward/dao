@@ -84,6 +84,7 @@ Gem::Specification::new do |spec|
  "lib/dao/validations/common.rb",
  "lib/dao/validations/instance.rb",
  "lib/dao/validations/validator.rb",
+ "lib/rails_errors2html.rb",
  "tasks",
  "tasks/default.rake",
  "tasks/this.rb",
@@ -109,7 +110,7 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", " ~> 5"])
+    spec.add_dependency(*["rails", " ~> 5.2"])
   
     spec.add_dependency(*["map", " ~> 6.0"])
   
@@ -125,7 +126,7 @@ Gem::Specification::new do |spec|
   
     spec.add_dependency(*["wrap", " ~> 1.5"])
   
-    spec.add_dependency(*["rails_current", " ~> 1.8"])
+    spec.add_dependency(*["rails_current", " ~> 2.0"])
   
     spec.add_dependency(*["rails_errors2html", " ~> 1.3"])
   

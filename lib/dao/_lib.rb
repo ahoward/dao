@@ -1,5 +1,5 @@
 module Dao
-  Version = '6.0.0' unless defined?(Version)
+  Version = '7.0.0' unless defined?(Version)
 
   def version
     Dao::Version
@@ -15,8 +15,8 @@ module Dao
       'multi_json'        => [ 'multi_json'        , ' ~> 1.0' ] ,
       'uuidtools'         => [ 'uuidtools'         , ' ~> 2.1' ] ,
       'wrap'              => [ 'wrap'              , ' ~> 1.5' ] ,
-      'rails_current'     => [ 'rails_current'     , ' ~> 1.8' ] ,
-      'rails_errors2html' => [ 'rails_errors2html' , ' ~> 1.3' ] ,
+      'rails_current'     => [ 'rails_current'     , ' ~> 2.0' ] ,
+      #'rails_errors2html' => [ 'rails_errors2html' , ' ~> 1.3' ] ,
     }
   end
 

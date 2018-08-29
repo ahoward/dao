@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-require 'test_helper'
+require_relative 'test_helper'
 
 class Dao::ModuleTest < Dao::TestCase 
   test 'that dao has a root' do

@@ -8,8 +8,7 @@ gem "minitest"
 #Minitest::Reporters.use! [Minitest::Reporters::RakeRerunReporter.new(reporter_options)]
 
 require "dao"
-require "util"
-require 'byebug'
+require_relative "util"
 
 class Dao::TestCase < ActiveSupport::TestCase
   class << self
