@@ -20,7 +20,7 @@ module Dao
   end
 
   def description
-    "presenter, conducer, api, and better form objects for you rails' pleasure"
+    "presenter, conductor, api, and better form objects for you rails' pleasure"
   end
 
   def libdir(*args, &block)

@@ -13,13 +13,14 @@ module Dao
           :endpoints => Map.new,
           :blocks => {},
           :README => [],
-          :docs => []
+          :docs => [],
+          :paths => [],
         }
       end
 
       def call(*args, &block)
         options = Dao.options_for!(args)
-        path = Path.new(args.shift || raise(ArgumentError, "no path!"))
+        path = Path.new(args.shift || paths.shift || raise(ArgumentError, "no path!"))
 
         api = self
 
@@ -44,7 +45,12 @@ module Dao
 
         endpoints[path] = endpoint
       end
-      alias_method('endpoint', 'call')
+
+      def endpoint(path, &block)
+        paths << path.to_s
+        class_eval(&block)
+      end
+      #alias_method('endpoint', 'call')
 
       def endpoints
         state[:endpoints]
@@ -69,6 +75,10 @@ module Dao
 
       def docs
         state[:docs]
+      end
+
+      def paths
+        state[:paths]
       end
 
       def readme(*args)
