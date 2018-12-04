@@ -10,7 +10,6 @@
 
 # dao libs
 #
-
   require "map"
   require "fattr"
   require "coerce"
@@ -18,7 +17,6 @@
   require "multi_json"
   require "uuidtools"
   require "wrap"
-  require "rails_current"
   require "rails_current"
 
 #

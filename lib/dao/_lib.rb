@@ -1,5 +1,5 @@
 module Dao
-  Version = '6.1.0' unless defined?(Version)
+  Version = '7.0.0' unless defined?(Version)
 
   def version
     Dao::Version
