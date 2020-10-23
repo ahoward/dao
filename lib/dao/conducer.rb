@@ -86,14 +86,10 @@ module Dao
   # instance methods
   #
     %w[
-      attributes
-      form
       params
-      errors
       messages
       models
       model
-      conduces
     ].each{|attr| fattr(attr)}
 
   # ctors
@@ -323,6 +319,10 @@ module Dao
       update_attributes(attributes)
     end
 
+    def attributes
+      @attributes
+    end
+
     def set(*args, &block)
       update_attributes(*args, &block)
     end
@@ -399,10 +399,10 @@ module Dao
     end
 
     def id_for(object)
-      model?(object) ? object.id : object
+      modelish?(object) ? object.id : object
     end
 
-    def model?(object)
+    def modelish?(object)
       object.respond_to?(:persisted?)
     end
 
@@ -476,10 +476,6 @@ module Dao
   #
     def key_for(key)
       Dao.key_for(key)
-    end
-
-    def errors
-      validator.errors
     end
 
     def model_name

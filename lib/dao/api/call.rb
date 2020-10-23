@@ -242,8 +242,12 @@ module Dao
 
   # delgate some methods to the context
   #
-    Context.attrs.each do |method|
-      next if %w[ status status! data data! index endpoints respond_to? parameter parameter! ].include?(method.to_s)
+    (Context.attrs - %w[ status data ]).each do |method|
+      if method_defined?(method)
+        #p [method, instance_method(method).source_location].join(':')
+        remove_method(method)
+      end
+
       module_eval <<-__, __FILE__, __LINE__
         def #{ method }(*args)
           context.send(#{ method.inspect }, *args)

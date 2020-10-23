@@ -7,21 +7,26 @@
   require 'cgi'
   require 'tmpdir'
   require 'yaml'
-
-# dao libs
-#
-  require "map"
-  require "fattr"
-  require "coerce"
-  require "tagz"
-  require "multi_json"
-  require "uuidtools"
-  require "wrap"
-  require "rails_current"
+  require 'securerandom'
+  require 'json'
 
 #
   require_relative 'dao/_lib.rb'
 
+# gems
+#
+  begin 
+    require 'rubygems'
+  rescue LoadError
+    nil
+  end
+
+  Dao.dependencies.each do |lib, dependency|
+    gem(*dependency) if defined?(gem)
+    require(lib)
+  end
+
+# rails frameworks
 #
   %w[
     action_controller
@@ -39,10 +44,12 @@
     end
   end
 
-
+# dao libs
 #
   Dao.load %w[
     blankslate.rb
+    coerce.rb
+    wrap.rb
     instance_exec.rb
     extractor.rb
     exceptions.rb
@@ -77,10 +84,3 @@
     conducer.rb
     upload.rb
   ]
-
-
-  unless defined?(::UUIDTools::Config)
-    ::UUIDTools.module_eval do
-      Config = ::RbConfig # shuts up warnings...
-    end
-  end

@@ -183,11 +183,12 @@ module Dao
   def json_for(object, options = {})
     object = object.as_json if object.respond_to?(:as_json)
 
-    options = options.empty? ? Map.for(options) : options
-    options[:pretty] = json_pretty?  unless options.has_key?(:pretty)
+    pretty = (options.delete(:pretty) || json_pretty?)
+
+    generate = pretty ? :pretty_generate : :generate
 
     begin
-      MultiJson.dump(object, options)
+      JSON.send(generate, object, options)
     rescue Object => _
       YAML.load( object.to_yaml ).to_json
     end
@@ -231,21 +232,9 @@ module Dao
     end
   end
 
-
-  {
-    'ffi-uuid'  => proc{|*args| FFI::UUID.generate_time.to_s},
-    'uuidtools' => proc{|*args| UUIDTools::UUID.timestamp_create.to_s},
-    'uuid'      => proc{|*args| UUID.generate.to_s},
-  }.each do |lib, implementation|
-    begin
-      require(lib)
-      define_method(:uuid, &implementation)
-      break
-    rescue LoadError
-      nil
-    end
+  def uuid
+    SecureRandom.uuid
   end
-  abort 'no suitable uuid generation library detected' unless method_defined?(:uuid)
 
   def ensure_interface!(object, *interface)
     interface.flatten.compact.each do |method|

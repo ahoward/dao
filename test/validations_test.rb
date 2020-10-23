@@ -111,8 +111,9 @@ class DaoValidationsTest < ::Dao::TestCase
   end
 
   test 'simple validates_confirmation_of' do
+=begin
     return :pending
-
+=end
     api_class =
       Dao.api do
         endpoint('/foobar'){
@@ -136,7 +137,6 @@ class DaoValidationsTest < ::Dao::TestCase
 #
   test 'that validations clear only that which they know about' do
     params = Dao::Params.new
-    errors = params.errors
 
     assert{ params.validates(:email){|email| email.to_s.split(/@/).size == 2} }
     assert{ params.validates(:password){|password| password == 'pa$$w0rd'} }

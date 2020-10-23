@@ -3,15 +3,21 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "7.0.0"
+  spec.version = "8.0.0"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
-  spec.description = "presenter, conducer, api, and better form objects for you rails' pleasure"
-  spec.license = "same as ruby's"
+  spec.description = "presenter, conductor, api, and better form objects for you rails' pleasure"
+  spec.license = "Ruby"
 
   spec.files =
 ["README.md",
  "Rakefile",
+ "coerce-0.0.8",
+ "coerce-0.0.8/README",
+ "coerce-0.0.8/Rakefile",
+ "coerce-0.0.8/coerce.gemspec",
+ "coerce-0.0.8/lib",
+ "coerce-0.0.8/lib/coerce.rb",
  "dao.gemspec",
  "lib",
  "lib/dao",
@@ -27,6 +33,7 @@ Gem::Specification::new do |spec|
  "lib/dao/api/modes.rb",
  "lib/dao/api/routes.rb",
  "lib/dao/blankslate.rb",
+ "lib/dao/coerce.rb",
  "lib/dao/conducer",
  "lib/dao/conducer.rb",
  "lib/dao/conducer/active_model.rb",
@@ -85,6 +92,10 @@ Gem::Specification::new do |spec|
  "lib/dao/validations/common.rb",
  "lib/dao/validations/instance.rb",
  "lib/dao/validations/validator.rb",
+ "lib/dao/wrap.rb",
+ "public",
+ "public/system",
+ "public/system/uploads",
  "tasks",
  "tasks/default.rake",
  "tasks/this.rb",
@@ -101,7 +112,16 @@ Gem::Specification::new do |spec|
  "test/support_test.rb",
  "test/test_helper.rb",
  "test/util.rb",
- "test/validations_test.rb"]
+ "test/validations_test.rb",
+ "wrap-1.5.2",
+ "wrap-1.5.2/README",
+ "wrap-1.5.2/Rakefile",
+ "wrap-1.5.2/lib",
+ "wrap-1.5.2/lib/wrap.rb",
+ "wrap-1.5.2/test",
+ "wrap-1.5.2/test/testing.rb",
+ "wrap-1.5.2/test/wrap_test.rb",
+ "wrap-1.5.2/wrap.gemspec"]
 
   spec.executables = []
   
@@ -110,28 +130,19 @@ Gem::Specification::new do |spec|
   spec.test_files = nil
 
   
-    spec.add_dependency(*["rails", " ~> 5.2"])
+    spec.add_dependency(*["rails", " ~> 6.0"])
   
-    spec.add_dependency(*["map", " ~> 6.0"])
+    spec.add_dependency(*["map", " ~> 6.6"])
   
-    spec.add_dependency(*["fattr", " ~> 2.2"])
+    spec.add_dependency(*["fattr", " ~> 2.4"])
   
-    spec.add_dependency(*["coerce", " ~> 0.0"])
+    spec.add_dependency(*["tagz", " ~> 9.10"])
   
-    spec.add_dependency(*["tagz", " ~> 9.9"])
-  
-    spec.add_dependency(*["multi_json", " ~> 1.0"])
-  
-    spec.add_dependency(*["uuidtools", " ~> 2.1"])
-  
-    spec.add_dependency(*["wrap", " ~> 1.5"])
-  
-    spec.add_dependency(*["rails_current", " ~> 2.0"])
+    spec.add_dependency(*["rails_current", " ~> 2.2"])
   
 
   spec.extensions.push(*[])
 
-  spec.rubyforge_project = "codeforpeople"
   spec.author = "Ara T. Howard"
   spec.email = "ara.t.howard@gmail.com"
   spec.homepage = "https://github.com/ahoward/dao"

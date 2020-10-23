@@ -498,7 +498,7 @@ $pry=true
 
       path = File.join(File.dirname(__FILE__), 'data/han-solo.jpg') 
       assert{ test(?s, path) }
-      up = Upload.new(path)
+      _up = Upload.new(path)
       comment = Comment.new
 
       c = conducer_class.new( comment, :up => {:file => Upload.new(path)} ) 
@@ -512,8 +512,8 @@ $pry=true
 
       assert{ c.save }
 
-      value_was_relayed = assert{ comment.attributes[:up] == upload._value }
-      value_was_cleared = assert{ !test(?f, upload.path) }
+      _value_was_relayed = assert{ comment.attributes[:up] == upload._value }
+      _value_was_cleared = assert{ !test(?f, upload.path) }
 
       assert{ test(?s, path) }
 ensure
@@ -705,7 +705,7 @@ protected
 
     def method_missing(method, *args, &block)
       re = /^([^=!?]+)([=!?])?$/imox
-      matched, key, suffix = re.match(method.to_s).to_a
+      _matched, key, suffix = re.match(method.to_s).to_a
       
       case suffix
         when '=' then attributes.set(key, args.first)

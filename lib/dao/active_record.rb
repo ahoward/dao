@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 begin
-  ActiveRecord
-  ActiveRecord::Base
+  ActiveRecord.name
+  ActiveRecord::Base.name
 rescue NameError
   nil
 end

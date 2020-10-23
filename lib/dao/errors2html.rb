@@ -71,7 +71,7 @@ module Dao
         when Map
           hash = Hash.new
           hashlike.depth_first_each do |key, value|
-            index = key.pop if key.last.is_a?(Integer)
+            _ = key.pop if key.last.is_a?(Integer)
             (hash[key] ||= []).push(value)
           end
           hash

@@ -2,8 +2,8 @@
 require_relative 'test_helper'
 class DaoFormTest < ::Dao::TestCase
   test '.new' do
-    form = new_form() 
-    form = new_named_form() 
+    _ = new_form() 
+    _ = new_named_form() 
   end
 
   test 'name_for' do

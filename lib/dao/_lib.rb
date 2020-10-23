@@ -1,5 +1,5 @@
 module Dao
-  Version = '7.0.0' unless defined?(Version)
+  Version = '8.0.0' unless defined?(Version)
 
   def version
     Dao::Version
@@ -7,15 +7,11 @@ module Dao
 
   def dependencies
     {
-      'rails'             => [ 'rails'             , ' ~> 5.2' ] ,
-      'map'               => [ 'map'               , ' ~> 6.0' ] ,
-      'fattr'             => [ 'fattr'             , ' ~> 2.2' ] ,
-      'coerce'            => [ 'coerce'            , ' ~> 0.0' ] ,
-      'tagz'              => [ 'tagz'              , ' ~> 9.9' ] ,
-      'multi_json'        => [ 'multi_json'        , ' ~> 1.0' ] ,
-      'uuidtools'         => [ 'uuidtools'         , ' ~> 2.1' ] ,
-      'wrap'              => [ 'wrap'              , ' ~> 1.5' ] ,
-      'rails_current'     => [ 'rails_current'     , ' ~> 2.0' ] ,
+      'rails'             => [ 'rails'             , ' ~> 6.0'  ] ,
+      'map'               => [ 'map'               , ' ~> 6.6'  ] ,
+      'fattr'             => [ 'fattr'             , ' ~> 2.4'  ] ,
+      'tagz'              => [ 'tagz'              , ' ~> 9.10' ] ,
+      'rails_current'     => [ 'rails_current'     , ' ~> 2.2'  ] ,
     }
   end
 
