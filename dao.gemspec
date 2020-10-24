@@ -3,7 +3,7 @@
 
 Gem::Specification::new do |spec|
   spec.name = "dao"
-  spec.version = "8.0.0"
+  spec.version = "8.0.1"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
   spec.description = "presenter, conductor, api, and better form objects for you rails' pleasure"
@@ -12,12 +12,6 @@ Gem::Specification::new do |spec|
   spec.files =
 ["README.md",
  "Rakefile",
- "coerce-0.0.8",
- "coerce-0.0.8/README",
- "coerce-0.0.8/Rakefile",
- "coerce-0.0.8/coerce.gemspec",
- "coerce-0.0.8/lib",
- "coerce-0.0.8/lib/coerce.rb",
  "dao.gemspec",
  "lib",
  "lib/dao",
@@ -112,16 +106,7 @@ Gem::Specification::new do |spec|
  "test/support_test.rb",
  "test/test_helper.rb",
  "test/util.rb",
- "test/validations_test.rb",
- "wrap-1.5.2",
- "wrap-1.5.2/README",
- "wrap-1.5.2/Rakefile",
- "wrap-1.5.2/lib",
- "wrap-1.5.2/lib/wrap.rb",
- "wrap-1.5.2/test",
- "wrap-1.5.2/test/testing.rb",
- "wrap-1.5.2/test/wrap_test.rb",
- "wrap-1.5.2/wrap.gemspec"]
+ "test/validations_test.rb"]
 
   spec.executables = []
   
