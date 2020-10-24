@@ -261,15 +261,30 @@ BEGIN {
   This._lib = "./lib/#{ This.lib }/_lib.rb"
   require This._lib
 
-# fully grok This 
+# extract name from _lib
 #
-  This.name = This.lib.capitalize
+  lines = IO.binread(This._lib).split("\n")
+  re = %r`\A \s* (module|class) \s+ ([^\s]+) \s* \z`iomx
+  name = nil
+  lines.each do |line|
+    match = line.match(re)
+    if match
+      name = match.to_a.last
+      break
+    end
+  end
+  unless name
+    abort "could not extract `name` from #{ This._lib }"
+  end
+  This.name = name
+
+# now, fully grok This 
+#
   This.object = eval(This.name)
+
   version = This.object.send(:version)
   This.version = version
 
-# grok dependencies are exported by the module
-#
   if This.object.respond_to?(:dependencies)
     This.dependencies = This.object.dependencies
   end
