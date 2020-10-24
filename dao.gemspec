@@ -6,7 +6,7 @@ Gem::Specification::new do |spec|
   spec.version = "8.0.1"
   spec.platform = Gem::Platform::RUBY
   spec.summary = "dao"
-  spec.description = "presenter, conductor, api, and better form objects for you rails' pleasure"
+  spec.description = "description: dao kicks the ass"
   spec.license = "Ruby"
 
   spec.files =

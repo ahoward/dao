@@ -13,18 +13,7 @@
 #
   require_relative 'dao/_lib.rb'
 
-# gems
-#
-  begin 
-    require 'rubygems'
-  rescue LoadError
-    nil
-  end
-
-  Dao.dependencies.each do |lib, dependency|
-    gem(*dependency) if defined?(gem)
-    require(lib)
-  end
+  Dao.load_dependencies!
 
 # rails frameworks
 #
