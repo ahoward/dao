@@ -258,7 +258,11 @@ BEGIN {
 
 # load _lib
 #
-  This._lib = "./lib/#{ This.lib }/_lib.rb"
+  _lib = ["./lib/#{ This.lib }/_lib.rb", "./lib/#{ This.lib }.rb"].detect{|l| test(?s, l)}
+  unless _lib
+    abort "could not find a _lib in ./lib!?"
+  end
+  This._lib = _lib
   require This._lib
 
 # extract name from _lib

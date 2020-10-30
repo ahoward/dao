@@ -39,7 +39,7 @@ if defined?(Rails)
         ActionController::Base.module_eval do
         # normalize dao params
         #
-          before_filter do |controller|
+          before_action do |controller|
             Dao.current_controller ||= controller
             Dao.normalize_parameters(controller.send(:params))
           end

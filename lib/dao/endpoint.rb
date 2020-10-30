@@ -2,9 +2,10 @@
 module Dao
   class Endpoint
     Attrs = %w( api path route block doc )
-    Attrs.each{|attr| attr_accessor(attr)}
+    Attrs.each{|attr| fattr(attr)}
 
     def initialize(options = {})
+      @helpers = Module.new{ extend self }
       update(options)
     end
 
@@ -15,15 +16,29 @@ module Dao
     end
 
     def arity
-      block.arity
+      @block.arity if @block
     end
 
-    def call(*args)
-      block.call(*args)
+    def call(*args, &block)
+      if block
+        @block = block
+      else
+        @block.call(*args) if @block
+      end
     end
 
     def to_proc
-      block
+      @block if @block
     end
+
+    def helpers(&block)
+      if block
+        @helpers.module_eval(&block)
+      else
+        @helpers
+      end
+    end
+
+    alias_method :h, :helpers
   end
 end

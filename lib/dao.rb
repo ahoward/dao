@@ -11,8 +11,9 @@
   require 'json'
 
 #
-  require_relative 'dao/_lib.rb'
-
+  _libdir = __FILE__.sub(%r`\.rb\z`, '')
+  _lib  = "#{ _libdir }/_lib.rb"
+  Kernel.load(_lib)
   Dao.load_dependencies!
 
 # rails frameworks

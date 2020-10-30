@@ -6,11 +6,11 @@ class APIController < ApplicationController
 
   layout false
 
-  skip_before_filter :verify_authenticity_token
+  skip_before_action :verify_authenticity_token
 
-  before_filter :setup_api
-  before_filter :setup_mode
-  before_filter :setup_path
+  before_action :setup_api
+  before_action :setup_mode
+  before_action :setup_path
 
   WhiteList = Set.new( %w( ping index ) )
   BlackList = Set.new( %w( ) )

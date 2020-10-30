@@ -19,12 +19,16 @@ module Dao
     Dao.load('validations/validator.rb')
 
     ClassMethods = proc do
-      def validator
-        @validator ||= Validator.mixin(self)
+      unless method_defined?(:validator)
+        def validator
+          @validator ||= Validator.mixin(self)
+        end
       end
 
-      def validator=(validator)
-        @validator = validator
+      unless method_defined?(:validator=)
+        def validator=(validator)
+          @validator = validator
+        end
       end
 
       %w(
@@ -41,12 +45,16 @@ module Dao
     end
 
     InstanceMethods = proc do
-      def validator
-        @validator ||= Validator.mixin(self)
+      unless method_defined?(:validator)
+        def validator
+          @validator ||= Validator.mixin(self)
+        end
       end
 
-      def validator=(validator)
-        @validator = validator
+      unless method_defined?(:validator=)
+        def validator=(validator)
+          @validator = validator
+        end
       end
 
       %w(

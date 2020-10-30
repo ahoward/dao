@@ -8,6 +8,13 @@ module Dao
   # class methods
   #
     class << Params
+      def for(*args, &block)
+        if args.size == 1 && args.first.is_a?(Params) && block.nil?
+          return args.first
+        end
+
+        new(*args, &block)
+      end
     end
 
   # instance methods

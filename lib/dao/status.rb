@@ -318,8 +318,8 @@ module Dao
       Status.for(code)
     end
 
-    def to_json(*args, &block)
-      Map[:code, code, :message, message].to_json(*args, &block)
+    def as_json(*args, &block)
+      {'code' => code, 'message' => message}.as_json(*args, &block)
     end
   end
 

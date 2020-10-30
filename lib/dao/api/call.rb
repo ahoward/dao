@@ -20,7 +20,7 @@ module Dao
 
       def call(*args, &block)
         options = Dao.options_for!(args)
-        path = Path.new(args.shift || paths.shift || raise(ArgumentError, "no path!"))
+        path = Path.new(args.shift || paths.pop || raise(ArgumentError, "no path!"))
 
         api = self
 
@@ -46,11 +46,96 @@ module Dao
         endpoints[path] = endpoint
       end
 
-      def endpoint(path, &block)
-        paths << path.to_s
-        class_eval(&block)
+      def endpoint(options = {}, &block)
+      #
+        options = Map.for(options)
+
+      #
+        endpoint = Endpoint.new
+
+        endpoint.api = self
+
+        if options[:path]
+          path = Path.new(options[:path])
+          endpoint.path = path
+        end
+
+      #
+        endpoint.instance_eval(&block)
+
+        path = Path.new(endpoint.path)
+        endpoint.path = path
+
+        if Route.like?(path)
+          route = routes.add(path)
+          endpoint.route = route
+        end
+
+        endpoints[path] = endpoint
       end
-      #alias_method('endpoint', 'call')
+
+      def load_endpoint_file(file, options = {})
+        path = Path.new(options[:path] || 'index')
+
+        endpoint = Endpoint.new
+
+        endpoint.api = self
+        endpoint.path = path
+
+        if Route.like?(path)
+          route = routes.add(path)
+          endpoint.route = route
+        end
+
+        code = IO.binread(file)
+
+        endpoint.instance_eval(code, file, 1)
+
+        endpoint
+      end
+
+      def load_endpoint_file!(*args, &block)
+        endpoint = load_endpoint_file(*args, &block)
+        endpoints[endpoint.path] = endpoint
+        endpoint
+      end
+
+      def load_endpoint_directory(directory, options = {})
+        path_d = Pathname.new(directory).realpath
+
+        glob = "#{ path_d }/**/**.rb"
+
+        endpoints = []
+
+        entries = Dir.glob(glob).to_a.sort
+
+        entries.each do |entry|
+          next unless test(?f, entry)
+          file = entry
+
+          path_f = Pathname.new(file).realpath
+
+          path_r = path_f.relative_path_from(path_d)
+
+          base, _ext = path_r.to_s.split('.', 2)
+
+          parts = base.split('/')
+
+          parts.map!{|part| part =~ /\A_/ ? part.sub(/_/, ':') : part}
+
+          path = parts.join('/')
+
+          endpoints <<  load_endpoint_file(file, :path => path)
+        end
+
+        endpoints
+      end
+
+      def load_endpoint_directory!(*args, &block)
+        load_endpoint_directory(*args, &block).each do |endpoint|
+          endpoints[endpoint.path] = endpoint
+        end
+      end
 
       def endpoints
         state[:endpoints]
@@ -114,9 +199,17 @@ module Dao
 
   # call support 
   #
-    def call(path = '/index', params = {}, options = {})
+    def call(path = '/index', params = {}, session = {})
+    #
       api = self
+
       path = Path.new(path)
+
+      params = Dao.params_for(params)
+
+      session = Map.for(session)
+
+    #
       endpoint = endpoints[path]  ### endpoints.by_path(path)
       route = nil
 
@@ -142,10 +235,16 @@ module Dao
         end
       end
 
-     
-    ##
     #
-      context = Context.for(api, path, route, endpoint, params, options)
+      context =
+        Context.for(
+          api, 
+          :path     => path,
+          :route    => route,
+          :params   => params,
+          :session  => session,
+          :endpoint => endpoint
+        )
 
       callstack(context) do
         catching(:result) do
@@ -181,7 +280,7 @@ module Dao
   # context stack support
   #
     def callstack(context = nil, &block)
-      @callstack ||= []
+      @callstack ||= [default_context]
 
       if block and context
         begin
@@ -193,6 +292,10 @@ module Dao
       else
         @callstack
       end
+    end
+
+    def default_context
+      @default_context ||= Context.for(self)
     end
 
     def context
@@ -236,27 +339,54 @@ module Dao
       catching == :result
     end
 
-  # validations 
-  #
-    include Dao::Validations
-
   # delgate some methods to the context
   #
-    (Context.attrs - %w[ status data ]).each do |method|
-      if method_defined?(method)
-        #p [method, instance_method(method).source_location].join(':')
-        remove_method(method)
-      end
+    def api
+      self
+    end
 
-      module_eval <<-__, __FILE__, __LINE__
-        def #{ method }(*args)
-          context.send(#{ method.inspect }, *args)
-        end
-      __
+    def callable?
+      context.callable?
+    end
+
+    def path
+      context.path
+    end
+
+    def route
+      context.route
+    end
+
+    def endpoint
+      context.endpoint
+    end
+
+    def helpers
+      endpoint.helpers
+    end
+
+    def h
+      endpoint.h
+    end
+
+    def form
+      context.form
+    end
+
+    def params
+      context.params
+    end
+
+    def result
+      context.result
     end
 
     def status(*args)
       context.status.update(*args) unless args.empty?
+      context.status
+    end
+    def status=(*args)
+      context.status.update(*args)
       context.status
     end
     def status!(*args)
@@ -264,14 +394,40 @@ module Dao
       return!
     end
 
+    def session(*args)
+      context.session.replace(*args) unless args.empty?
+      context.session
+    end
+    def session=(*args)
+      context.session.replace(*args)
+      context.session
+    end
+    def session!(*args)
+      session(*args)
+      return!
+    end
+
     def data(*args)
       context.data.replace(*args) unless args.empty?
+      context.data
+    end
+    def data=(*args)
+      context.data.replace(*args)
       context.data
     end
     def data!(*args)
       data(*args)
       return!
     end
+
+  # validations are also 'context sensitive'
+  #
+    def validator
+      context.validator
+    end
+
+    include Dao::Validations
+
 
   # misc
   #

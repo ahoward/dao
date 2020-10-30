@@ -11,6 +11,7 @@ module Dao
       self.params = options[:params] || Params.new
       self.errors = options[:errors] || Errors.new
       self.data = options[:data] || Data.new
+      self.session = options[:session] || Map.new
     end
 
 =begin

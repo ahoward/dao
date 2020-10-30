@@ -8,6 +8,14 @@ module Dao
         Default
       end
 
+      def for(*args, &block)
+        if args.size == 1 && args.first.is_a?(Route) && block.nil
+          return args.first
+        end
+
+        new(*args, &block)
+      end
+
       def like?(route)
         route.to_s =~ %r{/:[^/]+}
       end
@@ -20,7 +28,7 @@ module Dao
       def pattern_for(route)
         route = Path.absolute_path_for(route.to_s)
         re = route.gsub(%r{/:[^/]+}, '/([^/]+)')
-        /#{ re }/iux
+        /\A#{ re }\z/iux
       end
 
       def path_for(route, params = {})

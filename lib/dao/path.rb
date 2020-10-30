@@ -11,8 +11,12 @@ module Dao
         Path.for(:dao)
       end
 
-      def for(*args)
-        new(absolute_path_for(*args))
+      def for(*args, &block)
+        if args.size == 1 && args.first.is_a?(Path) && block.nil?
+          return args.first
+        end
+
+        new(*args, &block)
       end
 
       def paths_for(arg, *args)

@@ -319,10 +319,6 @@ module Dao
       update_attributes(attributes)
     end
 
-    def attributes
-      @attributes
-    end
-
     def set(*args, &block)
       update_attributes(*args, &block)
     end
