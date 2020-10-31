@@ -55,14 +55,19 @@ module Dao
         endpoint.api = self
 
       #
+        path = (options[:path] || paths.pop || file_based_routing_path_for(block))
+
+        if path
+          endpoint.path = Path.for(path)
+        end
+
+      #
         endpoint.instance_eval(&block)
 
       #
-        path = (endpoint.path || options[:path] || paths.pop || file_based_routing_path_for(block))
+        raise(ArgumentError, "no path!") unless endpoint.path
 
-        raise(ArgumentError, "no path!") unless path
-
-        endpoint.path = Path.for(path)
+        endpoint.path = Path.for(endpoint.path)
 
       #
         if endpoint.route
