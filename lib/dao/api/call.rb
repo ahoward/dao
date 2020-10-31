@@ -174,7 +174,8 @@ module Dao
         if args.empty?
           state[:README]
         else
-          state[:README] = lines_for(args)
+          state[:README] ||= []
+          state[:README].push(*(lines_for(args).flatten))
         end
       end
       alias_method('README', 'readme')
@@ -190,9 +191,15 @@ module Dao
       def index
         index = Map.new
         index[:README] = readme
+
         endpoints.each do |path, endpoint|
-          index[path] = endpoint.doc || {'description' => ''}
+          doc = endpoint.doc.to_s
+
+          index[path] = {
+            'doc' => doc
+          }
         end
+
         index
       end
     end
