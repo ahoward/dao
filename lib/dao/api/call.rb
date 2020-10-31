@@ -12,6 +12,7 @@ module Dao
         @state ||= Map.new({
           :endpoints => Map.new,
           :endpoint => nil,
+          :endpoint_directory => nil,
           :blocks => {},
           :README => [],
           :docs => [],
@@ -49,23 +50,25 @@ module Dao
 
       def endpoint(options = {}, &block)
       #
-        if Api.state.endpoint
-          endpoint = Api.state.endpoint
-        else
-          options = Map.for(options)
-          endpoint = Endpoint.new
-          endpoint.api = self
-        end
+        options = Map.for(options)
+        endpoint = Endpoint.new
+        endpoint.api = self
 
       #
         endpoint.instance_eval(&block)
 
       #
-        path = Path.new(endpoint.path || options[:path] || paths.pop || raise(ArgumentError, "no path!"))
-        endpoint.path = path
+        path = (endpoint.path || options[:path] || paths.pop || file_based_routing_path_for(block))
 
+        raise(ArgumentError, "no path!") unless path
+
+        endpoint.path = Path.for(path)
+
+      #
         if endpoint.route
-          routes.push(endpoint.route) unless routes.include?(endpoint.route)
+          route = Route.for(endpoint.route)
+          endpoint.route = route
+          routes.push(route) unless routes.include?(route)
         else
           if Route.like?(endpoint.path)
             route = routes.add(endpoint.path)
@@ -77,56 +80,60 @@ module Dao
         endpoints[endpoint.path] = endpoint
       end
 
-      def load_endpoint_directory!(directory, options = {})
+      def file_based_routing_path_for(file_or_block)
+        file =
+          if file_or_block.is_a?(Proc)
+            file_or_block.binding.source_location.first
+          else
+            file_or_block.to_s
+          end
+
+        directory = state.endpoint_directory
+
+        return nil unless(file && directory)
+
         path_d = Pathname.new(directory).realpath
+        path_f = Pathname.new(file).realpath
 
-        glob = "#{ path_d }/**/**.rb"
+        path_r = path_f.relative_path_from(path_d)
 
-        loaded = []
+        base, _ext = path_r.to_s.split('.', 2)
+
+        parts = base.split('/')
+
+        parts.map!{|part| part =~ /\A_/ ? part.sub(/_/, ':') : part}
+
+        _path = parts.join('/')
+      end
+
+      def load_endpoint_directory!(directory, options = {})
+        _directory = state.endpoint_directory
+
+        state.endpoint_directory = directory
+
+        glob = options[:glob] || "#{ directory }/**/**.rb"
+
+        before = state.endpoints.values
 
         entries = Dir.glob(glob).to_a.sort
 
         entries.each do |entry|
           next unless test(?f, entry)
           file = entry
-
-          path_f = Pathname.new(file).realpath
-
-          path_r = path_f.relative_path_from(path_d)
-
-          base, _ext = path_r.to_s.split('.', 2)
-
-          parts = base.split('/')
-
-          parts.map!{|part| part =~ /\A_/ ? part.sub(/_/, ':') : part}
-
-          path = parts.join('/')
-
-          endpoint = load_endpoint_file!(file, :path => path)
-          
-          loaded << endpoint
+          ::Kernel.load(file)
         end
 
-        loaded
+        after = state.endpoints.values
+
+        _loaded = (before - after)
+      ensure
+        state.endpoint_directory = _directory
       end
 
       def load_endpoint_file!(file, options = {})
-        path = Path.new(options[:path] || paths.pop || raise(ArgumentError, "no path!"))
+        directory = options[:directory] || './'
 
-        endpoint = Endpoint.new
-        endpoint.api = self
-        endpoint.path = path
-
-        previous = Api.state.endpoint
-        Api.state.endpoint = endpoint 
-
-        begin
-          ::Kernel.load(file)
-        ensure
-          Api.state.endpoint = previous
-        end
-
-        endpoint
+        load_endpoint_directory!(directory, :glob => file)
       end
 
       def endpoints
