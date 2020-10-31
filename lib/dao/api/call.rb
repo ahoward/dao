@@ -9,13 +9,14 @@ module Dao
       end
 
       def state
-        @state ||= {
+        @state ||= Map.new({
           :endpoints => Map.new,
+          :endpoint => nil,
           :blocks => {},
           :README => [],
           :docs => [],
           :paths => [],
-        }
+        })
       end
 
       def call(*args, &block)
@@ -48,64 +49,40 @@ module Dao
 
       def endpoint(options = {}, &block)
       #
-        options = Map.for(options)
-
-      #
-        endpoint = Endpoint.new
-
-        endpoint.api = self
-
-        if options[:path]
-          path = Path.new(options[:path])
-          endpoint.path = path
+        if Api.state.endpoint
+          endpoint = Api.state.endpoint
+        else
+          options = Map.for(options)
+          endpoint = Endpoint.new
+          endpoint.api = self
         end
 
       #
         endpoint.instance_eval(&block)
 
-        path = Path.new(endpoint.path)
+      #
+        path = Path.new(endpoint.path || options[:path] || paths.pop || raise(ArgumentError, "no path!"))
         endpoint.path = path
 
-        if Route.like?(path)
-          route = routes.add(path)
-          endpoint.route = route
+        if endpoint.route
+          routes.push(endpoint.route) unless routes.include?(endpoint.route)
+        else
+          if Route.like?(endpoint.path)
+            route = routes.add(endpoint.path)
+            endpoint.route = route
+          end
         end
 
-        endpoints[path] = endpoint
-      end
-
-      def load_endpoint_file(file, options = {})
-        path = Path.new(options[:path] || 'index')
-
-        endpoint = Endpoint.new
-
-        endpoint.api = self
-        endpoint.path = path
-
-        if Route.like?(path)
-          route = routes.add(path)
-          endpoint.route = route
-        end
-
-        code = IO.binread(file)
-
-        endpoint.instance_eval(code, file, 1)
-
-        endpoint
-      end
-
-      def load_endpoint_file!(*args, &block)
-        endpoint = load_endpoint_file(*args, &block)
+      #
         endpoints[endpoint.path] = endpoint
-        endpoint
       end
 
-      def load_endpoint_directory(directory, options = {})
+      def load_endpoint_directory!(directory, options = {})
         path_d = Pathname.new(directory).realpath
 
         glob = "#{ path_d }/**/**.rb"
 
-        endpoints = []
+        loaded = []
 
         entries = Dir.glob(glob).to_a.sort
 
@@ -125,16 +102,31 @@ module Dao
 
           path = parts.join('/')
 
-          endpoints <<  load_endpoint_file(file, :path => path)
+          endpoint = load_endpoint_file!(file, :path => path)
+          
+          loaded << endpoint
         end
 
-        endpoints
+        loaded
       end
 
-      def load_endpoint_directory!(*args, &block)
-        load_endpoint_directory(*args, &block).each do |endpoint|
-          endpoints[endpoint.path] = endpoint
+      def load_endpoint_file!(file, options = {})
+        path = Path.new(options[:path] || paths.pop || raise(ArgumentError, "no path!"))
+
+        endpoint = Endpoint.new
+        endpoint.api = self
+        endpoint.path = path
+
+        previous = Api.state.endpoint
+        Api.state.endpoint = endpoint 
+
+        begin
+          ::Kernel.load(file)
+        ensure
+          Api.state.endpoint = previous
         end
+
+        endpoint
       end
 
       def endpoints
