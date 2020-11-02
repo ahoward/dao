@@ -90,7 +90,7 @@ module Dao
       messages
       models
       model
-    ].each{|attr| fattr(attr)}
+    ].each{|attr| attr_accessor(attr)}
 
   # ctors
   #
@@ -319,6 +319,10 @@ module Dao
       update_attributes(attributes)
     end
 
+    def attributes
+      @attributes
+    end
+
     def set(*args, &block)
       update_attributes(*args, &block)
     end
@@ -499,7 +503,12 @@ module Dao
     end
 
     def as_json(*args, &block)
-      @attributes
+      {
+        'params' => @params,
+        'attributes' => @attributes,
+        'errors' => @errors,
+        'messages' => @messages,
+      }.as_json(*args, &block)
     end
 
     def conducer
