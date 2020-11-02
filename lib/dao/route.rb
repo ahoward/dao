@@ -66,6 +66,7 @@ module Dao
     end
 
     def params_for(path)
+      path = path.to_s
       match = pattern.match(path).to_a
 
       unless match.empty?
